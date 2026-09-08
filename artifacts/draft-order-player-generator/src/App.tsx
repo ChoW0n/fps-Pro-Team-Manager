@@ -465,11 +465,13 @@ function DraftScreen({
             </div>
           </div>
           <div className="champion-groups">
-            {POSITION_ORDER.map((position) => (
+            {(() => {
+              const position = step?.targetPlayer?.position ?? 'MID';
+              return (
               <div className="position-group" key={position}>
                 <div className="position-heading">
-                  <span>{positionDisplayNames[position]}</span>
-                  <span>{getChampionsByPosition(position).length}명</span>
+                  <span>{step?.targetPlayer ? `${positionDisplayNames[position]} 적합도 순` : '전체 챔피언'}</span>
+                  <span>25명 · 낮은 적합도 선택 가능</span>
                 </div>
                 <div className="champion-grid">
                   {getChampionsByPosition(position).map((champion) => {
@@ -496,13 +498,15 @@ function DraftScreen({
                           <small>{roleDisplayNames[champion.role]}</small>
                         </span>
                         <span className="champion-difficulty">난이도 {champion.difficulty}/5</span>
+                        <span className="champion-difficulty">적합도 {champion.getPositionFit(position)}</span>
                         {selected && <span className="champion-status">{session.records.find((record) => record.champion.name === champion.name)?.action === 'BAN' ? '금지됨' : '선택됨'}</span>}
                       </button>
                     );
                   })}
                 </div>
               </div>
-            ))}
+              );
+            })()}
           </div>
         </div>
         <CompositionPanel team={awayTeam} side="AWAY" picks={awayPicks} warnings={awayWarnings} />

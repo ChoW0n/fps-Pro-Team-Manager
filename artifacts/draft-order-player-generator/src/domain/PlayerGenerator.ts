@@ -8,7 +8,7 @@ import { PLAYER_STATS_BY_POSITION, StatDistribution } from './playerStats';
 import { NicknameGenerator } from './NicknameGenerator';
 import { KoreanNameGenerator } from './KoreanNameGenerator';
 import { clampToStatRange, generateNormalRandom } from './randomUtils';
-import { Champion, getChampionsByPosition } from './Champion';
+import { Champion, CHAMPIONS } from './Champion';
 import { assignSoloRankLadder, createSoloRankRecord } from './soloRank';
 
 export class PlayerGenerator {
@@ -43,7 +43,7 @@ export class PlayerGenerator {
    */
   private generateChampionPool(position: Position, poolStat: number): Champion[] {
     const count = Math.max(1, Math.min(5, Math.round(poolStat / 20)));
-    const candidates = [...getChampionsByPosition(position)];
+    const candidates = [...CHAMPIONS];
     const pool: Champion[] = [];
     while (pool.length < count) {
       const index = Math.floor(Math.random() * candidates.length);

@@ -85,7 +85,9 @@ export class BanPick {
     if (candidates.length === 0) {
       throw new Error(`${formatPlayerName(player)}에게 가능한 챔피언이 없습니다.`);
     }
-    candidates.sort((left, right) => this.compositionNeed(picks, right) - this.compositionNeed(picks, left));
+    candidates.sort((left, right) =>
+      this.pickPriority(player, picks, right) - this.pickPriority(player, picks, left),
+    );
     return candidates[0];
   }
 
@@ -133,6 +135,16 @@ export class BanPick {
     if (!picks.some((pick) => pick.engagement === champion.engagement)) score += 2;
     if (!picks.some((pick) => pick.range === champion.range)) score += 1;
     return score;
+  }
+
+  private pickPriority(player: Player, picks: Champion[], champion: Champion): number {
+    const fit = champion.getPositionFit(player.position);
+    const lowFitPenalty = fit < 55 ? (55 - fit) * 0.35 : 0;
+    return this.compositionNeed(picks, champion) * 10
+      + this.difficultyFit(player, champion) * 3
+      + fit * 0.45
+      + champion.getStrength() * 12
+      - lowFitPenalty;
   }
 }
 
