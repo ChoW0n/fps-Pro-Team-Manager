@@ -6,6 +6,12 @@
 
 import { Position } from './Player';
 
+// 기복 → 표준편차 변환 경계값, 튜닝 대상
+export const MIN_VOLATILITY_STD_DEV = 2;
+
+// 기복 → 표준편차 변환 경계값, 튜닝 대상
+export const MAX_VOLATILITY_STD_DEV = 18;
+
 // 능력치 분포 타입 정의
 export interface StatDistribution {
   mean: number;
