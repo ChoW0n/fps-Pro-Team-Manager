@@ -352,24 +352,60 @@ export class Champion {
   /** 현재 패치값을 기준으로 챔피언의 상대적인 전투 강도를 계산한다. */
   public getStrength(): number {
     const value = (key: ChampionPatchStatKey) => getPatchValue(this.patchStats, key);
-    return (
-      value('healthBase') / 600
-      + value('healthGrowth') / 90
-      + value('attackBase') / 60
-      + value('attackGrowth') / 3
-      + value('armorBase') / 35
-      + value('armorGrowth') / 4
-      + value('movementSpeed') / 340
-      + value('basicRange') / 700
-      + value('basicDamage') / 60
-      + value('basicAttackCoefficient') / 0.7
-      + value('ultimateDamage') / 180
-      + value('ultimateAttackCoefficient') / 0.9
-      + value('ultimateRange') / 1100
-      + value('passiveEffectValue') / 0.08
-      + 1 / Math.max(1, value('basicCooldown'))
-      + 1 / Math.max(1, value('ultimateCooldown')) * 10
-    ) / 16;
+    const calculate = (changedKey?: ChampionPatchStatKey, multiplier = 1) => {
+      const stat = (key: ChampionPatchStatKey) => value(key) * (key === changedKey ? multiplier : 1);
+      const attack = stat('attackBase') + stat('attackGrowth') * 17 + 180;
+      const health = stat('healthBase') + stat('healthGrowth') * 17;
+      const armor = stat('armorBase') + stat('armorGrowth') * 17;
+      const magicResist = stat('magicResistBase') + stat('magicResistGrowth') * 17;
+      const basicHit = stat('basicDamage')
+        + this.skillsWithScaling.basic.scaling.damagePerLevel * 4
+        + attack * stat('basicAttackCoefficient');
+      const ultimateHit = stat('ultimateDamage')
+        + this.skillsWithScaling.ultimate.scaling.damagePerLevel * 2
+        + attack * stat('ultimateAttackCoefficient');
+      const sustainedDamage = (basicHit / stat('basicCooldown') + attack * 0.85) / 320;
+      const teamfightBurst = ultimateHit / 2000 * (130 / stat('ultimateCooldown'));
+      const survival = health * (1 + (armor + magicResist) / 2 / 100) / 4200;
+      const mobility = stat('movementSpeed') / 340
+        * (1 + stat('basicRange') / 900 * 0.35)
+        / 1.35;
+      return (
+        sustainedDamage * 0.30
+        + teamfightBurst * 0.25
+        + survival * 0.30
+        + mobility * 0.15
+      ) * (1 + stat('passiveEffectValue'));
+    };
+    const strength = calculate();
+    const validationLabel = this.difficulty === 5 && this.timing === 'LATE'
+      && this.engagement === 'DIVE' && this.range === 'SINGLE' && this.role === 'DAMAGE'
+      ? '난이도 5 후반 돌진 단일 딜러'
+      : this.timing === 'EARLY' && this.engagement === 'DIVE' && this.range === 'SINGLE' && this.role === 'TANK'
+        ? '초반 돌진 단일 탱커'
+        : this.timing === 'LATE' && this.engagement === 'POKE' && this.range === 'AOE'
+          ? `후반 견제 광역 ${this.role === 'DAMAGE' ? '딜러' : this.role === 'UTILITY' ? '유틸' : '탱커'}`
+          : '';
+    if (validationLabel) console.log(`[챔피언 강도 검증] ${validationLabel}: ${strength.toFixed(3)}`);
+    if (this.difficulty === 5 && this.timing === 'LATE'
+      && this.engagement === 'DIVE' && this.range === 'SINGLE' && this.role === 'DAMAGE') {
+      const sensitivityKeys: ChampionPatchStatKey[] = [
+        'healthBase', 'healthGrowth', 'attackBase', 'attackGrowth',
+        'armorBase', 'armorGrowth', 'magicResistBase', 'magicResistGrowth',
+        'movementSpeed', 'basicRange', 'basicDamage', 'basicAttackCoefficient',
+        'basicCooldown', 'ultimateDamage', 'ultimateAttackCoefficient',
+        'ultimateCooldown', 'passiveEffectValue',
+      ];
+      console.table(sensitivityKeys.map((key) => {
+        const multiplier = key.endsWith('Cooldown') ? 0.9 : 1.1;
+        return {
+          항목: this.patchStats.find((stat) => stat.key === key)?.name ?? key,
+          변화: key.endsWith('Cooldown') ? '-10%' : '+10%',
+          '강도 변화율': `${((calculate(key, multiplier) / strength - 1) * 100).toFixed(2)}%`,
+        };
+      }));
+    }
+    return strength;
   }
 
   public getPositionFit(position: Position): number {
