@@ -3,17 +3,20 @@
  * 각 선수의 포지션, 나이, 능력치 정보를 저장합니다.
  */
 
+import type { Champion } from './Champion';
+
 // 포지션 타입 정의
 export type Position = 'TOP' | 'JUNGLE' | 'MID' | 'ADC' | 'SUPPORT';
 
 export class Player {
   public nickname: string;
+  public realName: string;
   public position: Position;
   public age: number;
   public laning: number;
   public teamfight: number;
   public macro: number;
-  public championPool: number;
+  public championPool: Champion[];
   public volatility: number;
 
   /**
@@ -22,15 +25,17 @@ export class Player {
    */
   constructor(
     nickname: string,
+    realName: string,
     position: Position,
     age: number,
     laning: number,
     teamfight: number,
     macro: number,
-    championPool: number,
+     championPool: Champion[],
     volatility: number
   ) {
     this.nickname = nickname;
+    this.realName = realName;
     this.position = position;
     this.age = age;
     this.laning = laning;

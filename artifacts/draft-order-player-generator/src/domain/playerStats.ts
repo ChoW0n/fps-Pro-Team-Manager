@@ -12,6 +12,9 @@ export const MIN_VOLATILITY_STD_DEV = 2;
 // 기복 → 표준편차 변환 경계값, 튜닝 대상
 export const MAX_VOLATILITY_STD_DEV = 18;
 
+// 난이도 페널티 계수, 튜닝 대상
+export const DIFFICULTY_PENALTY_COEFFICIENT = 0.05;
+
 // 능력치 분포 타입 정의
 export interface StatDistribution {
   mean: number;

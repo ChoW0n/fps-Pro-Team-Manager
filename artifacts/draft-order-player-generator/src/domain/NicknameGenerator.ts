@@ -1,54 +1,73 @@
 /**
- * 닉네임 생성기 클래스
- * 짧은 영단어를 조합하여 무작위로 선수 닉네임을 생성하며, 중복을 방지합니다.
+ * 선수 닉네임 생성기입니다.
+ * 짧고 읽기 쉬운 영문 한 단어 닉네임만 생성합니다.
  */
 
 export class NicknameGenerator {
-  // 무기 관련 영단어 목록
-  private weapons = ['Sword', 'Spear', 'Bow', 'Axe', 'Dagger', 'Shield', 'Blade', 'Arrow'];
-  // 동물 관련 영단어 목록
-  private animals = ['Wolf', 'Bear', 'Hawk', 'Lion', 'Tiger', 'Shark', 'Viper', 'Fox'];
-  // 신화 관련 영단어 목록
-  private myths = ['Zeus', 'Ares', 'Hades', 'Thor', 'Odin', 'Loki', 'Titan', 'Ghost'];
-  // 자연 관련 영단어 목록
-  private natures = ['Storm', 'Fire', 'Ice', 'Wind', 'Thunder', 'Shadow', 'Light', 'Stone'];
-  
-  // 중복 검사를 위한 저장소
-  private generatedNicknames = new Set<string>();
+  // 짧은 무기·동물·자연·추상 명사 후보입니다.
+  private readonly words = [
+    'ash', 'bear', 'bolt', 'claw', 'dawn', 'drake', 'ember', 'fang', 'fern',
+    'flint', 'fox', 'glow', 'gloom', 'hawk', 'iron', 'jade', 'lark', 'mist',
+    'moss', 'nova', 'onyx', 'raven', 'reed', 'rune', 'sable', 'shade', 'shard',
+    'slate', 'spark', 'thorn', 'tide', 'vale', 'vex', 'wisp', 'wolf',
+  ];
+  // 발음 가능한 두 음절 로마자 조어의 앞·뒤 음절입니다.
+  private readonly firstSyllables = ['ba', 'be', 'da', 'de', 'fa', 'ga', 'ka', 'la', 'ma', 'na', 'ra', 'sa', 'ta', 'va'];
+  private readonly lastSyllables = ['bel', 'den', 'len', 'mar', 'mon', 'rel', 'ren', 'rin', 'sen', 'ter', 'ven', 'wyn'];
+  // 짧은 접미사 변형입니다.
+  private readonly suffixes = ['er', 'y', 'o'];
+  // 알려진 실존 프로 ID와 생성된 닉네임을 모두 소문자로 보관합니다.
+  private readonly blockedNicknames = new Set([
+    'chovy', 'keria', 'oner', 'kiin', 'faker', 'deft', 'ruler', 'canyon',
+    'showmaker', 'bengi', 'bang', 'wolf', 'peanut', 'viper', 'zeus', 'gumayusi',
+    'teddy', 'score', 'mata', 'ambition', 'caps', 'rekkles', 'jankos', 'perkz',
+    'doublelift', 'bjergsen', 'uzi', 'meiko', 'xiaohu', 'knight', 'scout',
+  ]);
+  // 중복 검사를 위한 저장소입니다.
+  private readonly generatedNicknames = new Set<string>();
 
   /**
-   * 고유한 닉네임을 생성하여 반환합니다.
-   * 이미 생성된 닉네임일 경우 재귀적으로 다시 생성합니다.
+   * 규칙에 맞는 후보 하나를 무작위로 만듭니다.
+   */
+  private createCandidate(): string {
+    const method = Math.floor(Math.random() * 3);
+    let candidate: string;
+
+    if (method === 0) {
+      candidate = this.pick(this.words);
+    } else {
+      candidate = `${this.pick(this.firstSyllables)}${this.pick(this.lastSyllables)}`;
+    }
+
+    if (method === 2) {
+      candidate += this.pick(this.suffixes);
+    }
+
+    return `${candidate[0].toUpperCase()}${candidate.slice(1).toLowerCase()}`;
+  }
+
+  /**
+   * 배열에서 임의의 값 하나를 반환합니다.
+   */
+  private pick(values: string[]): string {
+    return values[Math.floor(Math.random() * values.length)];
+  }
+
+  /**
+   * 고유한 닉네임을 생성합니다.
+   * 유한 횟수 안에 만들지 못하면 원인을 드러내는 오류를 던집니다.
    */
   public generateUniqueNickname(): string {
-    const categories = [this.weapons, this.animals, this.myths, this.natures];
-    
-    // 단어를 2개 또는 3개 조합할지 결정
-    const wordCount = Math.random() > 0.5 ? 2 : 3;
-    
-    // 카테고리를 무작위로 섞음
-    const shuffledCategories = [...categories].sort(() => 0.5 - Math.random());
-    const selectedCategories = shuffledCategories.slice(0, wordCount);
-    
-    // 선택된 카테고리에서 무작위로 단어 하나씩 추출
-    const words = selectedCategories.map(
-      category => category[Math.floor(Math.random() * category.length)]
-    );
-    
-    let nickname = words.join('');
+    for (let attempt = 0; attempt < 200; attempt += 1) {
+      const nickname = this.createCandidate();
+      const normalized = nickname.toLowerCase();
 
-    // 30% 확률로 숫자(1~99)를 접미사로 추가
-    if (Math.random() < 0.3) {
-      const suffix = Math.floor(Math.random() * 99) + 1;
-      nickname += suffix.toString();
+      if (!this.blockedNicknames.has(normalized) && !this.generatedNicknames.has(normalized)) {
+        this.generatedNicknames.add(normalized);
+        return nickname;
+      }
     }
 
-    // 중복 닉네임인 경우 재시도
-    if (this.generatedNicknames.has(nickname)) {
-      return this.generateUniqueNickname();
-    }
-
-    this.generatedNicknames.add(nickname);
-    return nickname;
+    throw new Error('고유한 닉네임을 200회 시도했지만 생성하지 못했습니다.');
   }
 }

@@ -6,6 +6,21 @@
 import { Player, Position } from './Player';
 import { SeasonSimulationResult } from './SeasonSimulation';
 import { Team } from './Team';
+import { CHAMPIONS } from './Champion';
+import { formatChampionIntroduction, getChampionEffectType } from './Champion';
+import { MatchResult } from './MatchResult';
+import { formatPlayerName } from './playerDisplay';
+import {
+  draftActionDisplayNames,
+  effectDisplayNames,
+  engagementDisplayNames,
+  phaseDisplayNames,
+  positionDisplayNames,
+  rangeDisplayNames,
+  roleDisplayNames,
+  statDisplayNames,
+  timingDisplayNames,
+} from './displayNames';
 
 // React StrictMode 등에서 여러 번 출력되는 것을 방지하는 플래그
 let hasOutputRun = false;
@@ -27,23 +42,23 @@ export function printPlayersToConsole(players: Player[]): void {
     const positionPlayers = players.filter(p => p.position === position);
     
     // 콘솔 그룹 시작
-    console.group(`[${position}] 포지션 선수 목록 (${positionPlayers.length}명)`);
+    console.group(`[${positionDisplayNames[position]}] 포지션 선수 목록 (${positionPlayers.length}명)`);
     
     positionPlayers.forEach((player, index) => {
       // 번호를 2자리로 패딩
       const no = (index + 1).toString().padStart(2, '0');
-      // 닉네임을 일정 길이로 패딩하여 표 형태를 맞춤
-      const nickname = player.nickname.padEnd(20, ' ');
+      // 공용 선수 표기를 일정 길이로 패딩하여 표 형태를 맞춤
+      const playerName = formatPlayerName(player).padEnd(20, ' ');
       
       // 능력치도 3자리로 패딩하여 일렬로 정렬
       const laning = player.laning.toString().padStart(3, ' ');
       const teamfight = player.teamfight.toString().padStart(3, ' ');
       const macro = player.macro.toString().padStart(3, ' ');
-      const champ = player.championPool.toString().padStart(3, ' ');
+      const champ = `${player.championPool.length}종 (${player.championPool.map((champion) => champion.name).join(', ')})`;
       const vol = player.volatility.toString().padStart(3, ' ');
 
       console.log(
-        `${no}. ${nickname} | 나이: ${player.age} | 라인전: ${laning} | 한타: ${teamfight} | 운영: ${macro} | 챔프폭: ${champ} | 기복: ${vol}`
+          `${no}. ${playerName} | 나이: ${player.age} | ${statDisplayNames.laning}: ${laning} | ${statDisplayNames.teamfight}: ${teamfight} | ${statDisplayNames.macro}: ${macro} | ${statDisplayNames.championPool}: ${champ} | ${statDisplayNames.volatility}: ${vol}`
       );
     });
 
@@ -52,6 +67,45 @@ export function printPlayersToConsole(players: Player[]): void {
   });
 
   console.log('============================================');
+}
+
+/**
+ * 포지션별 챔피언과 전투 태그를 콘솔에 출력합니다.
+ */
+export function printChampionsToConsole(): void {
+  console.group('=== DRAFT ORDER 챔피언 25종 ===');
+  (['TOP', 'JUNGLE', 'MID', 'ADC', 'SUPPORT'] as Position[]).forEach((position) => {
+    console.group(`[${positionDisplayNames[position]}]`);
+    CHAMPIONS.filter((champion) => champion.position === position).forEach((champion) => {
+      console.log(
+        `${formatChampionIntroduction(champion)} | 고유명: ${champion.name} | 수식어: ${champion.title} | `
+        + `시그니처 스킬: ${champion.signatureSkill.name} - ${champion.signatureSkill.description} | `
+        + `이펙트: ${effectDisplayNames[getChampionEffectType(champion)]} | `
+        + `태그: ${positionDisplayNames[champion.position]}, ${timingDisplayNames[champion.timing]}, `
+        + `${engagementDisplayNames[champion.engagement]}, ${rangeDisplayNames[champion.range]}, `
+        + `${roleDisplayNames[champion.role]} | 난이도 ${champion.difficulty}`,
+      );
+    });
+    console.groupEnd();
+  });
+  console.groupEnd();
+}
+
+/**
+ * 첫 시즌에서 보존한 한 경기의 밴픽과 구간 결과를 콘솔에 출력합니다.
+ */
+export function printMatchResultToConsole(result: MatchResult): void {
+  console.group(`=== 첫 시즌 상세 경기: ${result.homeTeam.name} vs ${result.awayTeam.name} ===`);
+  result.draftRecords.forEach((record, index) => {
+    const actor = record.player ? ` ${formatPlayerName(record.player)}` : '';
+    console.log(`${index + 1}. ${draftActionDisplayNames[record.action]} | ${record.teamName}${actor} | ${record.champion.name}`);
+  });
+  result.phases.forEach((phase) => {
+    console.log(`${phaseDisplayNames[phase.phase]} | ${result.homeTeam.name} ${phase.homePower.toFixed(1)} : ${result.awayTeam.name} ${phase.awayPower.toFixed(1)} | 구간 승자 ${phase.winnerName}`);
+    phase.adjustments.forEach((adjustment) => console.log(`  보정: ${adjustment}`));
+  });
+  console.log(`경기 승자: ${result.winner.name}`);
+  console.groupEnd();
 }
 
 /**
@@ -89,5 +143,10 @@ export function printSimulationToConsole(result: SeasonSimulationResult): void {
   } else {
     console.log('관찰: 강한 팀이 자주 우승하지만 우승팀은 고정되지 않았습니다.');
   }
+  const highestStatTeam = [...result.firstSeasonStandings].sort((left, right) =>
+    right.players.reduce((sum, player) => sum + player.laning + player.teamfight + player.macro, 0)
+    - left.players.reduce((sum, player) => sum + player.laning + player.teamfight + player.macro, 0),
+  )[0];
+  console.log(`원래 능력치 합 최고 팀: ${highestStatTeam.name} | 우승 ${result.championships.get(highestStatTeam.name)}회`);
   console.groupEnd();
 }

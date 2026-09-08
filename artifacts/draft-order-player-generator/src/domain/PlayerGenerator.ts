@@ -6,16 +6,20 @@
 import { Player, Position } from './Player';
 import { PLAYER_STATS_BY_POSITION, StatDistribution } from './playerStats';
 import { NicknameGenerator } from './NicknameGenerator';
+import { KoreanNameGenerator } from './KoreanNameGenerator';
 import { clampToStatRange, generateNormalRandom } from './randomUtils';
+import { Champion, getChampionsByPosition } from './Champion';
 
 export class PlayerGenerator {
   private nicknameGenerator: NicknameGenerator;
+  private koreanNameGenerator: KoreanNameGenerator;
 
   /**
    * PlayerGenerator 인스턴스를 초기화합니다.
    */
   constructor() {
     this.nicknameGenerator = new NicknameGenerator();
+    this.koreanNameGenerator = new KoreanNameGenerator();
   }
 
   /**
@@ -34,21 +38,37 @@ export class PlayerGenerator {
   }
 
   /**
+   * 기존 챔피언 폭 수치를 숙련 챔피언 수로 변환해 무작위 목록을 만듭니다.
+   */
+  private generateChampionPool(position: Position, poolStat: number): Champion[] {
+    const count = Math.max(1, Math.min(5, Math.round(poolStat / 20)));
+    const candidates = [...getChampionsByPosition(position)];
+    const pool: Champion[] = [];
+    while (pool.length < count) {
+      const index = Math.floor(Math.random() * candidates.length);
+      pool.push(candidates.splice(index, 1)[0]);
+    }
+    return pool;
+  }
+
+  /**
    * 지정된 포지션의 선수를 1명 생성하여 반환합니다.
    */
   private generatePlayerForPosition(position: Position): Player {
     const nickname = this.nicknameGenerator.generateUniqueNickname();
+    const realName = this.koreanNameGenerator.generateUniqueName();
     const age = this.generateAge();
     const stats = PLAYER_STATS_BY_POSITION[position];
 
     return new Player(
       nickname,
+      realName,
       position,
       age,
       this.generateStat(stats.laning),
       this.generateStat(stats.teamfight),
       this.generateStat(stats.macro),
-      this.generateStat(stats.championPool),
+       this.generateChampionPool(position, this.generateStat(stats.championPool)),
       this.generateStat(stats.volatility)
     );
   }

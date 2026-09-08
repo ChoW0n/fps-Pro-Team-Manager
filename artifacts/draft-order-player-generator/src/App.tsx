@@ -6,6 +6,8 @@
 import { useEffect } from 'react';
 import {
   printPlayersToConsole,
+  printChampionsToConsole,
+  printMatchResultToConsole,
   printSimulationToConsole,
   printStandingsToConsole,
 } from './domain/consoleOutput';
@@ -15,19 +17,28 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ErrorBoundary } from '@/components/error-boundary';
 
 const queryClient = new QueryClient();
+// StrictMode의 효과 재실행에도 콘솔 시뮬레이션을 한 번만 수행하는 플래그
+let hasSimulationRun = false;
 
+/**
+ * 콘솔 시뮬레이션을 시작하는 최소 안내 화면입니다.
+ */
 function Home() {
   useEffect(() => {
+    if (hasSimulationRun) return;
+    hasSimulationRun = true;
     // 기존 선수 생성기를 재사용하여 같은 로스터의 팀 10개를 생성
     const teams = new TeamGenerator().generateTenTeams();
 
-    // 팀에 배정된 기존 선수 50명을 포지션별로 콘솔에 출력
+     // 챔피언 목록과 팀에 배정된 기존 선수 50명을 순서대로 콘솔에 출력
+     printChampionsToConsole();
     printPlayersToConsole(teams.flatMap((team) => team.players));
 
     // 같은 로스터로 100시즌을 진행하여 첫 시즌 순위와 우승 분포를 검증
     const result = new SeasonSimulation().run(teams, 100);
 
-    // 첫 시즌 순위표와 100시즌 반복 검증 결과를 콘솔에 출력
+     // 첫 시즌 상세 경기, 순위표와 100시즌 반복 검증 결과를 콘솔에 출력
+     printMatchResultToConsole(result.firstSeasonMatch);
     printStandingsToConsole(result.firstSeasonStandings);
     printSimulationToConsole(result);
   }, []);
@@ -49,6 +60,9 @@ function Home() {
   );
 }
 
+/**
+ * 애플리케이션 제공자를 묶는 루트 컴포넌트입니다.
+ */
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
