@@ -52,6 +52,8 @@ export function printPlayersToConsole(players: Player[]): void {
       
       // 능력치도 3자리로 패딩하여 일렬로 정렬
       const laning = player.laning.toString().padStart(3, ' ');
+      const farming = player.farming.toString().padStart(3, ' ');
+      const vision = player.vision.toString().padStart(3, ' ');
       const teamfight = player.teamfight.toString().padStart(3, ' ');
       const macro = player.macro.toString().padStart(3, ' ');
       const champ = `${player.championPool.length}종 (${player.championPool.map((champion) => champion.name).join(', ')})`;
@@ -60,7 +62,7 @@ export function printPlayersToConsole(players: Player[]): void {
       const aggression = player.aggression.toString().padStart(3, ' ');
 
       console.log(
-          `${no}. ${playerName} | 나이: ${player.age} | ${statDisplayNames.laning}: ${laning} | ${statDisplayNames.teamfight}: ${teamfight} | ${statDisplayNames.macro}: ${macro} | ${statDisplayNames.championPool}: ${champ} | ${statDisplayNames.volatility}: ${vol} | ${statDisplayNames.mastery}: ${mastery} | ${statDisplayNames.aggression}: ${aggression}`
+          `${no}. ${playerName} | 나이: ${player.age} | ${statDisplayNames.laning}: ${laning} | ${statDisplayNames.farming}: ${farming} | ${statDisplayNames.vision}: ${vision} | ${statDisplayNames.teamfight}: ${teamfight} | ${statDisplayNames.macro}: ${macro} | ${statDisplayNames.championPool}: ${champ} | ${statDisplayNames.volatility}: ${vol} | ${statDisplayNames.mastery}: ${mastery} | ${statDisplayNames.aggression}: ${aggression}`
       );
     });
 
@@ -69,6 +71,79 @@ export function printPlayersToConsole(players: Player[]): void {
   });
 
   console.log('============================================');
+}
+
+/**
+ * 10개 팀 50명의 솔로랭크 결과가 사용자가 지정한 기준을 만족하는지 출력합니다.
+ * 실패해도 계수나 결과를 보정하지 않고, 실제 값과 벗어난 기준만 알립니다.
+ */
+export function printSoloRankValidationToConsole(players: Player[]): void {
+  const rankedPlayers = players
+    .filter((player): player is Player & { soloRank: NonNullable<Player['soloRank']> } => Boolean(player.soloRank))
+    .sort((left, right) => left.soloRank.ladderRank - right.soloRank.ladderRank);
+  const ranks = rankedPlayers.map((player) => player.soloRank.ladderRank);
+  const ratings = rankedPlayers.map((player) => player.soloRank.rating);
+  const medianIndex = Math.floor(ranks.length / 2);
+  const medianRank = ranks.length % 2 === 0
+    ? (ranks[medianIndex - 1] + ranks[medianIndex]) / 2
+    : ranks[medianIndex];
+  const challengerCount = rankedPlayers.filter((player) => player.soloRank.tier === '챌린저').length;
+  const grandmasterAndMasterCount = rankedPlayers.filter((player) =>
+    player.soloRank.tier === '그랜드마스터' || player.soloRank.tier === '마스터').length;
+  const uniqueRankCount = new Set(ranks).size;
+  const checks = [
+    {
+      label: '래더 순위 최상위',
+      actual: ranks[0] ?? 0,
+      expected: '2~5위',
+      passed: (ranks[0] ?? 0) >= 2 && (ranks[0] ?? 0) <= 5,
+    },
+    {
+      label: '래더 순위 최하위',
+      actual: ranks[ranks.length - 1] ?? 0,
+      expected: '200~1200위',
+      passed: (ranks[ranks.length - 1] ?? 0) >= 200 && (ranks[ranks.length - 1] ?? 0) <= 1200,
+    },
+    {
+      label: '순위 중앙값',
+      actual: medianRank,
+      expected: '5~60위',
+      passed: medianRank >= 5 && medianRank <= 60,
+    },
+    {
+      label: '중복 순위',
+      actual: `${ranks.length - uniqueRankCount}명 중복`,
+      expected: '0명 중복',
+      passed: ranks.length === uniqueRankCount,
+    },
+    {
+      label: '티어 분포',
+      actual: `챌린저 ${challengerCount}명 / 그랜드마스터+마스터 ${grandmasterAndMasterCount}명`,
+      expected: '챌린저 40명 이상, 그랜드마스터+마스터 10명 이하',
+      passed: challengerCount >= 40 && grandmasterAndMasterCount <= 10,
+    },
+    {
+      label: '레이팅 범위',
+      actual: `${Math.min(...ratings).toFixed(1)}~${Math.max(...ratings).toFixed(1)}`,
+      expected: '대략 450~850',
+      passed: ratings.length > 0 && Math.min(...ratings) >= 450 && Math.max(...ratings) <= 850,
+    },
+  ];
+
+  console.group('=== 솔로랭크 공식 검증 (10개 팀 50명) ===');
+  checks.forEach((check) => {
+    console.log(
+      `${check.passed ? '통과' : '실패'} | ${check.label} | 실제: ${check.actual} | 기준: ${check.expected}`
+      + (check.passed ? '' : ' | 기준에서 벗어났으며 계수는 조정하지 않음'),
+    );
+  });
+  const failedChecks = checks.filter((check) => !check.passed);
+  if (failedChecks.length > 0) {
+    console.error(`솔로랭크 검증 실패 항목: ${failedChecks.map((check) => check.label).join(', ')}`);
+  } else {
+    console.log('전체 솔로랭크 검증 통과');
+  }
+  console.groupEnd();
 }
 
 /**

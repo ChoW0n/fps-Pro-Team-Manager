@@ -15,6 +15,8 @@ export class Player {
   public position: Position;
   public age: number;
   public laning: number;
+  public farming: number;
+  public vision: number;
   public teamfight: number;
   public macro: number;
   public championPool: Champion[];
@@ -40,6 +42,8 @@ export class Player {
     position: Position,
     age: number,
     laning: number,
+    farming: number,
+    vision: number,
     teamfight: number,
     macro: number,
     championPool: Champion[],
@@ -56,6 +60,8 @@ export class Player {
     this.position = position;
     this.age = age;
     this.laning = laning;
+    this.farming = farming;
+    this.vision = vision;
     this.teamfight = teamfight;
     this.macro = macro;
     this.championPool = championPool;

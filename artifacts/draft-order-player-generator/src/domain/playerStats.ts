@@ -32,6 +32,10 @@ export interface StatDistribution {
 // 포지션별 5가지 능력치 타입 정의
 export interface PositionStats {
   laning: StatDistribution;
+  // 파밍 능력치 분포 임시값, 사용자가 지정한 임시값입니다.
+  farming: StatDistribution;
+  // 시야 능력치 분포 임시값, 사용자가 지정한 임시값입니다.
+  vision: StatDistribution;
   teamfight: StatDistribution;
   macro: StatDistribution;
   championPool: StatDistribution;
@@ -50,6 +54,8 @@ export interface PositionStats {
 export const PLAYER_STATS_BY_POSITION: Record<Position, PositionStats> = {
   TOP: {
     laning: { mean: 70, stdDev: 10 },
+    farming: { mean: 66, stdDev: 10 },
+    vision: { mean: 45, stdDev: 12 },
     teamfight: { mean: 65, stdDev: 12 },
     macro: { mean: 60, stdDev: 10 },
     championPool: { mean: 65, stdDev: 15 },
@@ -66,6 +72,8 @@ export const PLAYER_STATS_BY_POSITION: Record<Position, PositionStats> = {
   },
   JUNGLE: {
     laning: { mean: 55, stdDev: 10 },
+    farming: { mean: 70, stdDev: 10 },
+    vision: { mean: 68, stdDev: 10 },
     teamfight: { mean: 70, stdDev: 12 },
     macro: { mean: 75, stdDev: 10 },
     championPool: { mean: 60, stdDev: 15 },
@@ -82,6 +90,8 @@ export const PLAYER_STATS_BY_POSITION: Record<Position, PositionStats> = {
   },
   MID: {
     laning: { mean: 75, stdDev: 10 },
+    farming: { mean: 72, stdDev: 10 },
+    vision: { mean: 48, stdDev: 12 },
     teamfight: { mean: 75, stdDev: 10 },
     macro: { mean: 65, stdDev: 10 },
     championPool: { mean: 70, stdDev: 10 },
@@ -98,6 +108,8 @@ export const PLAYER_STATS_BY_POSITION: Record<Position, PositionStats> = {
   },
   ADC: {
     laning: { mean: 65, stdDev: 10 },
+    farming: { mean: 78, stdDev: 9 },
+    vision: { mean: 42, stdDev: 12 },
     teamfight: { mean: 80, stdDev: 10 },
     macro: { mean: 50, stdDev: 15 },
     championPool: { mean: 55, stdDev: 15 },
@@ -114,6 +126,8 @@ export const PLAYER_STATS_BY_POSITION: Record<Position, PositionStats> = {
   },
   SUPPORT: {
     laning: { mean: 60, stdDev: 12 },
+    farming: { mean: 35, stdDev: 12 },
+    vision: { mean: 82, stdDev: 9 },
     teamfight: { mean: 70, stdDev: 12 },
     macro: { mean: 80, stdDev: 10 },
     championPool: { mean: 60, stdDev: 10 },

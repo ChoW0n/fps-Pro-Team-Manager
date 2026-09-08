@@ -6,6 +6,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   printPlayersToConsole,
+  printSoloRankValidationToConsole,
   printChampionsToConsole,
   printMatchResultToConsole,
   printSimulationToConsole,
@@ -110,7 +111,9 @@ function Home() {
 
      // 챔피언 목록과 팀에 배정된 기존 선수 50명을 순서대로 콘솔에 출력
      printChampionsToConsole();
-    printPlayersToConsole(teams.flatMap((team) => team.players));
+    const generatedPlayers = teams.flatMap((team) => team.players);
+    printPlayersToConsole(generatedPlayers);
+    printSoloRankValidationToConsole(generatedPlayers);
 
     // 같은 로스터로 100시즌을 진행하여 첫 시즌 순위와 우승 분포를 검증
     const result = new SeasonSimulation().run(teams, 100);

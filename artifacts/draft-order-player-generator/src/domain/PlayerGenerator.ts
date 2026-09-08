@@ -9,7 +9,7 @@ import { NicknameGenerator } from './NicknameGenerator';
 import { KoreanNameGenerator } from './KoreanNameGenerator';
 import { clampToStatRange, generateNormalRandom } from './randomUtils';
 import { Champion, getChampionsByPosition } from './Champion';
-import { createSoloRankRecord } from './soloRank';
+import { assignSoloRankLadder, createSoloRankRecord } from './soloRank';
 
 export class PlayerGenerator {
   private nicknameGenerator: NicknameGenerator;
@@ -67,6 +67,8 @@ export class PlayerGenerator {
       position,
       age,
       this.generateStat(stats.laning),
+      this.generateStat(stats.farming),
+      this.generateStat(stats.vision),
       this.generateStat(stats.teamfight),
       this.generateStat(stats.macro),
       this.generateChampionPool(position, this.generateStat(stats.championPool)),
@@ -95,6 +97,7 @@ export class PlayerGenerator {
       }
     }
 
+    assignSoloRankLadder(players);
     return players;
   }
 }

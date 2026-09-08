@@ -1,14 +1,15 @@
 /**
  * 솔로랭크는 대회 경기와 별도의 공개 기록입니다.
- * 솔로랭크는 라인전·파밍을 대신하는 라인전 기반값, 숙련도, 챔피언 폭, 공격성을 크게 보고,
+ * 솔로랭크는 라인전·파밍·숙련도·챔피언 폭을 보고, 공격성은 성적의 기복만 만듭니다.
  * 한타·운영·시야와 숨은 능력치·팀 궁합은 거의 반영하지 않습니다.
  * 따라서 솔로랭크 순위가 높아도 대회에서 강하다는 뜻은 아니며, 이 모듈은 대회 승패를 직접 바꾸지 않습니다.
  */
 
 import { CHAMPIONS, Champion } from './Champion';
 import { Player } from './Player';
+import { generateNormalRandom } from './randomUtils';
 
-export type SoloRankTier = '챌린저' | '그랜드마스터' | '마스터' | '다이아몬드' | '에메랄드';
+export type SoloRankTier = '챌린저' | '그랜드마스터' | '마스터';
 
 export interface SoloRankChampionRecord {
   champion: Champion;
@@ -30,6 +31,7 @@ export interface RecentSoloRankGame {
 
 export interface SoloRankRecord {
   tier: SoloRankTier;
+  rating: number;
   points: number;
   ladderRank: number;
   championRecords: SoloRankChampionRecord[];
@@ -64,13 +66,41 @@ export function createSoloRankRecord(player: Player): SoloRankRecord {
   const recentGames = createRecentGames(player, championRecords);
   const soloRating = calculateSoloRating(player, championRecords);
   return {
-    tier: getTier(soloRating),
-    points: Math.round(100 + (soloRating % 900)),
-    ladderRank: Math.max(1, Math.round(5200 - soloRating * 42 + stableSeed(player.nickname) % 180)),
+    // 전체 선수 생성이 끝난 뒤 assignSoloRankLadder가 실제 순위와 티어를 확정합니다.
+    tier: '마스터',
+    rating: soloRating,
+    points: Math.round(soloRating),
+    ladderRank: 0,
     championRecords,
     recentGames,
     practicingChampion: recentGames[0]?.champion ?? expandedChampions[0],
   };
+}
+
+/**
+ * 생성된 모든 선수의 레이팅을 기준으로 중복 없는 래더 순위와 티어를 확정합니다.
+ * 순위가 같으면 레이팅이 높은 선수를 먼저 두고, 다음 선수는 한 칸씩 뒤로 밉니다.
+ */
+export function assignSoloRankLadder(players: Player[]): void {
+  const rankedPlayers = players
+    .filter((player): player is Player & { soloRank: SoloRankRecord } => Boolean(player.soloRank))
+    .sort((left, right) =>
+      right.soloRank.rating - left.soloRank.rating
+      || left.nickname.localeCompare(right.nickname),
+    );
+  const highestRating = rankedPlayers[0]?.soloRank.rating ?? 0;
+  let previousRank = 0;
+
+  rankedPlayers.forEach((player) => {
+    const calculatedRank = Math.max(
+      1,
+      Math.ceil(Math.exp((highestRating + 12 - player.soloRank.rating) / 50)),
+    );
+    const ladderRank = Math.max(calculatedRank, previousRank + 1);
+    player.soloRank.ladderRank = ladderRank;
+    player.soloRank.tier = getTier(ladderRank);
+    previousRank = ladderRank;
+  });
 }
 
 /** 챔피언 폭 능력치에 따라 솔로랭크에서 새로 연습한 챔피언을 소수 추가합니다. */
@@ -96,7 +126,6 @@ function createChampionRecord(player: Player, champion: Champion, index: number)
     0.42
       + (player.laning - 50) / 500
       + (player.mastery - 50) / 700
-      + (player.aggression - 50) / 950
       + (soloValue - 50) / 900,
     0.32,
     0.72,
@@ -135,26 +164,29 @@ function createRecentGames(player: Player, records: SoloRankChampionRecord[]): R
 /** 솔로랭크 성적에만 사용하는 공개 래더 점수를 계산합니다. */
 function calculateSoloRating(player: Player, records: SoloRankChampionRecord[]): number {
   const championAverage = records.reduce((sum, record) => sum + record.soloValue, 0) / Math.max(1, records.length);
+  const basicRating =
+    player.laning * 0.34
+      + player.farming * 0.26
+      + player.mastery * 0.22
+      + player.teamfight * 0.08
+      + player.macro * 0.05
+      + player.vision * 0.05
+      + Math.min(records.length, 12) * 0.8
+      + (championAverage - 55) * 0.15;
+  // 공격성은 실력이 아니라 성격입니다. 기본값에는 더하지 않고 잡음의 기복만 키웁니다.
+  const noise = generateNormalRandom(0, 10 + player.aggression * 0.14);
   return clamp(
-    player.laning * 1.4
-      + player.mastery * 1.15
-      + player.aggression * 0.72
-      + player.championPool.length * 5
-      + championAverage * 0.7
-      + player.teamfight * 0.16
-      + player.macro * 0.12,
-    100,
-    500,
+    basicRating * 9.2 + noise,
+    0,
+    1000,
   );
 }
 
-/** 래더 점수 구간을 티어로 바꿉니다. */
-function getTier(rating: number): SoloRankTier {
-  if (rating >= 420) return '챌린저';
-  if (rating >= 350) return '그랜드마스터';
-  if (rating >= 280) return '마스터';
-  if (rating >= 210) return '다이아몬드';
-  return '에메랄드';
+/** 래더 순위를 실제 티어 구간으로 바꿉니다. */
+function getTier(ladderRank: number): SoloRankTier {
+  if (ladderRank <= 300) return '챌린저';
+  if (ladderRank <= 1000) return '그랜드마스터';
+  return '마스터';
 }
 
 /** 닉네임 기반의 안정적인 작은 변동값을 만듭니다. */
