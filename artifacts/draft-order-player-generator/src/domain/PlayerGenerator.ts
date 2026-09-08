@@ -6,6 +6,7 @@
 import { Player, Position } from './Player';
 import { PLAYER_STATS_BY_POSITION, StatDistribution } from './playerStats';
 import { NicknameGenerator } from './NicknameGenerator';
+import { clampToStatRange, generateNormalRandom } from './randomUtils';
 
 export class PlayerGenerator {
   private nicknameGenerator: NicknameGenerator;
@@ -18,30 +19,11 @@ export class PlayerGenerator {
   }
 
   /**
-   * Box-Muller 변환을 이용한 정규분포 난수 생성기
-   */
-  private generateNormalRandom(mean: number, stdDev: number): number {
-    let u = 0, v = 0;
-    while (u === 0) u = Math.random(); // 0은 제외
-    while (v === 0) v = Math.random();
-    
-    const num = Math.sqrt(-2.0 * Math.log(u)) * Math.cos(2.0 * Math.PI * v);
-    return num * stdDev + mean;
-  }
-
-  /**
-   * 능력치 값을 0에서 100 사이의 정수로 클램핑(제한)합니다.
-   */
-  private clampStat(value: number): number {
-    return Math.max(0, Math.min(100, Math.round(value)));
-  }
-
-  /**
    * 주어진 능력치 분포 객체를 사용하여 실제 능력치 값을 생성합니다.
    */
   private generateStat(distribution: StatDistribution): number {
-    const rawValue = this.generateNormalRandom(distribution.mean, distribution.stdDev);
-    return this.clampStat(rawValue);
+    const rawValue = generateNormalRandom(distribution.mean, distribution.stdDev);
+    return Math.round(clampToStatRange(rawValue));
   }
 
   /**

@@ -5,6 +5,7 @@
 
 import { useEffect } from 'react';
 import {
+  printPlayersToConsole,
   printSimulationToConsole,
   printStandingsToConsole,
 } from './domain/consoleOutput';
@@ -19,6 +20,9 @@ function Home() {
   useEffect(() => {
     // 기존 선수 생성기를 재사용하여 같은 로스터의 팀 10개를 생성
     const teams = new TeamGenerator().generateTenTeams();
+
+    // 팀에 배정된 기존 선수 50명을 포지션별로 콘솔에 출력
+    printPlayersToConsole(teams.flatMap((team) => team.players));
 
     // 같은 로스터로 100시즌을 진행하여 첫 시즌 순위와 우승 분포를 검증
     const result = new SeasonSimulation().run(teams, 100);

@@ -5,6 +5,7 @@
 
 import { MAX_VOLATILITY_STD_DEV, MIN_VOLATILITY_STD_DEV } from './playerStats';
 import { Player } from './Player';
+import { clampToStatRange, generateNormalRandom } from './randomUtils';
 import { Team } from './Team';
 
 export class MatchSimulator {
@@ -17,30 +18,12 @@ export class MatchSimulator {
   }
 
   /**
-   * Box-Muller 변환으로 정규분포 난수를 생성합니다.
-   */
-  private generateNormalRandom(mean: number, stdDev: number): number {
-    let u = 0;
-    let v = 0;
-    while (u === 0) u = Math.random();
-    while (v === 0) v = Math.random();
-    return mean + Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v) * stdDev;
-  }
-
-  /**
-   * 발휘치를 0~100 범위로 제한합니다.
-   */
-  private clampPerformance(value: number): number {
-    return Math.max(0, Math.min(100, value));
-  }
-
-  /**
    * 한 선수의 라인전·한타·운영 경기 발휘치 합계를 계산합니다.
    */
   private calculatePlayerPerformance(player: Player): number {
     const stdDev = this.volatilityToStdDev(player.volatility);
     return [player.laning, player.teamfight, player.macro].reduce(
-      (sum, mean) => sum + this.clampPerformance(this.generateNormalRandom(mean, stdDev)),
+      (sum, mean) => sum + clampToStatRange(generateNormalRandom(mean, stdDev)),
       0,
     );
   }
