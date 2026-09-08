@@ -171,6 +171,37 @@ h1 { color: var(--text); font-size: clamp(30px, 4vw, 56px); font-weight: 400; le
 .event-pending, .event-finished { padding: 20px 5px 4px; color: var(--muted); font-size: 11px; }
 .pending-line { display: inline-block; width: 20px; margin-right: 9px; border-top: 1px solid var(--accent); vertical-align: middle; }
 .event-finished { color: var(--accent); }
+.watch-arena-layout { display: grid; grid-template-columns: minmax(0, 1fr) 330px; gap: 18px; align-items: start; }
+.arena-panel { min-width: 0; padding: 20px; background: var(--panel); border: 1px solid var(--border); }
+.arena-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 20px; padding-bottom: 16px; border-bottom: 1px solid var(--border); }
+.arena-heading h2 { margin-top: 8px; font-size: 23px; font-weight: 400; }
+.arena-heading > span { color: var(--muted); font-size: 10px; letter-spacing: .13em; }
+.map-canvas-wrap { position: relative; width: 100%; aspect-ratio: 1 / 1; margin-top: 17px; overflow: hidden; background: #12100C; border: 1px solid var(--border); }
+.map-canvas-wrap canvas { display: block; width: 100%; height: 100%; }
+.map-overlay-caption { position: absolute; left: 18px; bottom: 17px; max-width: min(62%, 430px); padding: 9px 12px; background: rgba(21, 18, 13, .91); border-left: 2px solid var(--accent); pointer-events: none; }
+.map-overlay-caption span, .map-overlay-caption strong { display: block; }
+.map-overlay-caption span { color: var(--accent); font-size: 9px; letter-spacing: .15em; text-transform: uppercase; }
+.map-overlay-caption strong { margin-top: 5px; color: var(--text); font-size: 12px; font-weight: 400; line-height: 1.45; }
+.map-legend { position: absolute; right: 17px; bottom: 17px; display: grid; gap: 6px; padding: 8px 10px; background: rgba(21, 18, 13, .91); color: var(--muted); font-size: 9px; letter-spacing: .08em; pointer-events: none; }
+.map-legend span { display: flex; align-items: center; gap: 7px; }
+.legend-dot { width: 7px; height: 7px; display: inline-block; border-radius: 50%; }
+.home-dot { background: #557D91; }
+.away-dot { background: #8B4745; }
+.legend-ring { width: 9px; height: 9px; display: inline-block; border: 1px solid var(--accent); border-radius: 50%; }
+.event-rail { min-width: 0; display: flex; flex-direction: column; gap: 14px; }
+.event-rail .watch-controls { display: block; margin: 0; padding: 15px; }
+.event-rail .playback-control, .event-rail .speed-control { align-items: flex-start; flex-wrap: wrap; }
+.event-rail .playback-control { gap: 9px; }
+.event-rail .playback-control span { width: 100%; line-height: 1.45; }
+.event-rail .speed-control { margin-top: 15px; }
+.event-rail .timeline-panel { max-height: 660px; overflow: auto; padding: 18px 16px 22px; }
+.event-rail .timeline-heading h2 { font-size: 19px; }
+.event-rail .event-row { grid-template-columns: 47px 1fr; gap: 7px 10px; padding: 14px 4px; }
+.event-rail .event-type { grid-column: 2; grid-row: 1; }
+.event-rail .event-copy { grid-column: 1 / -1; }
+.event-rail .event-copy span { white-space: normal; line-height: 1.4; }
+.event-row.is-current { padding-left: 10px; background: var(--selected); border-left: 2px solid var(--accent); }
+.event-row.is-current .event-copy strong { color: var(--accent); }
 .match-review { margin-top: 18px; padding: 25px 28px 28px; }
 .review-heading { padding-bottom: 17px; border-bottom: 1px solid var(--border); }
 .review-heading > span { max-width: 270px; color: var(--muted); font-size: 11px; line-height: 1.5; text-align: right; }
@@ -192,6 +223,7 @@ h1 { color: var(--text); font-size: clamp(30px, 4vw, 56px); font-weight: 400; le
   .draft-layout { grid-template-columns: 190px minmax(0, 1fr) 190px; }
   .champion-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
   .composition-panel { padding: 14px; }
+  .watch-arena-layout { grid-template-columns: minmax(0, 1fr) 285px; }
 }
 @media (max-width: 880px) {
   .site-header, .flow-nav, .page-content { width: min(100% - 32px, 680px); }
@@ -203,6 +235,7 @@ h1 { color: var(--text); font-size: clamp(30px, 4vw, 56px); font-weight: 400; le
   .versus-mark { align-items: flex-start; }
   .roster-columns, .phase-review-grid { grid-template-columns: 1fr; }
   .draft-layout { grid-template-columns: 1fr; }
+  .watch-arena-layout { grid-template-columns: 1fr; }
   .composition-home { order: 1; }
   .champion-select-area { order: 2; }
   .composition-away { order: 3; }
@@ -214,6 +247,7 @@ h1 { color: var(--text); font-size: clamp(30px, 4vw, 56px); font-weight: 400; le
   .score-away { justify-content: flex-end; }
   .watch-controls, .action-bar { align-items: flex-start; flex-direction: column; }
   .primary-action { align-self: stretch; }
+  .event-rail .timeline-panel { max-height: none; }
 }
 @media (max-width: 540px) {
   .site-header { min-height: 72px; }
@@ -240,4 +274,8 @@ h1 { color: var(--text); font-size: clamp(30px, 4vw, 56px); font-weight: 400; le
   .event-type { grid-column: 2; grid-row: 1; }
   .event-copy { grid-column: 1 / -1; }
   .review-heading > span { text-align: left; }
+  .arena-panel { padding: 12px; }
+  .map-overlay-caption { left: 10px; bottom: 10px; max-width: 72%; padding: 7px 9px; }
+  .map-overlay-caption strong { font-size: 10px; }
+  .map-legend { right: 10px; bottom: 10px; padding: 6px 7px; font-size: 8px; }
 }
