@@ -1108,6 +1108,349 @@ function clampMapPosition(position: MapPosition): MapPosition {
 }
 
 /**
+ * 중계 카메라의 정규화된 좌표를 현재 캔버스의 화면 좌표로 변환합니다.
+ * x/y를 별도로 스케일해 16:9 화면에서도 맵의 전체 좌표계를 유지합니다.
+ */
+function getBroadcastScreenPoint(
+  point: MapPosition,
+  width: number,
+  height: number,
+  cameraCenter: MapPosition,
+  zoom: number,
+) {
+  return {
+    x: (point.x - cameraCenter.x) * zoom * width + width / 2,
+    y: (point.y - cameraCenter.y) * zoom * height + height / 2,
+  };
+}
+
+/**
+ * 라인전 중계 화면을 그립니다. 모든 위치와 수치는 matchBroadcast가 만든 표시 데이터만 사용합니다.
+ */
+function drawBroadcastCanvas(
+  context: CanvasRenderingContext2D,
+  width: number,
+  height: number,
+  scene: BroadcastScene,
+  result: MatchResult,
+  cameraCenter: MapPosition,
+  timestampSeconds: number,
+) {
+  const zoom = scene.cameraZoom;
+  const center = clampMapPosition(cameraCenter);
+  const toScreen = (point: MapPosition) => getBroadcastScreenPoint(point, width, height, center, zoom);
+
+  context.save();
+  context.fillStyle = '#0B0A08';
+  context.fillRect(0, 0, width, height);
+  context.beginPath();
+  context.rect(0, 0, width, height);
+  context.clip();
+
+  drawBroadcastTerrain(context, width, height, toScreen);
+
+  scene.turrets.forEach((turret) => {
+    drawBroadcastTurret(context, toScreen(turret.position), turret, getBroadcastTeamColor(turret.teamName, result));
+  });
+  scene.wards.forEach((ward) => {
+    drawBroadcastWard(context, toScreen(ward.position), ward, getBroadcastTeamColor(ward.teamName, result));
+  });
+  scene.minions.forEach((minion) => {
+    const point = toScreen(minion.position);
+    const color = getBroadcastTeamColor(minion.teamName, result);
+    context.save();
+    context.globalAlpha = minion.alive ? 0.82 : 0.2;
+    context.fillStyle = color;
+    context.beginPath();
+    context.arc(point.x, point.y, 2.5, 0, Math.PI * 2);
+    context.fill();
+    context.restore();
+  });
+  scene.projectiles.forEach((projectile) => {
+    const source = toScreen(projectile.source);
+    const target = toScreen(projectile.target);
+    const progress = Math.min(1, Math.max(0, projectile.progress));
+    const point = {
+      x: source.x + (target.x - source.x) * progress,
+      y: source.y + (target.y - source.y) * progress,
+    };
+    const color = getBroadcastTeamColor(projectile.teamName, result);
+    context.save();
+    context.strokeStyle = `${color}88`;
+    context.lineWidth = 1.4;
+    context.setLineDash([4, 5]);
+    context.beginPath();
+    context.moveTo(source.x, source.y);
+    context.lineTo(point.x, point.y);
+    context.stroke();
+    context.setLineDash([]);
+    context.fillStyle = projectile.hit ? '#C9A227' : color;
+    context.shadowColor = color;
+    context.shadowBlur = 8;
+    context.beginPath();
+    context.arc(point.x, point.y, projectile.hit ? 4 : 3, 0, Math.PI * 2);
+    context.fill();
+    context.restore();
+  });
+
+  if (scene.focusEvent) {
+    const focusPoint = toScreen(scene.focusEvent.position);
+    context.save();
+    context.strokeStyle = '#C9A227';
+    context.globalAlpha = 0.8;
+    context.lineWidth = 1.2;
+    context.setLineDash([6, 5]);
+    context.beginPath();
+    context.arc(focusPoint.x, focusPoint.y, Math.max(24, Math.min(width, height) * 0.09), 0, Math.PI * 2);
+    context.stroke();
+    context.restore();
+  }
+
+  scene.champions.forEach((champion) => {
+    drawBroadcastChampion(context, toScreen(champion.position), champion, result);
+  });
+  context.restore();
+
+  context.save();
+  const gradient = context.createLinearGradient(0, 0, 0, height);
+  gradient.addColorStop(0, 'rgba(11, 10, 8, .64)');
+  gradient.addColorStop(0.16, 'rgba(11, 10, 8, 0)');
+  gradient.addColorStop(0.8, 'rgba(11, 10, 8, 0)');
+  gradient.addColorStop(1, 'rgba(11, 10, 8, .68)');
+  context.fillStyle = gradient;
+  context.fillRect(0, 0, width, height);
+  context.fillStyle = '#C9A227';
+  context.font = '10px Georgia';
+  context.letterSpacing = '1px';
+  context.fillText(`LIVE · ${formatTimestamp(Math.round(timestampSeconds))}`, 16, 20);
+  context.fillStyle = '#7E7565';
+  context.font = '9px Georgia';
+  context.fillText(`${getLaneLabel(scene.focusLane).toUpperCase()} LINE · ${zoom.toFixed(1)}×`, 16, 35);
+  context.restore();
+}
+
+/**
+ * 전체 맵의 지형과 세 라인을 중계용 확대 좌표계에 맞춰 그립니다.
+ */
+function drawBroadcastTerrain(
+  context: CanvasRenderingContext2D,
+  width: number,
+  height: number,
+  toScreen: (point: MapPosition) => { x: number; y: number },
+) {
+  const linePaths: MapPosition[][] = [
+    [{ x: 0.07, y: 0.08 }, { x: 0.07, y: 0.92 }, { x: 0.92, y: 0.92 }],
+    [{ x: 0.08, y: 0.08 }, { x: 0.92, y: 0.92 }],
+    [{ x: 0.08, y: 0.08 }, { x: 0.92, y: 0.08 }, { x: 0.92, y: 0.92 }],
+  ];
+  const drawPath = (path: MapPosition[], lineWidth: number, color: string) => {
+    context.beginPath();
+    path.forEach((point, index) => {
+      const screenPoint = toScreen(point);
+      if (index === 0) context.moveTo(screenPoint.x, screenPoint.y);
+      else context.lineTo(screenPoint.x, screenPoint.y);
+    });
+    context.lineWidth = lineWidth;
+    context.strokeStyle = color;
+    context.stroke();
+  };
+
+  context.fillStyle = '#12100C';
+  context.fillRect(0, 0, width, height);
+  const jungle = toScreen({ x: 0.5, y: 0.5 });
+  context.save();
+  context.fillStyle = 'rgba(36, 31, 20, .42)';
+  context.beginPath();
+  context.ellipse(jungle.x, jungle.y, width * 0.23, height * 0.38, Math.PI / 4, 0, Math.PI * 2);
+  context.fill();
+  context.restore();
+
+  linePaths.forEach((path) => drawPath(path, Math.max(18, Math.min(width, height) * 0.045), '#211C13'));
+  linePaths.forEach((path) => drawPath(path, Math.max(1.5, Math.min(width, height) * 0.006), '#5B4A25'));
+  drawPath([{ x: 0.06, y: 0.06 }, { x: 0.94, y: 0.06 }, { x: 0.94, y: 0.94 }, { x: 0.06, y: 0.94 }, { x: 0.06, y: 0.06 }], 1, '#3A311F');
+
+  const homeBase = toScreen({ x: 0.1, y: 0.9 });
+  const awayBase = toScreen({ x: 0.9, y: 0.1 });
+  [
+    { point: homeBase, color: HOME_MAP_COLOR, label: 'HOME' },
+    { point: awayBase, color: AWAY_MAP_COLOR, label: 'AWAY' },
+  ].forEach(({ point, color, label }) => {
+    context.save();
+    context.fillStyle = `${color}35`;
+    context.strokeStyle = color;
+    context.lineWidth = 1.5;
+    context.beginPath();
+    context.rect(point.x - 24, point.y - 24, 48, 48);
+    context.fill();
+    context.stroke();
+    context.fillStyle = color;
+    context.font = '10px Georgia';
+    context.textAlign = label === 'HOME' ? 'left' : 'right';
+    context.fillText(label, point.x + (label === 'HOME' ? 31 : -31), point.y + 4);
+    context.restore();
+  });
+}
+
+function drawBroadcastChampion(
+  context: CanvasRenderingContext2D,
+  point: { x: number; y: number },
+  champion: BroadcastScene['champions'][number],
+  result: MatchResult,
+) {
+  const color = getBroadcastTeamColor(champion.teamName, result);
+  const barWidth = 52;
+  const left = point.x - barWidth / 2;
+  const top = point.y - 24;
+  context.save();
+  context.globalAlpha = champion.health <= 0 ? 0.35 : 1;
+  context.fillStyle = '#090806';
+  context.fillRect(left, top, barWidth, 4);
+  context.fillStyle = champion.health > 45 ? '#6E9B62' : '#B5794A';
+  context.fillRect(left, top, barWidth * Math.max(0, champion.health) / 100, 4);
+  context.fillStyle = '#090806';
+  context.fillRect(left, top + 5, barWidth, 2);
+  context.fillStyle = color;
+  context.fillRect(left, top + 5, barWidth * Math.max(0, champion.resource) / 100, 2);
+  context.fillStyle = color;
+  context.strokeStyle = champion.champion.symbolColor;
+  context.lineWidth = 2;
+  context.beginPath();
+  context.arc(point.x, point.y, 9, 0, Math.PI * 2);
+  context.fill();
+  context.stroke();
+  context.fillStyle = '#C9C0A8';
+  context.font = '11px Georgia';
+  context.textAlign = point.x < (context.canvas.clientWidth || context.canvas.width) / 2 ? 'left' : 'right';
+  const labelX = point.x + (context.textAlign === 'left' ? 14 : -14);
+  context.fillText(champion.champion.name, labelX, point.y - 5);
+  context.fillStyle = '#7E7565';
+  context.font = '9px Georgia';
+  context.fillText(`${champion.state} · CS ${champion.cs}`, labelX, point.y + 8);
+  context.restore();
+}
+
+function drawBroadcastTurret(
+  context: CanvasRenderingContext2D,
+  point: { x: number; y: number },
+  turret: BroadcastScene['turrets'][number],
+  color: string,
+) {
+  context.save();
+  context.globalAlpha = turret.destroyed ? 0.25 : 0.92;
+  context.fillStyle = turret.destroyed ? '#4A4131' : color;
+  context.strokeStyle = '#C9A227';
+  context.lineWidth = 1;
+  context.beginPath();
+  context.rect(point.x - 6, point.y - 6, 12, 12);
+  context.fill();
+  context.stroke();
+  context.restore();
+}
+
+function drawBroadcastWard(
+  context: CanvasRenderingContext2D,
+  point: { x: number; y: number },
+  ward: BroadcastScene['wards'][number],
+  color: string,
+) {
+  context.save();
+  context.strokeStyle = color;
+  context.globalAlpha = Math.min(1, 0.35 + ward.remaining / 120);
+  context.lineWidth = 1;
+  context.beginPath();
+  context.arc(point.x, point.y, 8, 0, Math.PI * 2);
+  context.stroke();
+  context.fillStyle = color;
+  context.font = '8px Georgia';
+  context.textAlign = 'center';
+  context.fillText(`${Math.ceil(ward.remaining)}s`, point.x, point.y - 11);
+  context.restore();
+}
+
+/**
+ * 전체 맵, 열 명의 현재 위치, 중계 카메라 사각 영역을 우측 하단에 겹쳐 그립니다.
+ */
+function drawMiniMap(
+  context: CanvasRenderingContext2D,
+  width: number,
+  height: number,
+  scene: BroadcastScene,
+  result: MatchResult,
+  cameraCenter: MapPosition,
+) {
+  const size = Math.min(188, Math.max(132, width * 0.24), height * 0.34);
+  const left = width - size - 14;
+  const top = height - size - 14;
+  const mapPoint = (point: MapPosition) => ({
+    x: left + point.x * size,
+    y: top + point.y * size,
+  });
+
+  context.save();
+  context.fillStyle = 'rgba(15, 13, 9, .94)';
+  context.fillRect(left - 6, top - 6, size + 12, size + 12);
+  context.strokeStyle = '#C9A227';
+  context.lineWidth = 1;
+  context.strokeRect(left - 6, top - 6, size + 12, size + 12);
+  drawMiniMapTerrain(context, left, top, size);
+
+  scene.turrets.forEach((turret) => {
+    const point = mapPoint(turret.position);
+    context.fillStyle = turret.destroyed ? '#4A4131' : getBroadcastTeamColor(turret.teamName, result);
+    context.globalAlpha = turret.destroyed ? 0.35 : 0.9;
+    context.fillRect(point.x - 2, point.y - 2, 4, 4);
+  });
+  scene.allChampions.forEach((champion) => {
+    const point = mapPoint(champion.position);
+    context.globalAlpha = 1;
+    context.fillStyle = getBroadcastTeamColor(champion.teamName, result);
+    context.strokeStyle = champion.champion.symbolColor;
+    context.lineWidth = 1;
+    context.beginPath();
+    context.arc(point.x, point.y, 3.4, 0, Math.PI * 2);
+    context.fill();
+    context.stroke();
+  });
+
+  const halfView = 0.5 / scene.cameraZoom;
+  const miniCameraCenter = clampMapPosition(cameraCenter);
+  const cameraLeft = left + (miniCameraCenter.x - halfView) * size;
+  const cameraTop = top + (miniCameraCenter.y - halfView) * size;
+  context.globalAlpha = 0.95;
+  context.strokeStyle = '#C9A227';
+  context.lineWidth = 1.4;
+  context.strokeRect(cameraLeft, cameraTop, halfView * 2 * size, halfView * 2 * size);
+  context.fillStyle = '#C9A227';
+  context.font = '8px Georgia';
+  context.textAlign = 'left';
+  context.fillText('CAM', left + 7, top + 12);
+  context.restore();
+}
+
+function drawMiniMapTerrain(context: CanvasRenderingContext2D, left: number, top: number, size: number) {
+  const point = (x: number, y: number) => ({ x: left + x * size, y: top + y * size });
+  const paths = [
+    [point(0.07, 0.08), point(0.07, 0.92), point(0.92, 0.92)],
+    [point(0.08, 0.08), point(0.92, 0.92)],
+    [point(0.08, 0.08), point(0.92, 0.08), point(0.92, 0.92)],
+  ];
+  context.fillStyle = '#15130E';
+  context.fillRect(left, top, size, size);
+  context.fillStyle = '#11100C';
+  context.fillRect(left + size * 0.11, top + size * 0.11, size * 0.78, size * 0.78);
+  paths.forEach((path) => {
+    context.beginPath();
+    path.forEach((item, index) => index === 0 ? context.moveTo(item.x, item.y) : context.lineTo(item.x, item.y));
+    context.strokeStyle = '#6A5427';
+    context.lineWidth = 2.2;
+    context.stroke();
+  });
+  context.strokeStyle = '#3A311F';
+  context.lineWidth = 1;
+  context.strokeRect(left, top, size, size);
+}
+
+/**
  * 대각선 세 라인과 그 사이의 정글 면을 그립니다.
  */
 function drawMapTerrain(context: CanvasRenderingContext2D, offsetX: number, offsetY: number, size: number) {

@@ -210,7 +210,7 @@ h1 { color: var(--text); font-size: clamp(30px, 4vw, 56px); font-weight: 400; le
 .arena-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 20px; padding-bottom: 16px; border-bottom: 1px solid var(--border); }
 .arena-heading h2 { margin-top: 8px; font-size: 23px; font-weight: 400; }
 .arena-heading > span { color: var(--muted); font-size: 10px; letter-spacing: .13em; }
-.map-canvas-wrap { position: relative; width: 100%; aspect-ratio: 1 / 1; margin-top: 17px; overflow: hidden; background: #12100C; border: 1px solid var(--border); }
+.map-canvas-wrap { position: relative; width: 100%; aspect-ratio: 16 / 9; margin-top: 17px; overflow: hidden; background: #12100C; border: 1px solid var(--border); }
 .map-canvas-wrap canvas { display: block; width: 100%; height: 100%; }
 .map-overlay-caption { position: absolute; left: 18px; bottom: 17px; max-width: min(62%, 430px); padding: 9px 12px; background: rgba(21, 18, 13, .91); border-left: 2px solid var(--accent); pointer-events: none; }
 .map-overlay-caption span, .map-overlay-caption strong { display: block; }
