@@ -13,6 +13,8 @@ import {
 } from './domain/consoleOutput';
 import { SeasonSimulation } from './domain/SeasonSimulation';
 import { TeamGenerator } from './domain/TeamGenerator';
+import { CHAMPIONS } from './domain/Champion';
+import { validateChampions } from './domain/championValidation';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ErrorBoundary } from '@/components/error-boundary';
 
@@ -27,6 +29,13 @@ function Home() {
   useEffect(() => {
     if (hasSimulationRun) return;
     hasSimulationRun = true;
+    // 시뮬레이션 전에 정적 챔피언 데이터 문제를 콘솔에서 명확히 알립니다.
+    const championIssues = validateChampions(CHAMPIONS);
+    if (championIssues.length === 0) {
+      console.log('챔피언 25종 검증 완료');
+    } else {
+      championIssues.forEach((issue) => console.error(`챔피언 검증 실패: ${issue.message}`));
+    }
     // 기존 선수 생성기를 재사용하여 같은 로스터의 팀 10개를 생성
     const teams = new TeamGenerator().generateTenTeams();
 

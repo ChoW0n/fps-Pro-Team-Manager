@@ -4,8 +4,9 @@
  */
 
 import type { ChampionRole, Engagement, RangeType, Timing } from './Champion';
-import type { EffectType } from './Champion';
+import type { EffectPrimitive } from './Champion';
 import type { Position } from './Player';
+import type { MatchEventType } from './matchEvents';
 
 // 포지션 표시명입니다.
 export const positionDisplayNames: Record<Position, string> = { TOP: '탑', JUNGLE: '정글', MID: '미드', ADC: '원딜', SUPPORT: '서포터' };
@@ -20,8 +21,10 @@ export const roleDisplayNames: Record<ChampionRole, string> = { TANK: '탱커', 
 // 밴픽 행동 표시명입니다.
 export const draftActionDisplayNames: Record<'BAN' | 'PICK', string> = { BAN: '금지', PICK: '선택' };
 // 선수 능력치 표시명입니다.
-export const statDisplayNames = { laning: '라인전', teamfight: '한타', macro: '운영', championPool: '챔피언 폭', volatility: '기복' };
+export const statDisplayNames = { laning: '라인전', teamfight: '한타', macro: '운영', championPool: '챔피언 폭', volatility: '기복', mastery: '숙련도' };
 // 경기 구간 표시명입니다.
 export const phaseDisplayNames: Record<'EARLY' | 'MID' | 'LATE', string> = { EARLY: '초반', MID: '중반', LATE: '후반' };
-// 자동 판정 이펙트 표시명입니다.
-export const effectDisplayNames: Record<EffectType, string> = { RIFT: '균열', BLOOD: '혈흔', WAVE: '파동' };
+// 스킬 이펙트 프리미티브 표시명입니다.
+export const primitiveDisplayNames: Record<EffectPrimitive, string> = { FLASH: '섬광', TREMOR: '진동', PILLAR: '광주', RIFT: '균열', WAVE: '파동', SHARD: '파편', BURST: '폭산', SLASH: '검격', TRAIL: '궤적', SPIRAL: '나선', RUNE: '룬문', FLOAT: '부유' };
+// 경기 이벤트 표시명입니다.
+export const matchEventDisplayNames: Record<MatchEventType, string> = { KILL: '처치', GANK: '기습 합류', OBJECTIVE: '오브젝트', TOWER: '탑 파괴', TEAMFIGHT: '한타', ROAM: '로밍' };

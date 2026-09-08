@@ -68,8 +68,9 @@ export class PlayerGenerator {
       this.generateStat(stats.laning),
       this.generateStat(stats.teamfight),
       this.generateStat(stats.macro),
-       this.generateChampionPool(position, this.generateStat(stats.championPool)),
-      this.generateStat(stats.volatility)
+      this.generateChampionPool(position, this.generateStat(stats.championPool)),
+      this.generateStat(stats.volatility),
+      this.generateStat(stats.mastery),
     );
   }
 

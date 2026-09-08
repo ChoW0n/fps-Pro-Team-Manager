@@ -28,6 +28,7 @@ export interface PositionStats {
   macro: StatDistribution;
   championPool: StatDistribution;
   volatility: StatDistribution;
+  mastery: StatDistribution;
 }
 
 // 포지션별 능력치 임시 데이터 상수
@@ -38,6 +39,8 @@ export const PLAYER_STATS_BY_POSITION: Record<Position, PositionStats> = {
     macro: { mean: 60, stdDev: 10 },
     championPool: { mean: 65, stdDev: 15 },
     volatility: { mean: 50, stdDev: 20 },
+    // 숙련도 분포 임시값, 튜닝 전 임시값
+    mastery: { mean: 65, stdDev: 12 },
   },
   JUNGLE: {
     laning: { mean: 55, stdDev: 10 },
@@ -45,6 +48,8 @@ export const PLAYER_STATS_BY_POSITION: Record<Position, PositionStats> = {
     macro: { mean: 75, stdDev: 10 },
     championPool: { mean: 60, stdDev: 15 },
     volatility: { mean: 60, stdDev: 15 },
+    // 숙련도 분포 임시값, 튜닝 전 임시값
+    mastery: { mean: 62, stdDev: 13 },
   },
   MID: {
     laning: { mean: 75, stdDev: 10 },
@@ -52,6 +57,8 @@ export const PLAYER_STATS_BY_POSITION: Record<Position, PositionStats> = {
     macro: { mean: 65, stdDev: 10 },
     championPool: { mean: 70, stdDev: 10 },
     volatility: { mean: 55, stdDev: 15 },
+    // 숙련도 분포 임시값, 튜닝 전 임시값
+    mastery: { mean: 68, stdDev: 11 },
   },
   ADC: {
     laning: { mean: 65, stdDev: 10 },
@@ -59,6 +66,8 @@ export const PLAYER_STATS_BY_POSITION: Record<Position, PositionStats> = {
     macro: { mean: 50, stdDev: 15 },
     championPool: { mean: 55, stdDev: 15 },
     volatility: { mean: 45, stdDev: 20 },
+    // 숙련도 분포 임시값, 튜닝 전 임시값
+    mastery: { mean: 64, stdDev: 12 },
   },
   SUPPORT: {
     laning: { mean: 60, stdDev: 12 },
@@ -66,5 +75,7 @@ export const PLAYER_STATS_BY_POSITION: Record<Position, PositionStats> = {
     macro: { mean: 80, stdDev: 10 },
     championPool: { mean: 60, stdDev: 10 },
     volatility: { mean: 40, stdDev: 15 },
+    // 숙련도 분포 임시값, 튜닝 전 임시값
+    mastery: { mean: 66, stdDev: 10 },
   },
 };

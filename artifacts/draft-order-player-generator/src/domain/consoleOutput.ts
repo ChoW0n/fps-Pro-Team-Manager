@@ -7,12 +7,11 @@ import { Player, Position } from './Player';
 import { SeasonSimulationResult } from './SeasonSimulation';
 import { Team } from './Team';
 import { CHAMPIONS } from './Champion';
-import { formatChampionIntroduction, getChampionEffectType } from './Champion';
+import { formatChampionIntroduction } from './Champion';
 import { MatchResult } from './MatchResult';
 import { formatPlayerName } from './playerDisplay';
 import {
   draftActionDisplayNames,
-  effectDisplayNames,
   engagementDisplayNames,
   phaseDisplayNames,
   positionDisplayNames,
@@ -20,6 +19,7 @@ import {
   roleDisplayNames,
   statDisplayNames,
   timingDisplayNames,
+  primitiveDisplayNames,
 } from './displayNames';
 
 // React StrictMode 등에서 여러 번 출력되는 것을 방지하는 플래그
@@ -56,9 +56,10 @@ export function printPlayersToConsole(players: Player[]): void {
       const macro = player.macro.toString().padStart(3, ' ');
       const champ = `${player.championPool.length}종 (${player.championPool.map((champion) => champion.name).join(', ')})`;
       const vol = player.volatility.toString().padStart(3, ' ');
+      const mastery = player.mastery.toString().padStart(3, ' ');
 
       console.log(
-          `${no}. ${playerName} | 나이: ${player.age} | ${statDisplayNames.laning}: ${laning} | ${statDisplayNames.teamfight}: ${teamfight} | ${statDisplayNames.macro}: ${macro} | ${statDisplayNames.championPool}: ${champ} | ${statDisplayNames.volatility}: ${vol}`
+          `${no}. ${playerName} | 나이: ${player.age} | ${statDisplayNames.laning}: ${laning} | ${statDisplayNames.teamfight}: ${teamfight} | ${statDisplayNames.macro}: ${macro} | ${statDisplayNames.championPool}: ${champ} | ${statDisplayNames.volatility}: ${vol} | ${statDisplayNames.mastery}: ${mastery}`
       );
     });
 
@@ -79,12 +80,17 @@ export function printChampionsToConsole(): void {
     CHAMPIONS.filter((champion) => champion.position === position).forEach((champion) => {
       console.log(
         `${formatChampionIntroduction(champion)} | 고유명: ${champion.name} | 수식어: ${champion.title} | `
-        + `시그니처 스킬: ${champion.signatureSkill.name} - ${champion.signatureSkill.description} | `
-        + `이펙트: ${effectDisplayNames[getChampionEffectType(champion)]} | `
+        + `상징색: ${champion.symbolColor} | `
         + `태그: ${positionDisplayNames[champion.position]}, ${timingDisplayNames[champion.timing]}, `
         + `${engagementDisplayNames[champion.engagement]}, ${rangeDisplayNames[champion.range]}, `
         + `${roleDisplayNames[champion.role]} | 난이도 ${champion.difficulty}`,
       );
+      console.log(`  패시브: ${champion.skills.passive.name} - ${champion.skills.passive.description}`);
+      console.log(`  기본기: ${champion.skills.basic.name} - ${champion.skills.basic.description}`);
+      console.log(`  궁극기: ${champion.skills.ultimate.name} - ${champion.skills.ultimate.description}`);
+      champion.skills.ultimate.effectLayers.forEach((layer) => {
+        console.log(`    ${primitiveDisplayNames[layer.primitive]} / 시작 ${layer.startMs}ms / 지속 ${layer.durationMs}ms / 강도 ${layer.intensity}x`);
+      });
     });
     console.groupEnd();
   });
@@ -101,7 +107,7 @@ export function printMatchResultToConsole(result: MatchResult): void {
     console.log(`${index + 1}. ${draftActionDisplayNames[record.action]} | ${record.teamName}${actor} | ${record.champion.name}`);
   });
   result.phases.forEach((phase) => {
-    console.log(`${phaseDisplayNames[phase.phase]} | ${result.homeTeam.name} ${phase.homePower.toFixed(1)} : ${result.awayTeam.name} ${phase.awayPower.toFixed(1)} | 구간 승자 ${phase.winnerName}`);
+    console.log(`${phaseDisplayNames[phase.phase]} | 레벨 ${result.homeTeam.name} ${phase.homeLevel.toFixed(1)} : ${result.awayTeam.name} ${phase.awayLevel.toFixed(1)} | 전력 ${result.homeTeam.name} ${phase.homePower.toFixed(1)} : ${result.awayTeam.name} ${phase.awayPower.toFixed(1)} | 구간 승자 ${phase.winnerName}`);
     phase.adjustments.forEach((adjustment) => console.log(`  보정: ${adjustment}`));
   });
   console.log(`경기 승자: ${result.winner.name}`);
@@ -144,9 +150,22 @@ export function printSimulationToConsole(result: SeasonSimulationResult): void {
     console.log('관찰: 강한 팀이 자주 우승하지만 우승팀은 고정되지 않았습니다.');
   }
   const highestStatTeam = [...result.firstSeasonStandings].sort((left, right) =>
-    right.players.reduce((sum, player) => sum + player.laning + player.teamfight + player.macro, 0)
-    - left.players.reduce((sum, player) => sum + player.laning + player.teamfight + player.macro, 0),
+    right.players.reduce((sum, player) => sum + player.laning + player.teamfight + player.macro + player.mastery, 0)
+    - left.players.reduce((sum, player) => sum + player.laning + player.teamfight + player.macro + player.mastery, 0),
   )[0];
-  console.log(`원래 능력치 합 최고 팀: ${highestStatTeam.name} | 우승 ${result.championships.get(highestStatTeam.name)}회`);
+  console.log(`선수 능력치 총합 최고 팀: ${highestStatTeam.name} | 우승 ${result.championships.get(highestStatTeam.name)}회`);
+  console.log(`후반형 편중 | ${formatPhaseWinStats(result.lateHeavyPhaseStats)}`);
+  console.log(`초반형 편중 | ${formatPhaseWinStats(result.earlyHeavyPhaseStats)}`);
   console.groupEnd();
+}
+
+/** 세 구간 편중 조합의 승/전체와 승률만 한 줄로 만듭니다. */
+function formatPhaseWinStats(stats: SeasonSimulationResult['lateHeavyPhaseStats']): string {
+  return (['EARLY', 'MID', 'LATE'] as const)
+    .map((phase) => {
+      const value = stats[phase];
+      const rate = value.total === 0 ? 0 : value.wins / value.total * 100;
+      return `${phaseDisplayNames[phase]} ${value.wins}/${value.total} ${rate.toFixed(1)}%`;
+    })
+    .join(' | ');
 }

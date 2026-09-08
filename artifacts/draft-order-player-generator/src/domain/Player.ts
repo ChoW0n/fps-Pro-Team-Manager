@@ -18,6 +18,7 @@ export class Player {
   public macro: number;
   public championPool: Champion[];
   public volatility: number;
+  public mastery: number;
 
   /**
    * Player 인스턴스를 생성합니다.
@@ -31,8 +32,9 @@ export class Player {
     laning: number,
     teamfight: number,
     macro: number,
-     championPool: Champion[],
-    volatility: number
+    championPool: Champion[],
+    volatility: number,
+    mastery: number,
   ) {
     this.nickname = nickname;
     this.realName = realName;
@@ -43,5 +45,6 @@ export class Player {
     this.macro = macro;
     this.championPool = championPool;
     this.volatility = volatility;
+    this.mastery = mastery;
   }
 }

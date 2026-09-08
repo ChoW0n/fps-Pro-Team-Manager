@@ -22,13 +22,14 @@ export class Season {
   /**
    * 같은 팀 구성으로 정규시즌 한 번을 진행하고 순위표를 반환합니다.
    */
-  public run(teams: Team[]): Team[] {
+  public run(teams: Team[], onMatchResult?: (result: MatchResult) => void): Team[] {
     teams.forEach((team) => team.resetRecord());
     this.firstMatchResult = undefined;
 
     this.schedule.createDoubleRoundRobin(teams).forEach(({ homeTeam, awayTeam }, index) => {
       const result = this.matchSimulator.play(homeTeam, awayTeam);
       if (index === 0) this.firstMatchResult = result;
+      onMatchResult?.(result);
       const winner = result.winner;
       const loser = winner === homeTeam ? awayTeam : homeTeam;
       winner.wins += 1;
