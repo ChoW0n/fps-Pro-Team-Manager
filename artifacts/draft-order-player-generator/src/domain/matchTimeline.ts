@@ -70,6 +70,30 @@ export interface TimelineWard {
   remainingSeconds: number;
 }
 
+export interface TimelineVisionArea {
+  center: TimelinePoint;
+  radius: number;
+  sourceType: 'PLAYER' | 'WARD' | 'BASE';
+  sourceKey: string;
+}
+
+export interface TimelineTeamVision {
+  teamName: string;
+  areas: TimelineVisionArea[];
+  coveragePercent: number;
+}
+
+export interface TimelineGankOutcome {
+  eventIndex: number;
+  timestampSeconds: number;
+  attackingTeamName: string;
+  defendingTeamName: string;
+  gankerKey: string;
+  victimKey: string;
+  success: boolean;
+  failedByVision: boolean;
+}
+
 export interface TimelineTeamStats {
   kills: number;
   gold: number;
@@ -90,6 +114,7 @@ export interface MatchTimelineFrame {
   minionWaves: TimelineMinionWave[];
   projectiles: TimelineProjectile[];
   wards: TimelineWard[];
+  teamVision: TimelineTeamVision[];
   home: TimelineTeamStats;
   away: TimelineTeamStats;
   recentKills: TimelineRecentKill[];
@@ -105,6 +130,7 @@ export interface MatchTimeline {
   highlightSeconds: number[];
   maxPositionDelta: number;
   movementViolations: Array<{ key: string; timestampSeconds: number; delta: number }>;
+  gankOutcomes: TimelineGankOutcome[];
 }
 
 const MAX_MOVE_PER_SECOND = 0.012;
@@ -166,6 +192,19 @@ function clamp(value: number, minimum: number, maximum: number): number {
 
 function pointDistance(left: TimelinePoint, right: TimelinePoint): number {
   return Math.abs(left.x - right.x) + Math.abs(left.y - right.y);
+}
+
+function circleDistance(left: TimelinePoint, right: TimelinePoint): number {
+  return Math.hypot(left.x - right.x, left.y - right.y);
+}
+
+export function isPointVisibleToTeam(
+  point: TimelinePoint,
+  teamName: string,
+  teamVision: TimelineTeamVision[],
+): boolean {
+  const vision = teamVision.find((entry) => entry.teamName === teamName);
+  return vision?.areas.some((area) => circleDistance(point, area.center) <= area.radius) ?? false;
 }
 
 /**
@@ -483,6 +522,7 @@ function createWards(players: SimPlayer[], timestampSeconds: number): TimelineWa
   const wards: TimelineWard[] = [];
   players.forEach((player, index) => {
     if (player.player.position !== 'JUNGLE' && player.player.position !== 'SUPPORT') return;
+    if (player.state === '사망') return;
     const interval = Math.max(28, Math.round(88 - player.player.vision * 0.42));
     if (timestampSeconds < 10 || timestampSeconds % interval !== (index * 7) % interval) return;
     const point = player.player.position === 'JUNGLE'
@@ -496,6 +536,103 @@ function createWards(players: SimPlayer[], timestampSeconds: number): TimelineWa
     });
   });
   return wards;
+}
+
+function updateActiveWards(
+  players: SimPlayer[],
+  timestampSeconds: number,
+  activeWards: TimelineWard[],
+): TimelineWard[] {
+  activeWards.forEach((ward) => {
+    ward.remainingSeconds -= 1;
+  });
+  for (let index = activeWards.length - 1; index >= 0; index -= 1) {
+    if (activeWards[index].remainingSeconds <= 0) activeWards.splice(index, 1);
+  }
+  activeWards.push(...createWards(players, timestampSeconds));
+  return activeWards.map((ward) => ({
+    ...ward,
+    position: { ...ward.position },
+  }));
+}
+
+function createTeamVision(
+  result: MatchResult,
+  players: SimPlayer[],
+  wards: TimelineWard[],
+): TimelineTeamVision[] {
+  return [result.homeTeam.name, result.awayTeam.name].map((teamName) => {
+    const areas: TimelineVisionArea[] = [
+      ...players
+        .filter((player) => player.teamName === teamName && player.state !== '사망')
+        .map((player) => ({
+          center: { ...player.position },
+          radius: 0.06,
+          sourceType: 'PLAYER' as const,
+          sourceKey: player.key,
+        })),
+      ...wards
+        .filter((ward) => ward.teamName === teamName && ward.remainingSeconds > 0)
+        .map((ward) => ({
+          center: { ...ward.position },
+          radius: 0.09,
+          sourceType: 'WARD' as const,
+          sourceKey: ward.key,
+        })),
+      {
+        center: getBase(result, teamName),
+        radius: 0.08,
+        sourceType: 'BASE' as const,
+        sourceKey: `${teamName}:base`,
+      },
+    ];
+    const visibleCells = Array.from({ length: 40 * 40 }, (_, index) => ({
+      x: (index % 40 + 0.5) / 40,
+      y: (Math.floor(index / 40) + 0.5) / 40,
+    })).filter((point) =>
+      areas.some((area) => circleDistance(point, area.center) <= area.radius),
+    ).length;
+    return {
+      teamName,
+      areas,
+      coveragePercent: visibleCells / (40 * 40) * 100,
+    };
+  });
+}
+
+function judgeGank(
+  result: MatchResult,
+  event: MatchEvent,
+  eventIndex: number,
+  players: SimPlayer[],
+  teamVision: TimelineTeamVision[],
+): TimelineGankOutcome {
+  const attackingTeamName = event.participants[0]?.teamName ?? result.homeTeam.name;
+  const defendingTeamName = attackingTeamName === result.homeTeam.name
+    ? result.awayTeam.name
+    : result.homeTeam.name;
+  const ganker = event.participants
+    .map((participant) => players.find((player) =>
+      player.teamName === participant.teamName && player.player === participant.player))
+    .find((player) => player?.player.position === 'JUNGLE')
+    ?? players.find((player) => player.teamName === attackingTeamName && player.player.position === 'JUNGLE')
+    ?? players.find((player) => player.teamName === attackingTeamName)!;
+  const victim = players
+    .filter((player) => player.teamName === defendingTeamName && player.state !== '사망')
+    .sort((left, right) =>
+      circleDistance(left.position, event.position) - circleDistance(right.position, event.position))[0]
+    ?? players.find((player) => player.teamName === defendingTeamName)!;
+  const failedByVision = isPointVisibleToTeam(ganker.position, defendingTeamName, teamVision);
+  return {
+    eventIndex,
+    timestampSeconds: event.timestampSeconds,
+    attackingTeamName,
+    defendingTeamName,
+    gankerKey: ganker.key,
+    victimKey: victim.key,
+    success: !failedByVision,
+    failedByVision,
+  };
 }
 
 function snapshotPlayer(player: SimPlayer, result: MatchResult, timestampSeconds: number): TimelinePlayerFrame {
@@ -532,16 +669,20 @@ function getTeamStats(
   players: SimPlayer[],
   teamName: string,
   timestampSeconds: number,
+  gankOutcomes: TimelineGankOutcome[],
 ): TimelineTeamStats {
-  const visible = events.filter((event) => event.timestampSeconds <= timestampSeconds);
-  const kills = visible.reduce((sum, event) =>
+  const visible = events
+    .map((event, eventIndex) => ({ event, eventIndex }))
+    .filter(({ event }) => event.timestampSeconds <= timestampSeconds);
+  const kills = visible.reduce((sum, { event, eventIndex }) =>
     sum + (event.participants[0]?.teamName === teamName
       && ['KILL', 'GANK', 'TEAMFIGHT'].includes(event.type)
+      && (event.type !== 'GANK' || gankOutcomes.find((outcome) => outcome.eventIndex === eventIndex)?.success)
       ? event.type === 'TEAMFIGHT' ? Math.max(1, event.participants.length - 1) : 1
       : 0), 0);
-  const turrets = visible.filter((event) => event.type === 'TOWER' && event.participants[0]?.teamName === teamName).length;
+  const turrets = visible.filter(({ event }) => event.type === 'TOWER' && event.participants[0]?.teamName === teamName).length;
   const objectiveStacks = visible.filter((event) =>
-    event.type === 'OBJECTIVE' && event.participants[0]?.teamName === teamName).length;
+    event.event.type === 'OBJECTIVE' && event.event.participants[0]?.teamName === teamName).length;
   return {
     kills,
     gold: players.filter((player) => player.teamName === teamName)
@@ -587,10 +728,12 @@ export function generateMatchTimeline(result: MatchResult, events: MatchEvent[])
   const players = createPlayers(result);
   const waves: SimWave[] = [];
   const attacks: PendingAttack[] = [];
+  const activeWards: TimelineWard[] = [];
   const frames: MatchTimelineFrame[] = [];
   const previousPositions = new Map<string, TimelinePoint>();
   const movementViolations: MatchTimeline['movementViolations'] = [];
   const highlightSeconds = new Set<number>();
+  const gankOutcomes: TimelineGankOutcome[] = [];
   let cameraCenter: TimelinePoint = { x: 0.5, y: 0.5 };
 
   for (let timestampSeconds = 0; timestampSeconds <= MATCH_DURATION_SECONDS; timestampSeconds += 1) {
@@ -602,8 +745,21 @@ export function generateMatchTimeline(result: MatchResult, events: MatchEvent[])
       .filter(({ event }) => event.timestampSeconds === timestampSeconds)
       .map(({ index }) => index);
     const eventsAtTime = eventIndices.map((index) => events[index]);
-    eventsAtTime.forEach((event) => {
+    const wardsAtStart = updateActiveWards(players, timestampSeconds, activeWards);
+    const visionAtStart = createTeamVision(result, players, wardsAtStart);
+    eventsAtTime.forEach((event, localIndex) => {
       if (['KILL', 'GANK', 'TEAMFIGHT'].includes(event.type)) highlightSeconds.add(timestampSeconds);
+      if (event.type === 'GANK') {
+        const outcome = judgeGank(
+          result,
+          event,
+          eventIndices[localIndex],
+          players,
+          visionAtStart,
+        );
+        gankOutcomes.push(outcome);
+        if (!outcome.success) return;
+      }
       event.participants.forEach((participant) => {
         const player = players.find((candidate) =>
           candidate.teamName === participant.teamName && candidate.player === participant.player);
@@ -698,7 +854,8 @@ export function generateMatchTimeline(result: MatchResult, events: MatchEvent[])
       }
     });
 
-    const wards = createWards(players, timestampSeconds);
+    const wards = wardsAtStart;
+    const teamVision = createTeamVision(result, players, wards);
     const camera = getCamera(result, events, players, timestampSeconds, cameraCenter);
     cameraCenter = camera.center;
     const framePlayers = players.map((player) => snapshotPlayer(player, result, timestampSeconds));
@@ -712,13 +869,16 @@ export function generateMatchTimeline(result: MatchResult, events: MatchEvent[])
       }
       previousPositions.set(player.key, { ...player.position });
     });
-    const homeStats = getTeamStats(result, events, players, result.homeTeam.name, timestampSeconds);
-    const awayStats = getTeamStats(result, events, players, result.awayTeam.name, timestampSeconds);
+    const homeStats = getTeamStats(result, events, players, result.homeTeam.name, timestampSeconds, gankOutcomes);
+    const awayStats = getTeamStats(result, events, players, result.awayTeam.name, timestampSeconds, gankOutcomes);
     const recentKills = events
-      .filter((event) => event.timestampSeconds <= timestampSeconds && timestampSeconds - event.timestampSeconds <= 30)
-      .filter((event) => ['KILL', 'GANK', 'TEAMFIGHT'].includes(event.type))
+      .map((event, eventIndex) => ({ event, eventIndex }))
+      .filter(({ event }) => event.timestampSeconds <= timestampSeconds && timestampSeconds - event.timestampSeconds <= 30)
+      .filter(({ event, eventIndex }) =>
+        ['KILL', 'GANK', 'TEAMFIGHT'].includes(event.type)
+        && (event.type !== 'GANK' || gankOutcomes.find((outcome) => outcome.eventIndex === eventIndex)?.success))
       .slice(-3)
-      .map((event) => ({
+      .map(({ event }) => ({
         timestampSeconds: event.timestampSeconds,
         teamName: event.participants[0]?.teamName ?? '',
         victimTeamName: event.participants[0]?.teamName === result.homeTeam.name ? result.awayTeam.name : result.homeTeam.name,
@@ -737,6 +897,7 @@ export function generateMatchTimeline(result: MatchResult, events: MatchEvent[])
       })),
       projectiles: currentProjectiles(attacks, timestampSeconds),
       wards,
+      teamVision,
       home: homeStats,
       away: awayStats,
       recentKills,
@@ -755,12 +916,30 @@ export function generateMatchTimeline(result: MatchResult, events: MatchEvent[])
     }, maximum);
   }, 0);
 
+  [300, 900, 1500, 2100].forEach((timestampSeconds) => {
+    const frame = frames[timestampSeconds];
+    const homeCoverage = frame.teamVision.find((vision) => vision.teamName === result.homeTeam.name)?.coveragePercent ?? 0;
+    const awayCoverage = frame.teamVision.find((vision) => vision.teamName === result.awayTeam.name)?.coveragePercent ?? 0;
+    console.log(
+      `[전장의 안개] ${timestampSeconds / 60}분 | HOME ${homeCoverage.toFixed(2)}% | AWAY ${awayCoverage.toFixed(2)}%`,
+    );
+  });
+  const successfulGanks = gankOutcomes.filter((outcome) => outcome.success).length;
+  const failedGanks = gankOutcomes.filter((outcome) => !outcome.success);
+  const visionFailureRate = failedGanks.length === 0
+    ? 0
+    : failedGanks.filter((outcome) => outcome.failedByVision).length / failedGanks.length * 100;
+  console.log(
+    `[전장의 안개] 갱 시도 ${gankOutcomes.length}회 | 성공 ${successfulGanks}회 | 실패 중 시야 감지 ${visionFailureRate.toFixed(2)}%`,
+  );
+
   return {
     durationSeconds: MATCH_DURATION_SECONDS,
     frames,
     highlightSeconds: [...highlightSeconds].sort((left, right) => left - right),
     maxPositionDelta,
     movementViolations,
+    gankOutcomes,
   };
 }
 
