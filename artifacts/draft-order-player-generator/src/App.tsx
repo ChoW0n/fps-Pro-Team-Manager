@@ -3,7 +3,7 @@
  * 경기 계산은 domain 모듈에 맡기고, 이 파일은 화면 상태와 표시 타이밍만 관리합니다.
  */
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   printPlayersToConsole,
   printChampionsToConsole,
@@ -41,6 +41,13 @@ let hasSimulationRun = false;
 const interactiveTeams = new TeamGenerator().generateTenTeams();
 const POSITION_ORDER: Position[] = ['TOP', 'JUNGLE', 'MID', 'ADC', 'SUPPORT'];
 const SPEEDS = [1, 2, 4, 8] as const;
+const HOME_MAP_COLOR = '#557D91';
+const AWAY_MAP_COLOR = '#8B4745';
+const MAP_OBJECTS = [
+  { name: '종의 파수꾼', x: 0.5, y: 0.18 },
+  { name: '불꽃의 짐승', x: 0.29, y: 0.5 },
+  { name: '심연의 군주', x: 0.71, y: 0.5 },
+] as const;
 const STAT_ITEMS = [
   { key: 'laning', label: '라인전' },
   { key: 'teamfight', label: '한타' },
@@ -568,6 +575,7 @@ function WatchScreen({
   const homeWins = result.phases.filter((phase) => phase.winnerName === result.homeTeam.name).length;
   const awayWins = result.phases.length - homeWins;
   const isComplete = visibleEventCount >= events.length;
+  const currentEvent = events[visibleEventCount - 1];
   return (
     <section className="screen-section watch-screen">
       <div className="eyebrow">MATCH REVIEW / 03</div>
@@ -583,43 +591,58 @@ function WatchScreen({
         </div>
       </div>
 
+      <div className="watch-arena-layout">
+        <MatchMap
+          result={result}
+          events={events}
+          visibleEventCount={visibleEventCount}
+          speed={speed}
+          isPaused={isPaused}
+          currentEvent={currentEvent}
+        />
+        <aside className="event-rail">
+          <div className="watch-controls">
+            <div className="playback-control">
+              <button className="outline-button pause-button" type="button" onClick={onTogglePause}>
+                {isPaused ? '재생' : '일시정지'}
+              </button>
+              <span>{isPaused ? '맵과 중계가 멈춰 있습니다.' : '맵과 중계가 함께 흐릅니다.'}</span>
+            </div>
+            <div className="speed-control">
+              <span>배속</span>
+              {SPEEDS.map((value) => (
+                <button key={value} type="button" className={speed === value ? 'is-active' : ''} onClick={() => onSetSpeed(value)}>
+                  {value}x
+                </button>
+              ))}
+            </div>
+          </div>
+          <div className="timeline-panel">
+            <div className="timeline-heading">
+              <span className="panel-kicker">CHRONICLE</span>
+              <h2>경기 중계 기록</h2>
+            </div>
+            <div className="event-list">
+              {events.slice(0, visibleEventCount).map((event, index) => (
+                <EventRow
+                  event={event}
+                  isCurrent={index === visibleEventCount - 1}
+                  key={`${event.timestampSeconds}-${event.type}-${index}`}
+                />
+              ))}
+              {!isComplete && events.length > visibleEventCount && (
+                <div className="event-pending"><span className="pending-line" /> 다음 사건을 기다리는 중</div>
+              )}
+              {isComplete && <div className="event-finished">모든 경기 이벤트가 기록되었습니다.</div>}
+            </div>
+          </div>
+        </aside>
+      </div>
+
       <div className="scoreboard">
         <div className="score-team score-home"><span>HOME</span><strong>{result.homeTeam.name}</strong><b>{homeWins}</b></div>
         <div className="score-middle"><span>PHASE SCORE</span><i>—</i><small>{isComplete ? 'REVIEW COMPLETE' : `${visibleEventCount} / ${events.length} EVENTS`}</small></div>
         <div className="score-team score-away"><b>{awayWins}</b><strong>{result.awayTeam.name}</strong><span>AWAY</span></div>
-      </div>
-
-      <div className="watch-controls">
-        <div className="playback-control">
-          <button className="outline-button pause-button" type="button" onClick={onTogglePause}>
-            {isPaused ? '재생' : '일시정지'}
-          </button>
-          <span>{isPaused ? '중계가 멈춰 있습니다.' : '이벤트를 순서대로 재생 중입니다.'}</span>
-        </div>
-        <div className="speed-control">
-          <span>배속</span>
-          {SPEEDS.map((value) => (
-            <button key={value} type="button" className={speed === value ? 'is-active' : ''} onClick={() => onSetSpeed(value)}>
-              {value}x
-            </button>
-          ))}
-        </div>
-      </div>
-
-      <div className="timeline-panel">
-        <div className="timeline-heading">
-          <span className="panel-kicker">CHRONICLE</span>
-          <h2>경기 중계 기록</h2>
-        </div>
-        <div className="event-list">
-          {events.slice(0, visibleEventCount).map((event, index) => (
-            <EventRow event={event} key={`${event.timestampSeconds}-${event.type}-${index}`} />
-          ))}
-          {!isComplete && events.length > visibleEventCount && (
-            <div className="event-pending"><span className="pending-line" /> 다음 사건을 기다리는 중</div>
-          )}
-          {isComplete && <div className="event-finished">모든 경기 이벤트가 기록되었습니다.</div>}
-        </div>
       </div>
 
       {isComplete && <MatchReview result={result} />}
@@ -635,10 +658,10 @@ function WatchScreen({
   );
 }
 
-function EventRow({ event }: { event: MatchEvent }) {
+function EventRow({ event, isCurrent }: { event: MatchEvent; isCurrent: boolean }) {
   const lead = event.participants[0];
   return (
-    <article className={`event-row event-${event.type.toLowerCase()}`}>
+    <article className={`event-row event-${event.type.toLowerCase()} ${isCurrent ? 'is-current' : ''}`}>
       <time>{formatTimestamp(event.timestampSeconds)}</time>
       <span className="event-type">{matchEventDisplayNames[event.type]}</span>
       <div className="event-copy">
@@ -647,6 +670,370 @@ function EventRow({ event }: { event: MatchEvent }) {
       </div>
     </article>
   );
+}
+
+type MapPosition = { x: number; y: number };
+type MapPlayer = {
+  key: string;
+  teamName: string;
+  player: Player;
+  champion: Champion;
+  teamColor: string;
+  position: MapPosition;
+};
+type MapEffect = {
+  position: MapPosition;
+  teamColor: string;
+  eventType: MatchEvent['type'];
+  participantCount: number;
+  age: number;
+};
+
+/**
+ * 경기 관전용 탑다운 맵을 캔버스 하나로 그립니다.
+ * 지형은 실제 게임 맵을 복제하지 않고 세 개의 대각선 라인과 정글 면만 표현합니다.
+ */
+function MatchMap({
+  result,
+  events,
+  visibleEventCount,
+  speed,
+  isPaused,
+  currentEvent,
+}: {
+  result: MatchResult;
+  events: MatchEvent[];
+  visibleEventCount: number;
+  speed: number;
+  isPaused: boolean;
+  currentEvent?: MatchEvent;
+}) {
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const playersRef = useRef<MapPlayer[]>(createMapPlayers(result));
+  const targetsRef = useRef<Record<string, MapPosition>>(
+    Object.fromEntries(playersRef.current.map((player) => [player.key, player.position])),
+  );
+  const effectsRef = useRef<MapEffect[]>([]);
+  const lastVisibleEventRef = useRef(0);
+  const lastFrameTimeRef = useRef(0);
+  const speedRef = useRef(speed);
+  const pausedRef = useRef(isPaused);
+
+  useEffect(() => {
+    speedRef.current = speed;
+    pausedRef.current = isPaused;
+  }, [speed, isPaused]);
+
+  useEffect(() => {
+    if (visibleEventCount < lastVisibleEventRef.current) {
+      lastVisibleEventRef.current = 0;
+      effectsRef.current = [];
+      playersRef.current = createMapPlayers(result);
+      targetsRef.current = Object.fromEntries(
+        playersRef.current.map((player) => [player.key, player.position]),
+      );
+    }
+    for (let eventIndex = lastVisibleEventRef.current; eventIndex < visibleEventCount; eventIndex += 1) {
+      const event = events[eventIndex];
+      if (!event) continue;
+      const eventPosition = getEventMapPosition(event);
+      event.participants.forEach((participant, participantIndex) => {
+        const key = getMapPlayerKey(participant.teamName, participant.player);
+        const offset = (participantIndex - (event.participants.length - 1) / 2) * 0.028;
+        targetsRef.current[key] = clampMapPosition({
+          x: eventPosition.x + offset,
+          y: eventPosition.y + offset * 0.55,
+        });
+      });
+      effectsRef.current.push({
+        position: eventPosition,
+        teamColor: event.participants[0]?.teamName === result.homeTeam.name ? HOME_MAP_COLOR : AWAY_MAP_COLOR,
+        eventType: event.type,
+        participantCount: event.participants.length,
+        age: 0,
+      });
+    }
+    lastVisibleEventRef.current = visibleEventCount;
+  }, [events, result, visibleEventCount]);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return undefined;
+    const context = canvas.getContext('2d');
+    if (!context) return undefined;
+
+    /**
+     * 캔버스의 논리 좌표를 화면 픽셀에 맞춰 보정하고, 한 프레임의 맵을 그립니다.
+     */
+    const draw = (now: number) => {
+      const frameDelta = lastFrameTimeRef.current === 0
+        ? 0
+        : Math.min((now - lastFrameTimeRef.current) / 1000, 0.08);
+      lastFrameTimeRef.current = now;
+      const rect = canvas.getBoundingClientRect();
+      const pixelRatio = window.devicePixelRatio || 1;
+      const width = Math.max(1, rect.width);
+      const height = Math.max(1, rect.height);
+      if (canvas.width !== Math.floor(width * pixelRatio) || canvas.height !== Math.floor(height * pixelRatio)) {
+        canvas.width = Math.floor(width * pixelRatio);
+        canvas.height = Math.floor(height * pixelRatio);
+      }
+      context.setTransform(pixelRatio, 0, 0, pixelRatio, 0, 0);
+      const mapSize = Math.min(width, height);
+      const offsetX = (width - mapSize) / 2;
+      const offsetY = (height - mapSize) / 2;
+      const toCanvas = (position: MapPosition) => ({
+        x: offsetX + position.x * mapSize,
+        y: offsetY + (1 - position.y) * mapSize,
+      });
+
+      if (!pausedRef.current) {
+        const movement = Math.min(1, frameDelta * (1.15 + speedRef.current * 0.22));
+        playersRef.current.forEach((player) => {
+          const target = targetsRef.current[player.key] ?? player.position;
+          player.position = {
+            x: player.position.x + (target.x - player.position.x) * movement,
+            y: player.position.y + (target.y - player.position.y) * movement,
+          };
+        });
+        effectsRef.current = effectsRef.current
+          .map((effect) => ({ ...effect, age: effect.age + frameDelta * speedRef.current }))
+          .filter((effect) => effect.age < 1.7);
+      }
+
+      context.clearRect(0, 0, width, height);
+      context.fillStyle = '#12100C';
+      context.fillRect(0, 0, width, height);
+      drawMapTerrain(context, offsetX, offsetY, mapSize);
+
+      MAP_OBJECTS.forEach((object) => {
+        const isActive = !events.slice(0, visibleEventCount).some(
+          (event) => event.type === 'OBJECTIVE' && event.description.includes(object.name),
+        );
+        drawMapObject(context, toCanvas(object), object.name, isActive);
+      });
+
+      effectsRef.current.forEach((effect) => {
+        drawMapEffect(context, toCanvas(effect.position), mapSize, effect);
+      });
+
+      playersRef.current.forEach((player) => {
+        drawMapPlayer(context, toCanvas(player.position), player);
+      });
+      frameRef.current = window.requestAnimationFrame(draw);
+    };
+
+    const frameRef = { current: window.requestAnimationFrame(draw) };
+    return () => window.cancelAnimationFrame(frameRef.current);
+  }, [events, result, visibleEventCount]);
+
+  return (
+    <section className="arena-panel">
+      <div className="arena-heading">
+        <div>
+          <span className="panel-kicker">TACTICAL VIEW</span>
+          <h2>전장 관전</h2>
+        </div>
+        <span>{isPaused ? 'PAUSED' : `${visibleEventCount} / ${events.length} EVENTS`}</span>
+      </div>
+      <div className="map-canvas-wrap">
+        <canvas ref={canvasRef} aria-label="선수와 오브젝트가 표시되는 2D 경기 맵" />
+        <div className="map-overlay-caption">
+          <span>{currentEvent ? matchEventDisplayNames[currentEvent.type] : '경기 시작 대기'}</span>
+          <strong>{currentEvent?.description ?? '첫 이벤트를 기다리는 중입니다.'}</strong>
+        </div>
+        <div className="map-legend">
+          <span><i className="legend-dot home-dot" /> HOME</span>
+          <span><i className="legend-dot away-dot" /> AWAY</span>
+          <span><i className="legend-ring" /> 이벤트</span>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/**
+ * 결과의 열 명을 맵에 올릴 초기 위치를 만듭니다.
+ */
+function createMapPlayers(result: MatchResult): MapPlayer[] {
+  return [
+    ...result.homeTeam.players.map((player, index) => createMapPlayer(result.homeTeam.name, player, result.homePicks[index], true)),
+    ...result.awayTeam.players.map((player, index) => createMapPlayer(result.awayTeam.name, player, result.awayPicks[index], false)),
+  ];
+}
+
+/**
+ * 한 선수의 팀 색과 포지션별 초기 위치를 결합합니다.
+ */
+function createMapPlayer(teamName: string, player: Player, champion: Champion, isHome: boolean): MapPlayer {
+  const basePosition = getPositionMapPosition(player.position);
+  return {
+    key: getMapPlayerKey(teamName, player),
+    teamName,
+    player,
+    champion,
+    teamColor: isHome ? HOME_MAP_COLOR : AWAY_MAP_COLOR,
+    position: isHome ? basePosition : { x: 1 - basePosition.x, y: 1 - basePosition.y },
+  };
+}
+
+/**
+ * 포지션별로 본진과 라인 사이에 흩어질 초기 위치를 반환합니다.
+ */
+function getPositionMapPosition(position: Position): MapPosition {
+  return {
+    TOP: { x: 0.2, y: 0.8 },
+    JUNGLE: { x: 0.34, y: 0.66 },
+    MID: { x: 0.5, y: 0.5 },
+    ADC: { x: 0.66, y: 0.34 },
+    SUPPORT: { x: 0.78, y: 0.22 },
+  }[position];
+}
+
+/**
+ * 선수 객체에 안정적인 캔버스용 키를 붙입니다.
+ */
+function getMapPlayerKey(teamName: string, player: Player): string {
+  return `${teamName}:${player.nickname}`;
+}
+
+/**
+ * 좌표가 없거나 범위를 벗어난 이벤트를 화면에 맞는 위치로 보정합니다.
+ */
+function getEventMapPosition(event: MatchEvent): MapPosition {
+  if (
+    event.position
+    && Number.isFinite(event.position.x)
+    && Number.isFinite(event.position.y)
+  ) return clampMapPosition(event.position);
+  const leadPosition = event.participants[0]?.player.position;
+  if (event.type === 'TEAMFIGHT') return { x: 0.5, y: 0.5 };
+  if (event.type === 'OBJECTIVE') return MAP_OBJECTS[1];
+  return getPositionMapPosition(leadPosition ?? 'MID');
+}
+
+/**
+ * 모든 맵 좌표를 0과 1 사이로 제한합니다.
+ */
+function clampMapPosition(position: MapPosition): MapPosition {
+  return {
+    x: Math.min(0.94, Math.max(0.06, position.x)),
+    y: Math.min(0.94, Math.max(0.06, position.y)),
+  };
+}
+
+/**
+ * 대각선 세 라인과 그 사이의 정글 면을 그립니다.
+ */
+function drawMapTerrain(context: CanvasRenderingContext2D, offsetX: number, offsetY: number, size: number) {
+  context.save();
+  context.translate(offsetX, offsetY);
+  context.fillStyle = '#15130E';
+  context.fillRect(0, 0, size, size);
+  context.fillStyle = '#11100C';
+  context.beginPath();
+  context.moveTo(0.06 * size, 0.94 * size);
+  context.lineTo(0.94 * size, 0.06 * size);
+  context.lineTo(0.94 * size, 0.94 * size);
+  context.closePath();
+  context.fill();
+  context.beginPath();
+  context.moveTo(0.06 * size, 0.94 * size);
+  context.lineTo(0.94 * size, 0.06 * size);
+  context.lineTo(0.06 * size, 0.06 * size);
+  context.closePath();
+  context.fill();
+  context.strokeStyle = '#2C2618';
+  context.lineWidth = Math.max(1, size * 0.002);
+  [-0.045, 0, 0.045].forEach((lineOffset) => {
+    context.beginPath();
+    context.moveTo(0.06 * size, (0.94 + lineOffset) * size);
+    context.lineTo(0.94 * size, (0.06 + lineOffset) * size);
+    context.stroke();
+  });
+  context.strokeStyle = '#3A311F';
+  context.strokeRect(0.025 * size, 0.025 * size, 0.95 * size, 0.95 * size);
+  drawMapBase(context, { x: 0.1 * size, y: 0.9 * size }, HOME_MAP_COLOR, 'HOME');
+  drawMapBase(context, { x: 0.9 * size, y: 0.1 * size }, AWAY_MAP_COLOR, 'AWAY');
+  context.restore();
+}
+
+/**
+ * 본진을 작은 색면과 방향 표기로 그립니다.
+ */
+function drawMapBase(context: CanvasRenderingContext2D, point: { x: number; y: number }, color: string, label: string) {
+  context.save();
+  context.fillStyle = `${color}35`;
+  context.strokeStyle = color;
+  context.lineWidth = 1.5;
+  context.beginPath();
+  context.rect(point.x - 18, point.y - 18, 36, 36);
+  context.fill();
+  context.stroke();
+  context.fillStyle = color;
+  context.font = '10px Georgia';
+  context.textAlign = label === 'HOME' ? 'left' : 'right';
+  context.fillText(label, point.x + (label === 'HOME' ? 25 : -25), point.y + 4);
+  context.restore();
+}
+
+/**
+ * 오브젝트 표식을 고정 위치에 그리며 꺼진 오브젝트는 어둡게 표시합니다.
+ */
+function drawMapObject(context: CanvasRenderingContext2D, point: { x: number; y: number }, label: string, isActive: boolean) {
+  context.save();
+  context.globalAlpha = isActive ? 0.95 : 0.24;
+  context.strokeStyle = '#C9A227';
+  context.fillStyle = '#15120D';
+  context.lineWidth = 1.2;
+  context.beginPath();
+  context.arc(point.x, point.y, 9, 0, Math.PI * 2);
+  context.fill();
+  context.stroke();
+  context.fillStyle = '#C9A227';
+  context.font = '9px Georgia';
+  context.textAlign = 'center';
+  context.fillText(label, point.x, point.y + 22);
+  context.restore();
+}
+
+/**
+ * 이벤트 참가자 수에 비례해 한 겹 또는 여러 겹의 파동을 그립니다.
+ */
+function drawMapEffect(context: CanvasRenderingContext2D, point: { x: number; y: number }, mapSize: number, effect: MapEffect) {
+  const progress = effect.age / 1.7;
+  const ringCount = effect.participantCount >= 3 || effect.eventType === 'TEAMFIGHT' ? 3 : 1;
+  context.save();
+  context.globalAlpha = Math.max(0, 1 - progress);
+  context.strokeStyle = effect.teamColor;
+  context.lineWidth = Math.max(1, mapSize * 0.004);
+  for (let index = 0; index < ringCount; index += 1) {
+    const ringProgress = Math.min(1, progress + index * 0.13);
+    const radius = mapSize * (0.025 + ringProgress * (0.085 + effect.participantCount * 0.012));
+    context.beginPath();
+    context.arc(point.x, point.y, radius, 0, Math.PI * 2);
+    context.stroke();
+  }
+  context.restore();
+}
+
+/**
+ * 팀 색을 면으로, 챔피언 상징색을 테두리로 사용해 선수 점을 그립니다.
+ */
+function drawMapPlayer(context: CanvasRenderingContext2D, point: { x: number; y: number }, player: MapPlayer) {
+  context.save();
+  context.fillStyle = player.teamColor;
+  context.strokeStyle = player.champion.symbolColor;
+  context.lineWidth = 2;
+  context.beginPath();
+  context.arc(point.x, point.y, 6, 0, Math.PI * 2);
+  context.fill();
+  context.stroke();
+  context.fillStyle = '#C9C0A8';
+  context.font = '11px Georgia';
+  context.textAlign = point.x < 0.55 * (context.canvas.width || 1) ? 'left' : 'right';
+  context.fillText(player.champion.name, point.x + (context.textAlign === 'left' ? 10 : -10), point.y + 4);
+  context.restore();
 }
 
 function MatchReview({ result }: { result: MatchResult }) {
