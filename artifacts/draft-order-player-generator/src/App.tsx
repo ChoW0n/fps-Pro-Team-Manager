@@ -28,11 +28,10 @@ import {
   validateMatchEvents,
 } from './domain/matchEvents';
 import { MatchSimulator } from './domain/MatchSimulator';
-import { generateMatchTimeline } from './domain/matchTimeline';
+import { generateMatchTimeline, MatchTimeline } from './domain/matchTimeline';
 import { Player, Position } from './domain/Player';
 import { Team } from './domain/Team';
 import {
-  MATCH_DISPLAY_DURATION_SECONDS,
   MatchEconomySnapshot,
   deriveCombatDamage,
   deriveMatchEconomySnapshot,
@@ -94,9 +93,11 @@ function Home() {
   const [matchResult, setMatchResult] = useState<MatchResult | null>(null);
   const [events, setEvents] = useState<MatchEvent[]>([]);
   const [snapshots, setSnapshots] = useState<MatchPlayerSnapshot[]>([]);
-  const [visibleEventCount, setVisibleEventCount] = useState(0);
+  const [timeline, setTimeline] = useState<MatchTimeline | null>(null);
+  const [currentFrameIndex, setCurrentFrameIndex] = useState(0);
   const [speed, setSpeed] = useState<number>(1);
   const [isPaused, setIsPaused] = useState(false);
+  const [highlightMode, setHighlightMode] = useState(false);
 
   useEffect(() => {
     if (hasSimulationRun) return;
@@ -142,9 +143,12 @@ function Home() {
     setMatchResult(result);
     setEvents(generatedEvents);
     setSnapshots(generatedSnapshots);
-    setVisibleEventCount(0);
+    setTimeline(generatedTimeline);
+    setCurrentFrameIndex(0);
     setSpeed(1);
     setIsPaused(false);
+    setHighlightMode(false);
+    console.log('전장의 안개: 예');
     setScreen('watch');
   };
 
@@ -191,14 +195,18 @@ function Home() {
     return () => window.clearTimeout(timer);
   }, [screen, draftSession, draftRevision, currentStep, homeTeam.name]);
 
-  // 이벤트 배열은 그대로 두고, 표시되는 행의 수만 배속에 따라 바꿉니다.
+  // 기록된 1초 프레임의 인덱스만 진행하므로 배속과 되감기가 경기 내용에 영향을 주지 않습니다.
   useEffect(() => {
-    if (screen !== 'watch' || isPaused || visibleEventCount >= events.length) return;
+    if (screen !== 'watch' || isPaused || !timeline || currentFrameIndex >= timeline.frames.length - 1) return;
     const timer = window.setTimeout(() => {
-      setVisibleEventCount((count) => Math.min(count + 1, events.length));
-    }, Math.max(180, 1500 / speed));
+      setCurrentFrameIndex((index) => {
+        if (!highlightMode) return Math.min(index + 1, timeline.frames.length - 1);
+        return timeline.highlightSeconds.find((second) => second > index)
+          ?? timeline.frames.length - 1;
+      });
+    }, 1000 / speed);
     return () => window.clearTimeout(timer);
-  }, [screen, isPaused, visibleEventCount, events.length, speed]);
+  }, [screen, isPaused, timeline, currentFrameIndex, speed, highlightMode]);
 
   const draftCounts = useMemo(
     () => ({
@@ -215,7 +223,8 @@ function Home() {
     setMatchResult(null);
     setEvents([]);
     setSnapshots([]);
-    setVisibleEventCount(0);
+    setTimeline(null);
+    setCurrentFrameIndex(0);
     setDraftError('');
   };
 
@@ -236,18 +245,22 @@ function Home() {
     );
   }
 
-  if (screen === 'watch' && matchResult) {
+  if (screen === 'watch' && matchResult && timeline) {
     return (
       <AppFrame screen={screen}>
         <WatchScreen
           result={matchResult}
           events={events}
           snapshots={snapshots}
-          visibleEventCount={visibleEventCount}
+          timeline={timeline}
+          currentFrameIndex={currentFrameIndex}
           speed={speed}
           isPaused={isPaused}
+          highlightMode={highlightMode}
           onSetSpeed={setSpeed}
           onTogglePause={() => setIsPaused((paused) => !paused)}
+          onSetHighlightMode={setHighlightMode}
+          onSeek={setCurrentFrameIndex}
           onReset={resetToPreparation}
         />
       </AppFrame>
@@ -592,29 +605,36 @@ function WatchScreen({
   result,
   events,
   snapshots,
-  visibleEventCount,
+  timeline,
+  currentFrameIndex,
   speed,
   isPaused,
+  highlightMode,
   onSetSpeed,
   onTogglePause,
+  onSetHighlightMode,
+  onSeek,
   onReset,
 }: {
   result: MatchResult;
   events: MatchEvent[];
   snapshots: MatchPlayerSnapshot[];
-  visibleEventCount: number;
+  timeline: MatchTimeline;
+  currentFrameIndex: number;
   speed: number;
   isPaused: boolean;
+  highlightMode: boolean;
   onSetSpeed: (speed: number) => void;
   onTogglePause: () => void;
+  onSetHighlightMode: (enabled: boolean) => void;
+  onSeek: (frameIndex: number) => void;
   onReset: () => void;
 }) {
-  const isComplete = visibleEventCount >= events.length;
+  const currentTime = timeline.frames[currentFrameIndex].timestampSeconds;
+  const visibleEventCount = events.filter((event) => event.timestampSeconds <= currentTime).length;
+  const isComplete = currentFrameIndex >= timeline.frames.length - 1;
   const currentEvent = events[visibleEventCount - 1];
   const previousEvent = events[visibleEventCount - 2];
-  const currentTime = isComplete
-    ? MATCH_DISPLAY_DURATION_SECONDS
-    : currentEvent?.timestampSeconds ?? 0;
   const economy = deriveMatchEconomySnapshot(result, events, currentTime);
   const previousEconomy = deriveMatchEconomySnapshot(
     result,
@@ -668,6 +688,28 @@ function WatchScreen({
                   {value}x
                 </button>
               ))}
+            </div>
+            <label className="highlight-control">
+              <input
+                type="checkbox"
+                checked={highlightMode}
+                onChange={(event) => onSetHighlightMode(event.target.checked)}
+              />
+              하이라이트만 보기
+            </label>
+            <div className="seek-control">
+              <div>
+                <span>{formatTimestamp(currentTime)}</span>
+                <span>{formatTimestamp(timeline.durationSeconds)}</span>
+              </div>
+              <input
+                type="range"
+                min={0}
+                max={timeline.frames.length - 1}
+                value={currentFrameIndex}
+                aria-label="경기 시간 이동"
+                onChange={(event) => onSeek(Number(event.target.value))}
+              />
             </div>
           </div>
           <div className="timeline-panel">

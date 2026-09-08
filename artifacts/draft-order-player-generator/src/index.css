@@ -188,6 +188,11 @@ h1 { color: var(--text); font-size: clamp(30px, 4vw, 56px); font-weight: 400; le
 .pause-button { min-height: 34px; padding: 0 13px; font-size: 11px; }
 .speed-control button { min-width: 33px; min-height: 28px; padding: 0 6px; background: transparent; border: 1px solid var(--border); border-radius: 0; color: var(--muted); cursor: pointer; font-size: 11px; }
 .speed-control button:hover, .speed-control button.is-active { border-color: var(--accent); color: var(--accent); background: var(--selected); }
+.highlight-control { display: flex; align-items: center; gap: 8px; margin-top: 15px; color: var(--muted); font-size: 11px; cursor: pointer; }
+.highlight-control input { accent-color: var(--accent); }
+.seek-control { margin-top: 15px; }
+.seek-control div { display: flex; justify-content: space-between; color: var(--accent); font-size: 11px; font-variant-numeric: tabular-nums; }
+.seek-control input { width: 100%; margin-top: 8px; accent-color: var(--accent); cursor: pointer; }
 .timeline-panel { padding: 23px 28px 30px; }
 .timeline-heading { padding-bottom: 17px; border-bottom: 1px solid var(--border); }
 .event-list { margin-top: 5px; }
