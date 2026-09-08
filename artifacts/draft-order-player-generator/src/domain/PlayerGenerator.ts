@@ -9,6 +9,7 @@ import { NicknameGenerator } from './NicknameGenerator';
 import { KoreanNameGenerator } from './KoreanNameGenerator';
 import { clampToStatRange, generateNormalRandom } from './randomUtils';
 import { Champion, getChampionsByPosition } from './Champion';
+import { createSoloRankRecord } from './soloRank';
 
 export class PlayerGenerator {
   private nicknameGenerator: NicknameGenerator;
@@ -60,7 +61,7 @@ export class PlayerGenerator {
     const age = this.generateAge();
     const stats = PLAYER_STATS_BY_POSITION[position];
 
-    return new Player(
+    const player = new Player(
       nickname,
       realName,
       position,
@@ -71,7 +72,14 @@ export class PlayerGenerator {
       this.generateChampionPool(position, this.generateStat(stats.championPool)),
       this.generateStat(stats.volatility),
       this.generateStat(stats.mastery),
+      this.generateStat(stats.aggression),
+      this.generateStat(stats.composure),
+      this.generateStat(stats.recovery),
+      this.generateStat(stats.courage),
+      this.generateStat(stats.teamSynergy),
     );
+    player.soloRank = createSoloRankRecord(player);
+    return player;
   }
 
   /**

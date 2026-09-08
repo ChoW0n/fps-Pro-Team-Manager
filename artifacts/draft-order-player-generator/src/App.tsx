@@ -17,10 +17,32 @@ import { CHAMPIONS, Champion, getChampionsByPosition } from './domain/Champion';
 import { validateChampions } from './domain/championValidation';
 import { BanPickResult, DraftSession } from './domain/BanPick';
 import { MatchResult, getPhaseAdjustmentSummary } from './domain/MatchResult';
-import { MatchEvent, generateMatchEvents, validateMatchEvents } from './domain/matchEvents';
+import {
+  MatchEvent,
+  MatchPlayerSnapshot,
+  MATCH_OBJECT_POSITIONS,
+  generateMatchEvents,
+  generateMatchPlayerSnapshots,
+  validateMatchEvents,
+} from './domain/matchEvents';
 import { MatchSimulator } from './domain/MatchSimulator';
 import { Player, Position } from './domain/Player';
 import { Team } from './domain/Team';
+import {
+  MATCH_DISPLAY_DURATION_SECONDS,
+  MatchEconomySnapshot,
+  deriveCombatDamage,
+  deriveMatchEconomySnapshot,
+  formatEconomyPlayer,
+  getItemPurchasesBetween,
+  getLevelUpsBetween,
+} from './domain/matchEconomy';
+import {
+  BroadcastScene,
+  deriveBroadcastScene,
+  getBroadcastTeamColor,
+  getLaneLabel,
+} from './domain/matchBroadcast';
 import {
   draftActionDisplayNames,
   engagementDisplayNames,
@@ -43,11 +65,8 @@ const POSITION_ORDER: Position[] = ['TOP', 'JUNGLE', 'MID', 'ADC', 'SUPPORT'];
 const SPEEDS = [1, 2, 4, 8] as const;
 const HOME_MAP_COLOR = '#557D91';
 const AWAY_MAP_COLOR = '#8B4745';
-const MAP_OBJECTS = [
-  { name: '종의 파수꾼', x: 0.5, y: 0.18 },
-  { name: '불꽃의 짐승', x: 0.29, y: 0.5 },
-  { name: '심연의 군주', x: 0.71, y: 0.5 },
-] as const;
+// 이벤트 생성기와 Canvas가 같은 표시용 고정 오브젝트 좌표를 사용합니다.
+const MAP_OBJECTS = MATCH_OBJECT_POSITIONS;
 const STAT_ITEMS = [
   { key: 'laning', label: '라인전' },
   { key: 'teamfight', label: '한타' },
@@ -71,6 +90,7 @@ function Home() {
   const [hoveredChampion, setHoveredChampion] = useState<Champion>(CHAMPIONS[0]);
   const [matchResult, setMatchResult] = useState<MatchResult | null>(null);
   const [events, setEvents] = useState<MatchEvent[]>([]);
+  const [snapshots, setSnapshots] = useState<MatchPlayerSnapshot[]>([]);
   const [visibleEventCount, setVisibleEventCount] = useState(0);
   const [speed, setSpeed] = useState<number>(1);
   const [isPaused, setIsPaused] = useState(false);
@@ -107,12 +127,14 @@ function Home() {
     const draft: BanPickResult = session.getResult();
     const result = new MatchSimulator().playWithDraft(homeTeam, awayTeam, draft);
     const generatedEvents = generateMatchEvents(result);
-    const eventIssues = validateMatchEvents(result, generatedEvents);
+    const generatedSnapshots = generateMatchPlayerSnapshots(result, generatedEvents);
+    const eventIssues = validateMatchEvents(result, generatedEvents, generatedSnapshots);
     if (eventIssues.length > 0) {
       eventIssues.forEach((issue) => console.error(`경기 이벤트 검증 실패: ${issue}`));
     }
     setMatchResult(result);
     setEvents(generatedEvents);
+    setSnapshots(generatedSnapshots);
     setVisibleEventCount(0);
     setSpeed(1);
     setIsPaused(false);
@@ -185,6 +207,7 @@ function Home() {
     setDraftSession(null);
     setMatchResult(null);
     setEvents([]);
+    setSnapshots([]);
     setVisibleEventCount(0);
     setDraftError('');
   };
@@ -212,6 +235,7 @@ function Home() {
         <WatchScreen
           result={matchResult}
           events={events}
+          snapshots={snapshots}
           visibleEventCount={visibleEventCount}
           speed={speed}
           isPaused={isPaused}
@@ -556,6 +580,7 @@ function compositionWarnings(picks: Champion[]) {
 function WatchScreen({
   result,
   events,
+  snapshots,
   visibleEventCount,
   speed,
   isPaused,
@@ -565,6 +590,7 @@ function WatchScreen({
 }: {
   result: MatchResult;
   events: MatchEvent[];
+  snapshots: MatchPlayerSnapshot[];
   visibleEventCount: number;
   speed: number;
   isPaused: boolean;
@@ -572,10 +598,21 @@ function WatchScreen({
   onTogglePause: () => void;
   onReset: () => void;
 }) {
-  const homeWins = result.phases.filter((phase) => phase.winnerName === result.homeTeam.name).length;
-  const awayWins = result.phases.length - homeWins;
   const isComplete = visibleEventCount >= events.length;
   const currentEvent = events[visibleEventCount - 1];
+  const previousEvent = events[visibleEventCount - 2];
+  const currentTime = isComplete
+    ? MATCH_DISPLAY_DURATION_SECONDS
+    : currentEvent?.timestampSeconds ?? 0;
+  const economy = deriveMatchEconomySnapshot(result, events, currentTime);
+  const previousEconomy = deriveMatchEconomySnapshot(
+    result,
+    events,
+    previousEvent?.timestampSeconds ?? 0,
+  );
+  const purchases = getItemPurchasesBetween(previousEconomy, economy);
+  const levelUps = getLevelUpsBetween(previousEconomy, economy);
+  const combatSummary = currentEvent ? deriveCombatDamage(result, currentEvent) : null;
   return (
     <section className="screen-section watch-screen">
       <div className="eyebrow">MATCH REVIEW / 03</div>
@@ -591,14 +628,19 @@ function WatchScreen({
         </div>
       </div>
 
+      <MatchScoreboard result={result} economy={economy} />
+
       <div className="watch-arena-layout">
         <MatchMap
           result={result}
           events={events}
+          snapshots={snapshots}
           visibleEventCount={visibleEventCount}
+          currentTime={currentTime}
           speed={speed}
           isPaused={isPaused}
           currentEvent={currentEvent}
+          levelUpKeys={levelUps.map((levelUp) => levelUp.key)}
         />
         <aside className="event-rail">
           <div className="watch-controls">
@@ -626,6 +668,9 @@ function WatchScreen({
               {events.slice(0, visibleEventCount).map((event, index) => (
                 <EventRow
                   event={event}
+                  result={result}
+                  allEvents={events}
+                  previousEvent={events[index - 1]}
                   isCurrent={index === visibleEventCount - 1}
                   key={`${event.timestampSeconds}-${event.type}-${index}`}
                 />
@@ -636,16 +681,17 @@ function WatchScreen({
               {isComplete && <div className="event-finished">모든 경기 이벤트가 기록되었습니다.</div>}
             </div>
           </div>
+          {(purchases.length > 0 || levelUps.length > 0 || combatSummary) && (
+            <LiveMatchFeed
+              purchases={purchases}
+              levelUps={levelUps}
+              combatSummary={combatSummary}
+            />
+          )}
         </aside>
       </div>
 
-      <div className="scoreboard">
-        <div className="score-team score-home"><span>HOME</span><strong>{result.homeTeam.name}</strong><b>{homeWins}</b></div>
-        <div className="score-middle"><span>PHASE SCORE</span><i>—</i><small>{isComplete ? 'REVIEW COMPLETE' : `${visibleEventCount} / ${events.length} EVENTS`}</small></div>
-        <div className="score-team score-away"><b>{awayWins}</b><strong>{result.awayTeam.name}</strong><span>AWAY</span></div>
-      </div>
-
-      {isComplete && <MatchReview result={result} />}
+      {isComplete && <MatchReview result={result} economy={economy} />}
 
       <div className="action-bar review-action">
         <div>
@@ -658,8 +704,135 @@ function WatchScreen({
   );
 }
 
-function EventRow({ event, isCurrent }: { event: MatchEvent; isCurrent: boolean }) {
+function MatchScoreboard({
+  result,
+  economy,
+}: {
+  result: MatchResult;
+  economy: MatchEconomySnapshot;
+}) {
+  const goldDifference = Math.abs(economy.goldDifference);
+  const maxGold = Math.max(economy.home.gold, economy.away.gold, 1);
+  const homeGoldWidth = `${Math.max(6, economy.home.gold / maxGold * 100)}%`;
+  const awayGoldWidth = `${Math.max(6, economy.away.gold / maxGold * 100)}%`;
+  return (
+    <section className="broadcast-scoreboard" aria-label="실시간 경기 스코어보드">
+      <div className="broadcast-team broadcast-home">
+        <span className="broadcast-side">HOME</span>
+        <strong>{result.homeTeam.name}</strong>
+        <b className="score-number">{String(economy.home.kills).padStart(2, '0')}</b>
+      </div>
+      <div className="broadcast-stat">
+        <span>처치</span>
+        <strong className="score-number">{String(economy.away.kills).padStart(2, '0')}</strong>
+      </div>
+      <div className="broadcast-stat broadcast-gold-stat">
+        <span>총 골드</span>
+        <strong className="gold-number">{economy.home.gold.toLocaleString()} : {economy.away.gold.toLocaleString()}</strong>
+        <div className="gold-bar" aria-label={`골드 격차 ${goldDifference.toLocaleString()}`}>
+          <i className="gold-bar-home" style={{ width: homeGoldWidth }} />
+          <i className="gold-bar-away" style={{ width: awayGoldWidth }} />
+        </div>
+        <small className={economy.goldDifference >= 0 ? 'home-text' : 'away-text'}>
+          {economy.goldDifference >= 0 ? 'HOME' : 'AWAY'} +{goldDifference.toLocaleString()}
+        </small>
+      </div>
+      <div className="broadcast-stat">
+        <span>평균 레벨</span>
+        <strong className="score-number">{economy.home.averageLevel.toFixed(1)} : {economy.away.averageLevel.toFixed(1)}</strong>
+      </div>
+      <div className="broadcast-stat">
+        <span>오브젝트</span>
+        <strong className="score-number">{economy.home.objectives} : {economy.away.objectives}</strong>
+      </div>
+      <div className="broadcast-team broadcast-away">
+        <b className="score-number">{String(economy.away.kills).padStart(2, '0')}</b>
+        <strong>{result.awayTeam.name}</strong>
+        <span className="broadcast-side">AWAY</span>
+      </div>
+      <time className="broadcast-clock">{formatTimestamp(economy.timestampSeconds)}</time>
+      <div className="broadcast-player-strip">
+        {economy.players.map((player) => (
+          <div
+            className={`broadcast-player-stat ${player.teamName === result.homeTeam.name ? 'broadcast-player-home' : 'broadcast-player-away'}`}
+            key={player.key}
+          >
+            <span>{formatPlayerName(player.player)}</span>
+            <b>Lv {player.level}</b>
+            <strong>{player.gold.toLocaleString()}G</strong>
+            <small>{player.items.map((item) => item.name).join(' · ') || '기본 장비'}</small>
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function LiveMatchFeed({
+  purchases,
+  levelUps,
+  combatSummary,
+}: {
+  purchases: ReturnType<typeof getItemPurchasesBetween>;
+  levelUps: ReturnType<typeof getLevelUpsBetween>;
+  combatSummary: ReturnType<typeof deriveCombatDamage>;
+}) {
+  return (
+    <section className="live-feed" aria-label="실시간 경기 정보">
+      <div className="live-feed-heading">
+        <span className="panel-kicker">LIVE INFORMATION</span>
+        <h2>중계 데이터</h2>
+      </div>
+      {purchases.map((purchase) => (
+        <p className="live-feed-row live-feed-item" key={`${purchase.key}-${purchase.item.key}`}>
+          <span>구매</span>
+          <strong>{formatEconomyPlayer(purchase)} · {purchase.item.name}</strong>
+        </p>
+      ))}
+      {levelUps.map((levelUp) => (
+        <p className="live-feed-row live-feed-level" key={`${levelUp.key}-${levelUp.level}`}>
+          <span>LEVEL UP</span>
+          <strong>{formatEconomyPlayer(levelUp)} · 레벨 {levelUp.level}</strong>
+          {levelUp.isLateGrowth && <small>후반 성장</small>}
+        </p>
+      ))}
+      {combatSummary && (
+        <div className="live-feed-combat">
+          <div className="live-feed-combat-heading">
+            <span>교전 피해량</span>
+            <small>{matchEventDisplayNames[combatSummary.event.type]}</small>
+          </div>
+          {combatSummary.entries.map((entry, index) => (
+            <p key={entry.key}>
+              <i>{index + 1}</i>
+              <strong>{formatPlayerName(entry.player)}</strong>
+              <span>{entry.damage.toLocaleString()} DMG{entry.targetCount > 1 ? ` · ${entry.targetCount}명 분산` : ''}</span>
+            </p>
+          ))}
+        </div>
+      )}
+    </section>
+  );
+}
+
+function EventRow({
+  event,
+  result,
+  allEvents,
+  previousEvent,
+  isCurrent,
+}: {
+  event: MatchEvent;
+  result: MatchResult;
+  allEvents: MatchEvent[];
+  previousEvent?: MatchEvent;
+  isCurrent: boolean;
+}) {
   const lead = event.participants[0];
+  const combatSummary = deriveCombatDamage(result, event);
+  const before = deriveMatchEconomySnapshot(result, allEvents, previousEvent?.timestampSeconds ?? 0);
+  const after = deriveMatchEconomySnapshot(result, allEvents, event.timestampSeconds);
+  const purchases = getItemPurchasesBetween(before, after);
   return (
     <article className={`event-row event-${event.type.toLowerCase()} ${isCurrent ? 'is-current' : ''}`}>
       <time>{formatTimestamp(event.timestampSeconds)}</time>
@@ -667,6 +840,16 @@ function EventRow({ event, isCurrent }: { event: MatchEvent; isCurrent: boolean 
       <div className="event-copy">
         <strong>{event.description}</strong>
         <span>{lead.teamName} · {event.participants.map((participant) => `${formatPlayerName(participant.player)} / ${participant.champion.name}`).join(' · ')}</span>
+        {purchases.length > 0 && (
+          <small className="event-purchase-note">
+            구매 · {purchases.map((purchase) => `${formatPlayerName(purchase.player)} ${purchase.item.name}`).join(' / ')}
+          </small>
+        )}
+        {combatSummary && (
+          <small className="event-damage-note">
+            피해량 · {combatSummary.entries.slice(0, 3).map((entry) => `${formatPlayerName(entry.player)} ${entry.damage.toLocaleString()}`).join(' · ')}
+          </small>
+        )}
       </div>
     </article>
   );
@@ -696,19 +879,29 @@ type MapEffect = {
 function MatchMap({
   result,
   events,
+  snapshots,
   visibleEventCount,
+  currentTime,
   speed,
   isPaused,
   currentEvent,
+  levelUpKeys,
 }: {
   result: MatchResult;
   events: MatchEvent[];
+  snapshots: MatchPlayerSnapshot[];
   visibleEventCount: number;
+  currentTime: number;
   speed: number;
   isPaused: boolean;
   currentEvent?: MatchEvent;
+  levelUpKeys: string[];
 }) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const broadcastScene = useMemo(
+    () => deriveBroadcastScene(result, events.slice(0, visibleEventCount), snapshots, currentTime),
+    [result, events, snapshots, visibleEventCount, currentTime],
+  );
   const playersRef = useRef<MapPlayer[]>(createMapPlayers(result));
   const targetsRef = useRef<Record<string, MapPosition>>(
     Object.fromEntries(playersRef.current.map((player) => [player.key, player.position])),
@@ -718,6 +911,7 @@ function MatchMap({
   const lastFrameTimeRef = useRef(0);
   const speedRef = useRef(speed);
   const pausedRef = useRef(isPaused);
+  const cameraCenterRef = useRef< MapPosition>(broadcastScene.cameraCenter);
 
   useEffect(() => {
     speedRef.current = speed;
@@ -733,6 +927,17 @@ function MatchMap({
         playersRef.current.map((player) => [player.key, player.position]),
       );
     }
+    const snapshot = snapshots.reduce<MatchPlayerSnapshot | undefined>(
+      (selected, candidate) =>
+        candidate.timestampSeconds <= currentTime
+          && (!selected || candidate.timestampSeconds > selected.timestampSeconds)
+          ? candidate
+          : selected,
+      undefined,
+    );
+    snapshot?.players.forEach((snapshotPlayer) => {
+      targetsRef.current[getMapPlayerKey(snapshotPlayer.teamName, snapshotPlayer.player)] = snapshotPlayer.position;
+    });
     for (let eventIndex = lastVisibleEventRef.current; eventIndex < visibleEventCount; eventIndex += 1) {
       const event = events[eventIndex];
       if (!event) continue;
@@ -779,14 +984,6 @@ function MatchMap({
         canvas.height = Math.floor(height * pixelRatio);
       }
       context.setTransform(pixelRatio, 0, 0, pixelRatio, 0, 0);
-      const mapSize = Math.min(width, height);
-      const offsetX = (width - mapSize) / 2;
-      const offsetY = (height - mapSize) / 2;
-      const toCanvas = (position: MapPosition) => ({
-        x: offsetX + position.x * mapSize,
-        y: offsetY + (1 - position.y) * mapSize,
-      });
-
       if (!pausedRef.current) {
         const movement = Math.min(1, frameDelta * (1.15 + speedRef.current * 0.22));
         playersRef.current.forEach((player) => {
@@ -799,33 +996,21 @@ function MatchMap({
         effectsRef.current = effectsRef.current
           .map((effect) => ({ ...effect, age: effect.age + frameDelta * speedRef.current }))
           .filter((effect) => effect.age < 1.7);
+        cameraCenterRef.current = {
+          x: cameraCenterRef.current.x + (broadcastScene.cameraCenter.x - cameraCenterRef.current.x) * Math.min(1, frameDelta * 2.6),
+          y: cameraCenterRef.current.y + (broadcastScene.cameraCenter.y - cameraCenterRef.current.y) * Math.min(1, frameDelta * 2.6),
+        };
       }
 
       context.clearRect(0, 0, width, height);
-      context.fillStyle = '#12100C';
-      context.fillRect(0, 0, width, height);
-      drawMapTerrain(context, offsetX, offsetY, mapSize);
-
-      MAP_OBJECTS.forEach((object) => {
-        const isActive = !events.slice(0, visibleEventCount).some(
-          (event) => event.type === 'OBJECTIVE' && event.description.includes(object.name),
-        );
-        drawMapObject(context, toCanvas(object), object.name, isActive);
-      });
-
-      effectsRef.current.forEach((effect) => {
-        drawMapEffect(context, toCanvas(effect.position), mapSize, effect);
-      });
-
-      playersRef.current.forEach((player) => {
-        drawMapPlayer(context, toCanvas(player.position), player);
-      });
+      drawBroadcastCanvas(context, width, height, broadcastScene, result, cameraCenterRef.current, currentTime);
+      drawMiniMap(context, width, height, broadcastScene, result, cameraCenterRef.current);
       frameRef.current = window.requestAnimationFrame(draw);
     };
 
     const frameRef = { current: window.requestAnimationFrame(draw) };
     return () => window.cancelAnimationFrame(frameRef.current);
-  }, [events, result, visibleEventCount]);
+  }, [broadcastScene, currentTime, events, result, snapshots, visibleEventCount, levelUpKeys]);
 
   return (
     <section className="arena-panel">
@@ -837,15 +1022,15 @@ function MatchMap({
         <span>{isPaused ? 'PAUSED' : `${visibleEventCount} / ${events.length} EVENTS`}</span>
       </div>
       <div className="map-canvas-wrap">
-        <canvas ref={canvasRef} aria-label="선수와 오브젝트가 표시되는 2D 경기 맵" />
+        <canvas ref={canvasRef} aria-label="라인전과 중계 카메라가 표시되는 경기 캔버스" />
         <div className="map-overlay-caption">
-          <span>{currentEvent ? matchEventDisplayNames[currentEvent.type] : '경기 시작 대기'}</span>
-          <strong>{currentEvent?.description ?? '첫 이벤트를 기다리는 중입니다.'}</strong>
+          <span>{getLaneLabel(broadcastScene.focusLane)} · {currentEvent ? matchEventDisplayNames[currentEvent.type] : '라인전'}</span>
+          <strong>{broadcastScene.laneMessage}</strong>
         </div>
         <div className="map-legend">
           <span><i className="legend-dot home-dot" /> HOME</span>
           <span><i className="legend-dot away-dot" /> AWAY</span>
-          <span><i className="legend-ring" /> 이벤트</span>
+          <span><i className="legend-ring" /> 중계 카메라</span>
         </div>
       </div>
     </section>
@@ -1036,7 +1221,30 @@ function drawMapPlayer(context: CanvasRenderingContext2D, point: { x: number; y:
   context.restore();
 }
 
-function MatchReview({ result }: { result: MatchResult }) {
+/** 레벨업 순간 선수 아이콘 위에 잠깐 뜨는 중계 표식입니다. */
+function drawMapLevelUp(context: CanvasRenderingContext2D, point: { x: number; y: number }, player: MapPlayer) {
+  context.save();
+  context.fillStyle = '#C9A227';
+  context.font = 'bold 9px Georgia';
+  context.textAlign = 'center';
+  context.fillText('LEVEL UP', point.x, point.y - 13);
+  context.strokeStyle = '#C9A227';
+  context.lineWidth = 1;
+  context.beginPath();
+  context.moveTo(point.x - 16, point.y - 9);
+  context.lineTo(point.x + 16, point.y - 9);
+  context.stroke();
+  context.restore();
+}
+
+function MatchReview({
+  result,
+  economy,
+}: {
+  result: MatchResult;
+  economy: MatchEconomySnapshot;
+}) {
+  const damageRanking = [...economy.players].sort((left, right) => right.damage - left.damage);
   return (
     <section className="match-review">
       <div className="review-heading">
@@ -1062,6 +1270,25 @@ function MatchReview({ result }: { result: MatchResult }) {
             <small className="phase-level">레벨 {phase.homeLevel} : {phase.awayLevel}</small>
           </article>
         ))}
+      </div>
+      <div className="damage-ranking">
+        <div className="damage-ranking-heading">
+          <span className="panel-kicker">DAMAGE REPORT</span>
+          <h3>누적 딜량 순위</h3>
+        </div>
+        <div className="damage-ranking-list">
+          {damageRanking.map((player, index) => (
+            <div className="damage-ranking-row" key={player.key}>
+              <b>{String(index + 1).padStart(2, '0')}</b>
+              <span className={player.teamName === result.homeTeam.name ? 'home-text' : 'away-text'}>
+                {player.teamName === result.homeTeam.name ? 'HOME' : 'AWAY'}
+              </span>
+              <strong>{formatEconomyPlayer(player)}</strong>
+              <i>{player.damage.toLocaleString()} DMG</i>
+              <small>{player.items.map((item) => item.name).join(' · ') || '구매 기록 없음'}</small>
+            </div>
+          ))}
+        </div>
       </div>
     </section>
   );

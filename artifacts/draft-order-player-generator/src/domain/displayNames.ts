@@ -21,7 +21,7 @@ export const roleDisplayNames: Record<ChampionRole, string> = { TANK: '탱커', 
 // 밴픽 행동 표시명입니다.
 export const draftActionDisplayNames: Record<'BAN' | 'PICK', string> = { BAN: '금지', PICK: '선택' };
 // 선수 능력치 표시명입니다.
-export const statDisplayNames = { laning: '라인전', teamfight: '한타', macro: '운영', championPool: '챔피언 폭', volatility: '기복', mastery: '숙련도' };
+export const statDisplayNames = { laning: '라인전', teamfight: '한타', macro: '운영', championPool: '챔피언 폭', volatility: '기복', mastery: '숙련도', aggression: '공격성' };
 // 경기 구간 표시명입니다.
 export const phaseDisplayNames: Record<'EARLY' | 'MID' | 'LATE', string> = { EARLY: '초반', MID: '중반', LATE: '후반' };
 // 스킬 이펙트 프리미티브 표시명입니다.

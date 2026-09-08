@@ -57,9 +57,10 @@ export function printPlayersToConsole(players: Player[]): void {
       const champ = `${player.championPool.length}종 (${player.championPool.map((champion) => champion.name).join(', ')})`;
       const vol = player.volatility.toString().padStart(3, ' ');
       const mastery = player.mastery.toString().padStart(3, ' ');
+      const aggression = player.aggression.toString().padStart(3, ' ');
 
       console.log(
-          `${no}. ${playerName} | 나이: ${player.age} | ${statDisplayNames.laning}: ${laning} | ${statDisplayNames.teamfight}: ${teamfight} | ${statDisplayNames.macro}: ${macro} | ${statDisplayNames.championPool}: ${champ} | ${statDisplayNames.volatility}: ${vol} | ${statDisplayNames.mastery}: ${mastery}`
+          `${no}. ${playerName} | 나이: ${player.age} | ${statDisplayNames.laning}: ${laning} | ${statDisplayNames.teamfight}: ${teamfight} | ${statDisplayNames.macro}: ${macro} | ${statDisplayNames.championPool}: ${champ} | ${statDisplayNames.volatility}: ${vol} | ${statDisplayNames.mastery}: ${mastery} | ${statDisplayNames.aggression}: ${aggression}`
       );
     });
 
