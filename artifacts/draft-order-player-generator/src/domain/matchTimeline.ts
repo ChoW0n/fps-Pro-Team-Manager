@@ -40,6 +40,7 @@ export interface TimelinePlayerFrame {
   gold: number;
   ultimateReady: boolean;
   items: MatchItem[];
+  respawned: boolean;
 }
 
 export interface TimelineMinionWave {
@@ -136,6 +137,8 @@ type SimPlayer = TimelinePlayerFrame & {
   recallStartedAt: number;
   baseRecoverUntil: number;
   deathUntil: number;
+  nextPokeAt: number;
+  respawned: boolean;
   eventTarget?: { point: TimelinePoint; until: number };
 };
 
@@ -256,23 +259,42 @@ function chooseState(
   opponent: SimPlayer | undefined,
   wavePoint: TimelinePoint,
   event: MatchEvent | undefined,
+  attacks: PendingAttack[],
   timestampSeconds: number,
 ): TimelinePlayerState {
   if (player.deathUntil > timestampSeconds) return '사망';
   if (player.recallStartedAt >= 0 || player.baseRecoverUntil > timestampSeconds) return '귀환';
-  if (event) return event.type === 'TEAMFIGHT' || event.type === 'KILL' ? '전투' : '딜교';
   if (player.health <= HEALTH_THRESHOLD_TO_RECALL) {
     player.recallStartedAt = timestampSeconds;
     return '귀환';
   }
-  if (player.lane && opponent && pointDistance(player.position, opponent.position) < 0.31) {
-    const dodgeWindow = (timestampSeconds + player.player.nickname.length * 3) % 31;
-    if (dodgeWindow === 0 || (player.health < 42 && dodgeWindow === 1)) return '회피';
-    if (timestampSeconds % 13 === player.player.nickname.length % 13) return '견제';
-    return '딜교';
+  if (event) return event.type === 'TEAMFIGHT' || event.type === 'KILL' ? '전투' : '딜교';
+  const incomingProjectile = attacks.find((attack) =>
+    attack.targetKey === player.key
+    && attack.launchTime <= timestampSeconds
+    && attack.hitTime > timestampSeconds);
+  if (incomingProjectile) {
+    const dodgeChance = clamp(player.player.laning / 100, 0, 1);
+    const dodgeSeed = incomingProjectile.launchTime * 17
+      + player.player.laning
+      + player.player.nickname.length * 31;
+    if (deterministic(dodgeSeed) < dodgeChance) return '회피';
   }
-  if (player.lane && pointDistance(player.position, wavePoint) < 0.12) return '파밍';
-  return '이동';
+  if (
+    player.lane
+    && opponent
+    && opponent.deathUntil <= timestampSeconds
+    && timestampSeconds >= player.nextPokeAt
+    && pointDistance(player.position, opponent.position)
+      <= player.champion.combatStats.basicRange / 15000
+  ) {
+    const pokeChance = 0.06 + clamp(player.player.aggression / 100, 0, 1) * 0.18;
+    const pokeSeed = timestampSeconds * 29
+      + player.player.aggression * 7
+      + player.player.nickname.length * 13;
+    if (deterministic(pokeSeed) < pokeChance) return '견제';
+  }
+  return '파밍';
 }
 
 function getGoal(
@@ -335,6 +357,8 @@ function createPlayers(result: MatchResult): SimPlayer[] {
         recallStartedAt: -1,
         baseRecoverUntil: 0,
         deathUntil: 0,
+        nextPokeAt: 0,
+        respawned: false,
       };
     });
   return [
@@ -498,6 +522,7 @@ function snapshotPlayer(player: SimPlayer, result: MatchResult, timestampSeconds
     gold: player.gold,
     ultimateReady: player.ultimateReady,
     items: [...player.items],
+    respawned: player.respawned,
   };
 }
 
@@ -594,7 +619,18 @@ export function generateMatchTimeline(result: MatchResult, events: MatchEvent[])
         ? getLanePlayer(players, player.teamName === result.homeTeam.name ? result.awayTeam.name : result.homeTeam.name, player.lane)
         : undefined;
       const event = getEventForPlayer(events, player, timestampSeconds);
-      player.state = chooseState(player, opponent, wavePoint, event, timestampSeconds);
+        player.respawned = false;
+        if (player.deathUntil > 0 && timestampSeconds >= player.deathUntil) {
+          player.health = 100;
+          player.resource = 100;
+          player.position = { ...player.base };
+          player.deathUntil = 0;
+          player.recallStartedAt = -1;
+          player.baseRecoverUntil = 0;
+          player.respawned = true;
+          player.state = '이동';
+        }
+        player.state = chooseState(player, opponent, wavePoint, event, attacks, timestampSeconds);
       player.target = getGoal(
         result,
         player,
@@ -622,20 +658,20 @@ export function generateMatchTimeline(result: MatchResult, events: MatchEvent[])
       }
     });
 
-    // 라인에 실제로 가까이 붙어 있는 선수만 일정한 주기로 견제 투사체를 발사한다.
+    // 각 선수는 자신의 기본기 사거리와 쿨타임, 공격성에 따라 독립적으로 견제한다.
     LANES.forEach((lane, laneIndex) => {
       const home = getLanePlayer(players, result.homeTeam.name, lane);
       const away = getLanePlayer(players, result.awayTeam.name, lane);
       if (!home || !away || home.state === '사망' || away.state === '사망') return;
-      if (pointDistance(home.position, away.position) > 0.31) return;
-      const cadence = 11 + laneIndex * 3;
-      if (timestampSeconds % cadence !== (laneIndex * 2 + 3) % cadence) return;
-      const attacker = getPhasePowerRatio(result, home.teamName, timestampSeconds)
-        >= getPhasePowerRatio(result, away.teamName, timestampSeconds) ? home : away;
-      const defender = attacker === home ? away : home;
-      attacker.state = attacker.state === '회피' ? attacker.state : '견제';
-      attacks.push(createAttack(attacker, defender, result, timestampSeconds, laneIndex));
-      highlightSeconds.add(timestampSeconds);
+      [
+        [home, away],
+        [away, home],
+      ].forEach(([attacker, defender], attackIndex) => {
+        if (attacker.state !== '견제') return;
+        attacker.nextPokeAt = timestampSeconds + attacker.champion.combatStats.basicCooldown;
+        attacks.push(createAttack(attacker, defender, result, timestampSeconds, attacks.length + laneIndex + attackIndex));
+        highlightSeconds.add(timestampSeconds);
+      });
     });
 
     applyAttackResults(players, attacks, timestampSeconds);
@@ -644,17 +680,20 @@ export function generateMatchTimeline(result: MatchResult, events: MatchEvent[])
         player.health = 0;
         player.deathUntil = timestampSeconds + 20;
         player.state = '사망';
-      } else if (player.deathUntil > 0 && timestampSeconds >= player.deathUntil) {
-        player.health = 100;
-        player.resource = 100;
-        player.position = { ...player.base };
-        player.deathUntil = 0;
-        player.state = '이동';
       }
-      if (player.lane && player.state === '파밍' && pointDistance(player.position, getWaveEngagementPoint(activeWaves, player.lane)) < 0.12) {
+      const farmPoint = player.lane
+        ? getWaveEngagementPoint(activeWaves, player.lane)
+        : getJungleTarget(player.side, timestampSeconds);
+      if (player.state === '파밍' && pointDistance(player.position, farmPoint) < 0.12) {
         const teamRatio = getPhasePowerRatio(result, player.teamName, timestampSeconds);
-        const roleFactor = player.player.position === 'SUPPORT' ? 0.35 : player.player.position === 'JUNGLE' ? 0.55 : 1;
-        player.csFraction += (0.12 + player.player.farming / 700) * roleFactor * (0.75 + teamRatio);
+        const roleFactor = player.player.position === 'SUPPORT'
+          ? 0.15
+          : player.player.position === 'JUNGLE'
+            ? 0.75
+            : 1;
+        player.csFraction += (0.10 + player.player.farming / 1400)
+          * roleFactor
+          * (0.85 + teamRatio * 0.3);
         player.cs = Math.floor(player.csFraction);
       }
     });
@@ -667,7 +706,7 @@ export function generateMatchTimeline(result: MatchResult, events: MatchEvent[])
       const previous = previousPositions.get(player.key);
       if (previous) {
         const delta = pointDistance(previous, player.position);
-        if (delta > MAX_MOVE_PER_SECOND + 0.000001) {
+        if (delta > MAX_MOVE_PER_SECOND + 0.000001 && !player.respawned) {
           movementViolations.push({ key: player.key, timestampSeconds, delta });
         }
       }

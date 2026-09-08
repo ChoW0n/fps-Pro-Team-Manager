@@ -10,6 +10,7 @@ import { CHAMPIONS } from './Champion';
 import { formatChampionIntroduction } from './Champion';
 import { MatchResult } from './MatchResult';
 import { formatPlayerName } from './playerDisplay';
+import type { MatchTimeline } from './matchTimeline';
 import {
   draftActionDisplayNames,
   engagementDisplayNames,
@@ -187,6 +188,90 @@ export function printMatchResultToConsole(result: MatchResult): void {
     phase.adjustments.forEach((adjustment) => console.log(`  보정: ${adjustment}`));
   });
   console.log(`경기 승자: ${result.winner.name}`);
+  console.groupEnd();
+}
+
+/**
+ * 한 경기의 기록 배열을 생성한 뒤 CS·파밍·견제·이동 기준을 실제 값으로 검증합니다.
+ * 기준을 벗어나도 계수나 결과를 보정하지 않고, 벗어난 항목만 출력합니다.
+ */
+export function printMatchTimelineValidationToConsole(timeline: MatchTimeline): void {
+  const lastFrame = timeline.frames[timeline.frames.length - 1];
+  const matchMinutes = timeline.durationSeconds / 60;
+  const farmingRange: [number, number] = [45, 75];
+  const csRanges: Record<Position, [number, number]> = {
+    TOP: [7, 11],
+    MID: [7, 11],
+    ADC: [7, 11],
+    JUNGLE: [5, 8],
+    SUPPORT: [0.8, 2.5],
+  };
+  const positionDisplayName: Record<Position, string> = {
+    TOP: '탑',
+    JUNGLE: '정글',
+    MID: '미드',
+    ADC: '원딜',
+    SUPPORT: '서포터',
+  };
+
+  console.group('=== 경기 기록 생성기 검증 ===');
+  lastFrame.players.forEach((player) => {
+    const cspm = player.cs / matchMinutes;
+    const farmingSeconds = timeline.frames.reduce(
+      (seconds, frame) => seconds + (frame.players.find((candidate) => candidate.key === player.key)?.state === '파밍' ? 1 : 0),
+      0,
+    );
+    const farmingPercent = farmingSeconds / timeline.frames.length * 100;
+    const [minimumCs, maximumCs] = csRanges[player.player.position];
+    const csPassed = cspm >= minimumCs && cspm <= maximumCs;
+    const farmingPassed = farmingPercent >= farmingRange[0] && farmingPercent <= farmingRange[1];
+    console.log(
+      `${csPassed ? '통과' : '실패'} | ${positionDisplayName[player.player.position]} ${player.teamName} ${formatPlayerName(player.player)} `
+      + `| 분당 CS ${cspm.toFixed(2)} | 기준 ${minimumCs}~${maximumCs}`,
+    );
+    if (!csPassed) {
+      console.error(`기준 이탈 | ${formatPlayerName(player.player)} 분당 CS ${cspm.toFixed(2)}`);
+    }
+    console.log(
+      `${farmingPassed ? '통과' : '실패'} | ${positionDisplayName[player.player.position]} ${player.teamName} ${formatPlayerName(player.player)} `
+      + `| 파밍 상태 ${farmingPercent.toFixed(2)}% | 기준 ${farmingRange[0]}~${farmingRange[1]}%`,
+    );
+    if (!farmingPassed) {
+      console.error(`기준 이탈 | ${formatPlayerName(player.player)} 파밍 상태 ${farmingPercent.toFixed(2)}%`);
+    }
+  });
+
+  const projectileTeams = new Map<string, string>();
+  timeline.frames.forEach((frame) => {
+    frame.projectiles.forEach((projectile) => projectileTeams.set(projectile.key, projectile.teamName));
+  });
+  const teamNames = [...new Set(lastFrame.players.map((player) => player.teamName))];
+  const homeTeamName = lastFrame.players[0]?.teamName ?? '';
+  const awayTeamName = teamNames.find((teamName) => teamName !== homeTeamName) ?? '';
+  const homeCount = [...projectileTeams.values()].filter((teamName) => teamName === homeTeamName).length;
+  const awayCount = [...projectileTeams.values()].filter((teamName) => teamName === awayTeamName).length;
+  const totalProjectileCount = projectileTeams.size;
+  const projectilePassed = totalProjectileCount >= 60
+    && totalProjectileCount <= 200
+    && homeCount >= 20
+    && awayCount >= 20;
+  console.log(
+    `${projectilePassed ? '통과' : '실패'} | 견제 투사체 ${totalProjectileCount}발 `
+    + `| ${homeTeamName} ${homeCount}발 / ${awayTeamName} ${awayCount}발 `
+    + '| 기준 전체 60~200발, 양 팀 각 20발 이상',
+  );
+  if (!projectilePassed) {
+    console.error(`기준 이탈 | 견제 투사체 전체 ${totalProjectileCount}발, ${homeTeamName} ${homeCount}발, ${awayTeamName} ${awayCount}발`);
+  }
+
+  const movementPassed = timeline.movementViolations.length === 0;
+  console.log(
+    `${movementPassed ? '통과' : '실패'} | 이동 위반 ${timeline.movementViolations.length}건 `
+    + `| 기준 0건 (부활 프레임은 예외)`,
+  );
+  if (!movementPassed) {
+    console.error('이동 위반 목록', timeline.movementViolations);
+  }
   console.groupEnd();
 }
 

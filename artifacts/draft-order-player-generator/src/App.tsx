@@ -9,6 +9,7 @@ import {
   printSoloRankValidationToConsole,
   printChampionsToConsole,
   printMatchResultToConsole,
+  printMatchTimelineValidationToConsole,
   printSimulationToConsole,
   printStandingsToConsole,
 } from './domain/consoleOutput';
@@ -27,6 +28,7 @@ import {
   validateMatchEvents,
 } from './domain/matchEvents';
 import { MatchSimulator } from './domain/MatchSimulator';
+import { generateMatchTimeline } from './domain/matchTimeline';
 import { Player, Position } from './domain/Player';
 import { Team } from './domain/Team';
 import {
@@ -131,6 +133,8 @@ function Home() {
     const result = new MatchSimulator().playWithDraft(homeTeam, awayTeam, draft);
     const generatedEvents = generateMatchEvents(result);
     const generatedSnapshots = generateMatchPlayerSnapshots(result, generatedEvents);
+    const generatedTimeline = generateMatchTimeline(result, generatedEvents);
+    printMatchTimelineValidationToConsole(generatedTimeline);
     const eventIssues = validateMatchEvents(result, generatedEvents, generatedSnapshots);
     if (eventIssues.length > 0) {
       eventIssues.forEach((issue) => console.error(`경기 이벤트 검증 실패: ${issue}`));
