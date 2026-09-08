@@ -484,7 +484,7 @@ function DraftScreen({
                         title={reason ?? '선택 가능'}
                         style={{ borderTopColor: champion.symbolColor }}
                       >
-                        <span className="champion-title">{champion.title}{champion.titleSeparator}{champion.name}</span>
+                        <span className="champion-title">{champion.name}</span>
                         <span className="champion-tags">
                           <small>{timingDisplayNames[champion.timing]}</small>
                           <small>{engagementDisplayNames[champion.engagement]}</small>

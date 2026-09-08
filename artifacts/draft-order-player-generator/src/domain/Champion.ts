@@ -32,6 +32,7 @@ export interface ChampionSkill {
   name: string;
   description: string;
   effectLayers: EffectLayer[];
+  scaling?: ChampionSkillScaling;
 }
 
 /** 패시브·기본기·궁극기 세 종을 빠짐없이 보관하는 구조입니다. */
@@ -42,9 +43,230 @@ export interface ChampionSkills {
 }
 
 /**
+ * 전투 수치는 25종 챔피언에 따로 손으로 입력하지 않는다.
+ * 역할·교전·범위·시점·난이도 태그가 여전히 챔피언의 주인이고,
+ * 아래 값은 그 태그를 초 단위 전투가 사용할 수 있는 수치로 구현한 것이다.
+ * 따라서 이 수치는 밴픽 가치나 기존 경기 전력 계산을 따로 만들지 않는다.
+ */
+export interface ChampionCombatAdjustments {
+  healthBaseMultiplier: number;
+  healthGrowthMultiplier: number;
+  attackBaseMultiplier: number;
+  attackGrowthMultiplier: number;
+  armorBaseMultiplier: number;
+  armorGrowthMultiplier: number;
+  magicResistBaseMultiplier: number;
+  magicResistGrowthMultiplier: number;
+  movementSpeedBonus: number;
+  basicRangeBonus: number;
+  basicCooldownBonus: number;
+  ultimateRangeBonus: number;
+  ultimateCooldownBonus: number;
+}
+
+export interface ChampionCombatStats {
+  healthBase: number;
+  healthGrowth: number;
+  attackBase: number;
+  attackGrowth: number;
+  armorBase: number;
+  armorGrowth: number;
+  magicResistBase: number;
+  magicResistGrowth: number;
+  movementSpeed: number;
+  attackRange: number;
+  basicRange: number;
+  basicCooldown: number;
+  ultimateRange: number;
+  ultimateCooldown: number;
+  adjustments: ChampionCombatAdjustments;
+}
+
+export type ChampionPatchStatKey =
+  | 'healthBase'
+  | 'healthGrowth'
+  | 'attackBase'
+  | 'attackGrowth'
+  | 'armorBase'
+  | 'armorGrowth'
+  | 'magicResistBase'
+  | 'magicResistGrowth'
+  | 'movementSpeed'
+  | 'attackRange'
+  | 'basicRange'
+  | 'basicDamage'
+  | 'basicAttackCoefficient'
+  | 'basicCooldown'
+  | 'basicResourceCost'
+  | 'ultimateRange'
+  | 'ultimateDamage'
+  | 'ultimateAttackCoefficient'
+  | 'ultimateCooldown'
+  | 'passiveEffectValue';
+
+export interface ChampionPatchStat {
+  key: ChampionPatchStatKey;
+  name: string;
+  defaultValue: number;
+  currentValue: number;
+}
+
+export interface ChampionSkillScaling {
+  baseDamage: number;
+  damagePerLevel: number;
+  maxLevel: number;
+  attackCoefficient: number;
+  areaRadius: number;
+  resourceCostBase: number;
+  resourceCostPerLevel: number;
+  resourceCost: number;
+}
+
+const DEFAULT_COMBAT_ADJUSTMENTS: ChampionCombatAdjustments = {
+  healthBaseMultiplier: 1,
+  healthGrowthMultiplier: 1,
+  attackBaseMultiplier: 1,
+  attackGrowthMultiplier: 1,
+  armorBaseMultiplier: 1,
+  armorGrowthMultiplier: 1,
+  magicResistBaseMultiplier: 1,
+  magicResistGrowthMultiplier: 1,
+  movementSpeedBonus: 0,
+  basicRangeBonus: 0,
+  basicCooldownBonus: 0,
+  ultimateRangeBonus: 0,
+  ultimateCooldownBonus: 0,
+};
+
+function getCombatAdjustments(): ChampionCombatAdjustments {
+  // 현재는 모든 챔피언이 기본값이다. 나중에 개별 조정은 이 자리에서만 한다.
+  return { ...DEFAULT_COMBAT_ADJUSTMENTS };
+}
+
+function deriveCombatStats(
+  role: ChampionRole,
+  engagement: Engagement,
+  range: RangeType,
+  timing: Timing,
+  difficulty: number,
+): ChampionCombatStats {
+  const roleBase = role === 'TANK'
+    ? { health: 640, healthGrowth: 95, attack: 66, attackGrowth: 3.5, armor: 40, armorGrowth: 4.7 }
+    : role === 'DAMAGE'
+      ? { health: 570, healthGrowth: 90, attack: 62, attackGrowth: 3.2, armor: 28, armorGrowth: 3.8 }
+      : { health: 590, healthGrowth: 92, attack: 52, attackGrowth: 2.8, armor: 30, armorGrowth: 4.2 };
+  const timingBaseMultiplier = timing === 'LATE' ? 0.92 : 1.08;
+  const timingGrowthMultiplier = timing === 'LATE' ? 1.18 : 0.88;
+  const isMelee = range === 'SINGLE' && engagement === 'DIVE';
+  const isRanged = range === 'AOE' && engagement === 'POKE';
+  const adjustments = getCombatAdjustments();
+  const adjustedBase = (value: number, multiplier: number) => value * multiplier;
+  const adjustedGrowth = (value: number, multiplier: number) => value * multiplier;
+  return {
+    healthBase: adjustedBase(roleBase.health, timingBaseMultiplier) * adjustments.healthBaseMultiplier,
+    healthGrowth: adjustedGrowth(roleBase.healthGrowth, timingGrowthMultiplier) * adjustments.healthGrowthMultiplier,
+    attackBase: adjustedBase(roleBase.attack, timingBaseMultiplier) * adjustments.attackBaseMultiplier,
+    attackGrowth: adjustedGrowth(roleBase.attackGrowth, timingGrowthMultiplier) * adjustments.attackGrowthMultiplier,
+    armorBase: adjustedBase(roleBase.armor, timingBaseMultiplier) * adjustments.armorBaseMultiplier,
+    armorGrowth: adjustedGrowth(roleBase.armorGrowth, timingGrowthMultiplier) * adjustments.armorGrowthMultiplier,
+    magicResistBase: adjustedBase(32, timingBaseMultiplier) * adjustments.magicResistBaseMultiplier,
+    magicResistGrowth: adjustedGrowth(1.3, timingGrowthMultiplier) * adjustments.magicResistGrowthMultiplier,
+    movementSpeed: (engagement === 'DIVE' ? 340 : 330)
+      + (role === 'TANK' ? 5 : 0)
+      + adjustments.movementSpeedBonus,
+    attackRange: (isMelee ? 150 : isRanged ? 550 : 400) + adjustments.basicRangeBonus,
+    basicRange: (isMelee ? 300 : isRanged ? 900 : 650) + adjustments.basicRangeBonus,
+    basicCooldown: 10 - difficulty * 0.7 + adjustments.basicCooldownBonus,
+    ultimateRange: (isMelee ? 400 : isRanged ? 1600 : 1100) + adjustments.ultimateRangeBonus,
+    ultimateCooldown: 150 - difficulty * 6 + adjustments.ultimateCooldownBonus,
+    adjustments,
+  };
+}
+
+function deriveSkillScaling(
+  role: ChampionRole,
+  range: RangeType,
+  difficulty: number,
+  basicRange: number,
+  ultimateRange: number,
+  basicCooldown: number,
+  ultimateCooldown: number,
+): { basic: ChampionSkillScaling; ultimate: ChampionSkillScaling; passiveEffectValue: number } {
+  const roleBasicCoefficient = role === 'DAMAGE' ? 0.75 : role === 'TANK' ? 0.55 : 0.50;
+  const roleUltimateCoefficient = role === 'DAMAGE' ? 1.10 : role === 'TANK' ? 0.70 : 0.60;
+  const areaMultiplier = range === 'AOE';
+  return {
+    basic: {
+      baseDamage: 60,
+      damagePerLevel: 30,
+      maxLevel: 5,
+      attackCoefficient: roleBasicCoefficient * (areaMultiplier ? 0.8 : 1),
+      areaRadius: areaMultiplier ? basicRange * 0.35 : 0,
+      resourceCostBase: 45,
+      resourceCostPerLevel: 8,
+      resourceCost: 45 + 8,
+    },
+    ultimate: {
+      baseDamage: 180,
+      damagePerLevel: 120,
+      maxLevel: 3,
+      attackCoefficient: roleUltimateCoefficient * (areaMultiplier ? 0.85 : 1),
+      areaRadius: areaMultiplier ? ultimateRange * 0.30 : 0,
+      resourceCostBase: 100,
+      resourceCostPerLevel: 0,
+      resourceCost: 100,
+    },
+    passiveEffectValue: 0.04 + difficulty * 0.012,
+  };
+}
+
+function createPatchStats(
+  combatStats: ChampionCombatStats,
+  skills: { basic: ChampionSkillScaling; ultimate: ChampionSkillScaling; passiveEffectValue: number },
+): ChampionPatchStat[] {
+  const values: Array<[ChampionPatchStatKey, string, number]> = [
+    ['healthBase', '기본 체력', combatStats.healthBase],
+    ['healthGrowth', '성장 체력', combatStats.healthGrowth],
+    ['attackBase', '기본 공격력', combatStats.attackBase],
+    ['attackGrowth', '성장 공격력', combatStats.attackGrowth],
+    ['armorBase', '기본 방어력', combatStats.armorBase],
+    ['armorGrowth', '성장 방어력', combatStats.armorGrowth],
+    ['magicResistBase', '기본 마법저항', combatStats.magicResistBase],
+    ['magicResistGrowth', '성장 마법저항', combatStats.magicResistGrowth],
+    ['movementSpeed', '이동속도', combatStats.movementSpeed],
+    ['attackRange', '평타 사거리', combatStats.attackRange],
+    ['basicRange', '기본기 사거리', combatStats.basicRange],
+    ['basicDamage', '기본기 기본 피해량', skills.basic.baseDamage],
+    ['basicAttackCoefficient', '기본기 공격력 계수', skills.basic.attackCoefficient],
+    ['basicCooldown', '기본기 쿨타임', combatStats.basicCooldown],
+    ['basicResourceCost', '기본기 자원 소모', skills.basic.resourceCost],
+    ['ultimateRange', '궁극기 사거리', combatStats.ultimateRange],
+    ['ultimateDamage', '궁극기 기본 피해량', skills.ultimate.baseDamage],
+    ['ultimateAttackCoefficient', '궁극기 공격력 계수', skills.ultimate.attackCoefficient],
+    ['ultimateCooldown', '궁극기 쿨타임', combatStats.ultimateCooldown],
+    ['passiveEffectValue', '패시브 효과 수치', skills.passiveEffectValue],
+  ];
+  // 패치 시스템은 아직 적용하지 않지만, 나중에 어느 챔피언의 어느 항목을
+  // 몇에서 몇으로 바꿨는지 표현하고 패치 노트를 만들 수 있도록 한 곳에 등록한다.
+  return values.map(([key, name, defaultValue]) => ({ key, name, defaultValue, currentValue: defaultValue }));
+}
+
+function getPatchValue(stats: ChampionPatchStat[], key: ChampionPatchStatKey): number {
+  return stats.find((stat) => stat.key === key)?.currentValue ?? 0;
+}
+
+/**
  * 챔피언의 이름, 태그, 상징색과 세 가지 스킬을 보관하는 데이터 클래스입니다.
  */
 export class Champion {
+  public readonly combatStats: ChampionCombatStats;
+  public readonly patchStats: ChampionPatchStat[];
+  public readonly skillsWithScaling: {
+    passive: ChampionSkill & { scaling: ChampionSkillScaling };
+    basic: ChampionSkill & { scaling: ChampionSkillScaling };
+    ultimate: ChampionSkill & { scaling: ChampionSkillScaling };
+  };
+
   /** 챔피언의 고정 데이터를 생성합니다. */
   constructor(
     public readonly title: string,
@@ -58,7 +280,70 @@ export class Champion {
     public readonly difficulty: number,
     public readonly symbolColor: string,
     public readonly skills: ChampionSkills,
-  ) {}
+  ) {
+    this.combatStats = deriveCombatStats(role, engagement, range, timing, difficulty);
+    const scaling = deriveSkillScaling(
+      role,
+      range,
+      difficulty,
+      this.combatStats.basicRange,
+      this.combatStats.ultimateRange,
+      this.combatStats.basicCooldown,
+      this.combatStats.ultimateCooldown,
+    );
+    this.skillsWithScaling = {
+      passive: { ...skills.passive, scaling: {
+        baseDamage: 0,
+        damagePerLevel: 0,
+        maxLevel: 1,
+        attackCoefficient: 0,
+        areaRadius: 0,
+        resourceCostBase: 0,
+        resourceCostPerLevel: 0,
+        resourceCost: 0,
+      } },
+      basic: { ...skills.basic, scaling: scaling.basic },
+      ultimate: { ...skills.ultimate, scaling: scaling.ultimate },
+    };
+    this.patchStats = createPatchStats(this.combatStats, {
+      basic: scaling.basic,
+      ultimate: scaling.ultimate,
+      passiveEffectValue: scaling.passiveEffectValue,
+    });
+  }
+
+  /** 현재 패치값을 기준으로 챔피언의 상대적인 전투 강도를 계산한다. */
+  public getStrength(): number {
+    const value = (key: ChampionPatchStatKey) => getPatchValue(this.patchStats, key);
+    return (
+      value('healthBase') / 600
+      + value('healthGrowth') / 90
+      + value('attackBase') / 60
+      + value('attackGrowth') / 3
+      + value('armorBase') / 35
+      + value('armorGrowth') / 4
+      + value('movementSpeed') / 340
+      + value('basicRange') / 700
+      + value('basicDamage') / 60
+      + value('basicAttackCoefficient') / 0.7
+      + value('ultimateDamage') / 180
+      + value('ultimateAttackCoefficient') / 0.9
+      + value('ultimateRange') / 1100
+      + value('passiveEffectValue') / 0.08
+      + 1 / Math.max(1, value('basicCooldown'))
+      + 1 / Math.max(1, value('ultimateCooldown')) * 10
+    ) / 16;
+  }
+}
+
+export function getChampionStatsAtLevel(champion: Champion, level: number) {
+  const safeLevel = Math.max(1, level);
+  return {
+    health: champion.combatStats.healthBase + champion.combatStats.healthGrowth * (safeLevel - 1),
+    attack: champion.combatStats.attackBase + champion.combatStats.attackGrowth * (safeLevel - 1),
+    armor: champion.combatStats.armorBase + champion.combatStats.armorGrowth * (safeLevel - 1),
+    magicResist: champion.combatStats.magicResistBase + champion.combatStats.magicResistGrowth * (safeLevel - 1),
+  };
 }
 
 /** 수식어와 고유명을 조합해 기존 소개용 전체 이름을 반환합니다. */
