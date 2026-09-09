@@ -34,6 +34,7 @@ export interface OperatorStats {
   informationGathering: number;
   defensiveSetup: number;
   clutch: number;
+  aggression: number;
 }
 
 export class Operator {
@@ -124,62 +125,62 @@ export const OPERATORS: Operator[] = [
     name: '경첩 절단 산탄',
     description: '문 경첩만 노려 쏘아 문틀을 남기고 문짝만 떨군다.',
     effect: '진입 지점 하나를 소음 없이 여는 것이고 두 발 소지한다.',
-  }, { aim: 74, entry: 92, informationGathering: 62, defensiveSetup: 40, clutch: 70 }),
+  }, { aim: 74, entry: 92, informationGathering: 62, defensiveSetup: 40, clutch: 70, aggression: 90 }),
   new Operator('COLLIER', unit('22 SAS 연대 CRW'), '공격', 'FIREPOWER', ['MP5SD', 'SIG P226'], {
     name: '소음 제압',
     description: '소음기 사양으로 교전해도 위치가 늦게 드러난다.',
     effect: '교전에서 이겨도 상대의 정보 획득이 절반만 오르는 것이다.',
-  }, { aim: 88, entry: 74, informationGathering: 66, defensiveSetup: 44, clutch: 78 }),
+  }, { aim: 88, entry: 74, informationGathering: 66, defensiveSetup: 44, clutch: 78, aggression: 68 }),
   new Operator('해동', unit('제707특수임무단'), '공격', 'ENTRY', ['HK416', 'K5 권총'], {
     name: '인질 식별 광학',
     description: '열상과 가시광을 겹쳐 비전투원을 가려낸다.',
     effect: '인질 상황에서 아군 전체의 오인 사격을 없애는 것이다.',
-  }, { aim: 80, entry: 82, informationGathering: 70, defensiveSetup: 56, clutch: 84 }),
+  }, { aim: 80, entry: 82, informationGathering: 70, defensiveSetup: 56, clutch: 84, aggression: 74 }),
   new Operator('ARBEL', unit('사이렛 매트칼'), '공격', 'SEARCH', ['타보르 X95', '글록 19'], {
     name: '벽면 청음 탐침',
     description: '벽에 대고 진동을 읽어 반대편 인원 수를 세며 소리를 내지 않는다.',
     effect: '수색 시간 1초당 정보를 1.4배로 모으는 것이고 발각 위험은 그대로다.',
-  }, { aim: 70, entry: 66, informationGathering: 94, defensiveSetup: 48, clutch: 72 }),
+  }, { aim: 70, entry: 66, informationGathering: 94, defensiveSetup: 48, clutch: 72, aggression: 56 }),
   new Operator('AUBERT', unit('국가헌병대 개입부대 GIGN'), '공격', 'SEARCH', ['SIG MPX', 'MR73 리볼버'], {
     name: '저소음 관측 비행체',
     description: '날개를 접어 좁은 틈으로 들어가며 정지 비행 중에는 거의 들리지 않는다.',
     effect: '복귀하지 않고 원격으로 계속 관측하는 것이며 발각되면 기체만 잃는다.',
-  }, { aim: 76, entry: 60, informationGathering: 88, defensiveSetup: 52, clutch: 68 }),
+  }, { aim: 76, entry: 60, informationGathering: 88, defensiveSetup: 52, clutch: 68, aggression: 48 }),
   new Operator('MEDVED', unit('연방보안국 알파 그룹'), '공격', 'ENTRY', ['AS Val 소음소총', 'SR-1 베크토르'], {
     name: '충격 파쇄봉',
     description: '벽체를 한 번에 무너뜨리는 지향성 파쇄 장약이다.',
     effect: '예정에 없던 진입 지점을 만드는 것이고 대신 큰 소리가 나 상대 전원이 방향을 안다.',
-  }, { aim: 78, entry: 94, informationGathering: 48, defensiveSetup: 44, clutch: 80 }),
+  }, { aim: 78, entry: 94, informationGathering: 48, defensiveSetup: 44, clutch: 80, aggression: 96 }),
   new Operator('REUSS', unit('연방경찰 국경수비대 9조 GSG 9'), '수비', 'DEFENSIVE_SETUP', ['HK417', 'HK USP'], {
     name: '지향성 차단벽',
     description: '통로 한쪽에서만 열리는 접이식 방벽이다.',
     effect: '진입 지점 하나를 한 방향으로만 통하게 만드는 것이다.',
-  }, { aim: 80, entry: 44, informationGathering: 64, defensiveSetup: 92, clutch: 66 }),
+  }, { aim: 80, entry: 44, informationGathering: 64, defensiveSetup: 92, clutch: 66, aggression: 34 }),
   new Operator('BRANDT', unit('연방경찰 국경수비대 9조 GSG 9'), '수비', 'FIREPOWER', ['PSG-1 정밀소총', '글록 17'], {
     name: '고정 관측 사선',
     description: '미리 정해 둔 사선에 총을 고정해 그 선을 지나는 것을 놓치지 않는다.',
     effect: '한 통로에서 조준이 크게 오르는 것이며 자리를 옮기면 사라진다.',
-  }, { aim: 94, entry: 38, informationGathering: 60, defensiveSetup: 74, clutch: 62 }),
+  }, { aim: 94, entry: 38, informationGathering: 60, defensiveSetup: 74, clutch: 62, aggression: 28 }),
   new Operator('MARCHAND', unit('국가헌병대 개입부대 GIGN'), '수비', 'BLOCKING', ['FN P90', 'MR73 리볼버'], {
     name: '음향 탐지 그물',
     description: '바닥에 까는 진동 감지선을 밟으면 위치가 드러난다.',
     effect: '상대 선발조의 발각 위험을 1.6배로 올리는 것이다.',
-  }, { aim: 78, entry: 50, informationGathering: 86, defensiveSetup: 80, clutch: 70 }),
+  }, { aim: 78, entry: 50, informationGathering: 86, defensiveSetup: 80, clutch: 70, aggression: 38 }),
   new Operator('HALLORAN', unit('제2합동임무부대 JTF 2'), '수비', 'BLOCKING', ['C14 팀버울프', 'SIG P226'], {
     name: '장거리 감시선',
     description: '건물 밖 먼 지점에서 접근로를 지켜본다.',
     effect: '상대 선발조의 접근을 미리 알리고 정보 획득을 30퍼센트 깎는 것이다.',
-  }, { aim: 96, entry: 40, informationGathering: 78, defensiveSetup: 66, clutch: 64 }),
+  }, { aim: 96, entry: 40, informationGathering: 78, defensiveSetup: 66, clutch: 64, aggression: 24 }),
   new Operator('성곽', unit('제707특수임무단'), '수비', 'DEFENSIVE_SETUP', ['K1A 기관단총', 'K5 권총'], {
     name: '강화 격벽',
     description: '기존 벽에 덧대는 복합 장갑판으로 파쇄 장약을 한 번 견딘다.',
     effect: '벽 하나를 뚫을 수 없게 만드는 것이고 두 장 소지한다.',
-  }, { aim: 74, entry: 46, informationGathering: 62, defensiveSetup: 90, clutch: 72 }),
+  }, { aim: 74, entry: 46, informationGathering: 62, defensiveSetup: 90, clutch: 72, aggression: 31 }),
   new Operator('SAVELLI', unit('카라비니에리 특수개입단 GIS'), '수비', 'DEFENSIVE_SETUP', ['베레타 ARX160', '베레타 92FS'], {
     name: '역방향 함정등',
     description: '문이 열리는 순간 안쪽에서 바깥으로 강한 빛을 쏜다.',
     effect: '그 문으로 들어오는 상대의 첫 교전 승률을 크게 낮추는 것이다.',
-  }, { aim: 76, entry: 52, informationGathering: 66, defensiveSetup: 88, clutch: 68 }),
+  }, { aim: 76, entry: 52, informationGathering: 66, defensiveSetup: 88, clutch: 68, aggression: 42 }),
 ];
 
 /** 콜사인으로 오퍼레이터를 찾습니다. */

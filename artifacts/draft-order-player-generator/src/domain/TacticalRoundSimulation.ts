@@ -36,12 +36,24 @@ export interface TacticalRoundResult {
   attackerSurvivors: number;
   defenderSurvivors: number;
   survivingScouts: Operator[];
+  decisionLogs: TacticalDecisionLog[];
 }
 
 export interface TacticalRoundOptions {
   searchTime?: number;
   scouts?: Operator[];
   random?: () => number;
+}
+
+export type TacticalDecisionType = 'ENGAGEMENT_LEAD' | 'ISOLATION';
+
+export interface TacticalDecisionLog {
+  sequence: number;
+  type: TacticalDecisionType;
+  callSign: string;
+  statLabel: '공격성' | '클러치';
+  statValue: number;
+  message: string;
 }
 
 /** 수색 여부에 따라 180초에서 수색과 선발조 복귀 시간을 뺍니다. */
@@ -153,13 +165,60 @@ export function simulateTacticalRound(
   const search = resolveSearch(scouts, defenders, options.searchTime ?? 45, random);
   const aliveAttackers = [...attackers];
   const aliveDefenders = [...defenders];
+  const decisionLogs: TacticalDecisionLog[] = [];
+  let previousAttacker: Operator | undefined;
+  let previousDefender: Operator | undefined;
+  let isolationKey = '';
+  let isolationHoldsPosition = true;
 
   while (aliveAttackers.length > 0 && aliveDefenders.length > 0) {
-    const attackerIndex = Math.floor(random() * aliveAttackers.length);
-    const defenderIndex = Math.floor(random() * aliveDefenders.length);
-    const attacker = aliveAttackers[attackerIndex];
-    const defender = aliveDefenders[defenderIndex];
-    const winProbability = calculateEngagementWinProbability({
+    const attacker = selectWeightedOperator(aliveAttackers, (operator) => operator.stats.aggression, random);
+    const defender = selectWeightedOperator(aliveDefenders, (operator) => operator.stats.clutch, random);
+    const attackerIndex = aliveAttackers.indexOf(attacker);
+    const defenderIndex = aliveDefenders.indexOf(defender);
+    if (attacker !== previousAttacker) {
+      decisionLogs.push({
+        sequence: decisionLogs.length + 1,
+        type: 'ENGAGEMENT_LEAD',
+        callSign: attacker.callSign,
+        statLabel: '공격성',
+        statValue: attacker.stats.aggression,
+        message: `『${attacker.callSign}』 (진입, 공격성 ${attacker.stats.aggression}) — 선두에서 진입을 주도합니다`,
+      });
+      previousAttacker = attacker;
+    }
+    if (defender !== previousDefender) {
+      decisionLogs.push({
+        sequence: decisionLogs.length + 1,
+        type: 'ENGAGEMENT_LEAD',
+        callSign: defender.callSign,
+        statLabel: '클러치',
+        statValue: defender.stats.clutch,
+        message: `『${defender.callSign}』 (클러치 ${defender.stats.clutch}) — 각을 잡고 대응할 확률이 높습니다`,
+      });
+      previousDefender = defender;
+    }
+    const isolation = getIsolationState(aliveAttackers, aliveDefenders);
+    if (isolation) {
+      const nextIsolationKey = `${isolation.side}:${isolation.operator.callSign}:${isolation.opponentCount}`;
+      if (nextIsolationKey !== isolationKey) {
+        isolationKey = nextIsolationKey;
+        isolationHoldsPosition = random() < isolation.operator.stats.clutch / 100;
+        decisionLogs.push({
+          sequence: decisionLogs.length + 1,
+          type: 'ISOLATION',
+          callSign: isolation.operator.callSign,
+          statLabel: '클러치',
+          statValue: isolation.operator.stats.clutch,
+          message: isolationHoldsPosition
+            ? `『${isolation.operator.callSign}』 (클러치 ${isolation.operator.stats.clutch}) — 무리하지 않고 자리를 잡고 버티기로 판단합니다`
+            : `『${isolation.operator.callSign}』 (클러치 ${isolation.operator.stats.clutch}) — 잃을 게 없다며 먼저 움직이기로 판단합니다`,
+        });
+      }
+    } else {
+      isolationKey = '';
+    }
+    const baseProbability = calculateEngagementWinProbability({
       ownAim: attacker.stats.aim,
       opponentAim: defender.stats.aim,
       ownSurvivors: aliveAttackers.length,
@@ -167,6 +226,10 @@ export function simulateTacticalRound(
       informationAmount: search.informationAmount,
       urgency: search.urgency,
     });
+    const isolationAdjustment = isolation
+      ? getIsolationAdjustment(isolation.side, isolationHoldsPosition)
+      : 0;
+    const winProbability = clamp(baseProbability + isolationAdjustment, 0.05, 0.95);
     if (random() < winProbability) aliveDefenders.splice(defenderIndex, 1);
     else aliveAttackers.splice(attackerIndex, 1);
   }
@@ -179,7 +242,48 @@ export function simulateTacticalRound(
     attackerSurvivors: aliveAttackers.length,
     defenderSurvivors: aliveDefenders.length,
     survivingScouts: search.survivingScouts,
+    decisionLogs,
   };
+}
+
+/** 성향 수치를 0이 아닌 선택 가중치로 바꿉니다. */
+function calculateDecisionWeight(stat: number): number {
+  return 0.25 + Math.max(0, stat) / 100;
+}
+
+/** 공격성 또는 클러치 가중치로 생존 오퍼레이터를 선택합니다. */
+function selectWeightedOperator(
+  operators: Operator[],
+  statSelector: (operator: Operator) => number,
+  random: () => number,
+): Operator {
+  const totalWeight = operators.reduce((sum, operator) => sum + calculateDecisionWeight(statSelector(operator)), 0);
+  let cursor = Math.min(0.999999, Math.max(0, random())) * totalWeight;
+  for (const operator of operators) {
+    cursor -= calculateDecisionWeight(statSelector(operator));
+    if (cursor <= 0) return operator;
+  }
+  return operators[operators.length - 1];
+}
+
+/** 한쪽이 고립되었는지와 상대 생존 인원을 반환합니다. */
+function getIsolationState(
+  attackers: Operator[],
+  defenders: Operator[],
+): { side: 'attacker' | 'defender'; operator: Operator; opponentCount: number } | null {
+  if (attackers.length === 1 && defenders.length >= 2) {
+    return { side: 'attacker', operator: attackers[0], opponentCount: defenders.length };
+  }
+  if (defenders.length === 1 && attackers.length >= 2) {
+    return { side: 'defender', operator: defenders[0], opponentCount: attackers.length };
+  }
+  return null;
+}
+
+/** 고립자의 판단을 공격 승률 공식 위에 얹을 추가 보정으로 변환합니다. */
+function getIsolationAdjustment(side: 'attacker' | 'defender', holdsPosition: boolean): number {
+  const loneOperatorAdjustment = holdsPosition ? 0.05 : -0.03;
+  return side === 'attacker' ? loneOperatorAdjustment : -loneOperatorAdjustment;
 }
 
 interface ValidationRow {
@@ -213,6 +317,7 @@ export function printTacticalSimulationValidation(
     정보수집: operator.stats.informationGathering,
     수비설계: operator.stats.defensiveSetup,
     클러치: operator.stats.clutch,
+    공격성: operator.stats.aggression,
     검증: '통과',
   }));
   /** 검증 표에 상대 오차 판정을 덧붙입니다. */
@@ -226,6 +331,7 @@ export function printTacticalSimulationValidation(
   console.table(formatRows(survivorRows));
   console.table(formatRows(informationRows));
   console.table(operatorRows);
+  console.info('교전 선택은 공격성·클러치 가중치와 판단 로그를 사용하며, 위 동일 조건 승률은 기존 조준·생존 인원·정보량·급함 공식으로 다시 확인했습니다.');
   console.groupEnd();
 }
 

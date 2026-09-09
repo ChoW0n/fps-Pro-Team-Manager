@@ -57,6 +57,14 @@ import {
   timingDisplayNames,
 } from './domain/displayNames';
 import { formatPlayerName } from './domain/playerDisplay';
+import {
+  OPERATORS,
+} from './domain/Operator';
+import {
+  simulateTacticalRound,
+  TacticalDecisionLog,
+  TacticalRoundResult,
+} from './domain/TacticalRoundSimulation';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ErrorBoundary } from '@/components/error-boundary';
 
@@ -141,6 +149,7 @@ function Home() {
   const [events, setEvents] = useState<MatchEvent[]>([]);
   const [snapshots, setSnapshots] = useState<MatchPlayerSnapshot[]>([]);
   const [timeline, setTimeline] = useState<MatchTimeline | null>(null);
+  const [tacticalRound, setTacticalRound] = useState<TacticalRoundResult | null>(null);
   const [currentFrameIndex, setCurrentFrameIndex] = useState(0);
   const [speed, setSpeed] = useState<number>(1);
   const [isPaused, setIsPaused] = useState(false);
@@ -183,6 +192,10 @@ function Home() {
     const generatedEvents = generateMatchEvents(result);
     const generatedSnapshots = generateMatchPlayerSnapshots(result, generatedEvents);
     const generatedTimeline = generateMatchTimeline(result, generatedEvents);
+    const tacticalRoundResult = simulateTacticalRound(
+      OPERATORS.filter((operator) => operator.side === '공격').slice(0, 5),
+      OPERATORS.filter((operator) => operator.side === '수비').slice(0, 5),
+    );
     printMatchTimelineValidationToConsole(generatedTimeline);
     const eventIssues = validateMatchEvents(result, generatedEvents, generatedSnapshots);
     if (eventIssues.length > 0) {
@@ -192,6 +205,7 @@ function Home() {
     setEvents(generatedEvents);
     setSnapshots(generatedSnapshots);
     setTimeline(generatedTimeline);
+    setTacticalRound(tacticalRoundResult);
     setCurrentFrameIndex(0);
     setSpeed(1);
     setIsPaused(false);
@@ -272,6 +286,7 @@ function Home() {
     setEvents([]);
     setSnapshots([]);
     setTimeline(null);
+    setTacticalRound(null);
     setCurrentFrameIndex(0);
     setDraftError('');
   };
@@ -313,6 +328,7 @@ function Home() {
           events={events}
           snapshots={snapshots}
           timeline={timeline}
+           tacticalRound={tacticalRound}
           currentFrameIndex={currentFrameIndex}
           speed={speed}
           isPaused={isPaused}
@@ -688,6 +704,7 @@ function WatchScreen({
   events,
   snapshots,
   timeline,
+  tacticalRound,
   currentFrameIndex,
   speed,
   isPaused,
@@ -702,6 +719,7 @@ function WatchScreen({
   events: MatchEvent[];
   snapshots: MatchPlayerSnapshot[];
   timeline: MatchTimeline;
+  tacticalRound: TacticalRoundResult | null;
   currentFrameIndex: number;
   speed: number;
   isPaused: boolean;
@@ -715,6 +733,12 @@ function WatchScreen({
   const currentTime = timeline.frames[currentFrameIndex].timestampSeconds;
   const visibleEventCount = events.filter((event) => event.timestampSeconds <= currentTime).length;
   const isComplete = currentFrameIndex >= timeline.frames.length - 1;
+  const visibleDecisionLogCount = tacticalRound
+    ? Math.min(
+      tacticalRound.decisionLogs.length,
+      Math.floor((currentFrameIndex / Math.max(1, timeline.frames.length - 1)) * tacticalRound.decisionLogs.length) + 1,
+    )
+    : 0;
   const currentEvent = events[visibleEventCount - 1];
   const previousEvent = events[visibleEventCount - 2];
   const economy = deriveMatchEconomySnapshot(result, events, currentTime);
@@ -816,6 +840,13 @@ function WatchScreen({
               {isComplete && <div className="event-finished">모든 경기 이벤트가 기록되었습니다.</div>}
             </div>
           </div>
+          {tacticalRound && (
+            <TacticalDecisionFeed
+              logs={tacticalRound.decisionLogs}
+              visibleCount={visibleDecisionLogCount}
+              isComplete={isComplete}
+            />
+          )}
           {(purchases.length > 0 || levelUps.length > 0 || combatSummary) && (
             <LiveMatchFeed
               purchases={purchases}
@@ -834,6 +865,38 @@ function WatchScreen({
           <p>같은 두 팀으로 새로운 밴픽을 시작하면 다른 경기 결과가 계산됩니다.</p>
         </div>
         <button className="outline-button primary-action" type="button" onClick={onReset}>다시 준비하기 <span aria-hidden="true">→</span></button>
+      </div>
+    </section>
+  );
+}
+
+/** 전술 판단 로그를 기존 관전 피드의 재생 순서에 맞춰 표시합니다. */
+function TacticalDecisionFeed({
+  logs,
+  visibleCount,
+  isComplete,
+}: {
+  logs: TacticalDecisionLog[];
+  visibleCount: number;
+  isComplete: boolean;
+}) {
+  return (
+    <section className="live-feed tactical-decision-feed" aria-label="전술 판단 로그">
+      <div className="live-feed-heading">
+        <span className="panel-kicker">TACTICAL DECISION</span>
+        <h2>오퍼레이터 판단 기록</h2>
+      </div>
+      <div className="event-list">
+        {logs.slice(0, visibleCount).map((log) => (
+          <p className="live-feed-row live-feed-item" key={`${log.sequence}-${log.callSign}`}>
+            <span>{log.type === 'ISOLATION' ? '고립 판단' : '교전 전환'}</span>
+            <strong>{log.message}</strong>
+          </p>
+        ))}
+        {!isComplete && visibleCount < logs.length && (
+          <div className="event-pending"><span className="pending-line" /> 다음 판단을 기다리는 중</div>
+        )}
+        {isComplete && <div className="event-finished">모든 전술 판단이 기록되었습니다.</div>}
       </div>
     </section>
   );
