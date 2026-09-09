@@ -65,6 +65,7 @@ import {
   TacticalDecisionLog,
   TacticalRoundResult,
 } from './domain/TacticalRoundSimulation';
+import { TacticalRoundReplay } from './components/TacticalRoundReplay';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ErrorBoundary } from '@/components/error-boundary';
 
@@ -320,25 +321,10 @@ function Home() {
     );
   }
 
-  if (screen === 'watch' && matchResult && timeline) {
+  if (screen === 'watch' && matchResult && timeline && tacticalRound) {
     return (
       <AppFrame screen={screen} activeTab={activeTab} onSelectTab={setActiveTab}>
-        <WatchScreen
-          result={matchResult}
-          events={events}
-          snapshots={snapshots}
-          timeline={timeline}
-           tacticalRound={tacticalRound}
-          currentFrameIndex={currentFrameIndex}
-          speed={speed}
-          isPaused={isPaused}
-          highlightMode={highlightMode}
-          onSetSpeed={setSpeed}
-          onTogglePause={() => setIsPaused((paused) => !paused)}
-          onSetHighlightMode={setHighlightMode}
-          onSeek={setCurrentFrameIndex}
-          onReset={resetToPreparation}
-        />
+        <TacticalRoundReplay result={tacticalRound} />
       </AppFrame>
     );
   }
