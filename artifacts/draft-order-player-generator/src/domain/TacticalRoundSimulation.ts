@@ -37,6 +37,7 @@ export interface TacticalRoundResult {
   defenderSurvivors: number;
   survivingScouts: Operator[];
   decisionLogs: TacticalDecisionLog[];
+  engagements: TacticalEngagementRecord[];
 }
 
 export interface TacticalRoundOptions {
@@ -47,13 +48,25 @@ export interface TacticalRoundOptions {
 
 export type TacticalDecisionType = 'ENGAGEMENT_LEAD' | 'ISOLATION';
 
+export type TacticalEngagementWinner = '공격' | '수비';
+
 export interface TacticalDecisionLog {
   sequence: number;
+  engagementSequence: number;
   type: TacticalDecisionType;
   callSign: string;
   statLabel: '공격성' | '클러치';
   statValue: number;
   message: string;
+}
+
+export interface TacticalEngagementRecord {
+  sequence: number;
+  attackerCallSign: string;
+  defenderCallSign: string;
+  winner: TacticalEngagementWinner;
+  attackersAlive: number;
+  defendersAlive: number;
 }
 
 /** 수색 여부에 따라 180초에서 수색과 선발조 복귀 시간을 뺍니다. */
@@ -166,6 +179,7 @@ export function simulateTacticalRound(
   const aliveAttackers = [...attackers];
   const aliveDefenders = [...defenders];
   const decisionLogs: TacticalDecisionLog[] = [];
+  const engagements: TacticalEngagementRecord[] = [];
   let previousAttacker: Operator | undefined;
   let previousDefender: Operator | undefined;
   let isolationKey = '';
@@ -179,6 +193,7 @@ export function simulateTacticalRound(
     if (attacker !== previousAttacker) {
       decisionLogs.push({
         sequence: decisionLogs.length + 1,
+        engagementSequence: engagements.length + 1,
         type: 'ENGAGEMENT_LEAD',
         callSign: attacker.callSign,
         statLabel: '공격성',
@@ -190,6 +205,7 @@ export function simulateTacticalRound(
     if (defender !== previousDefender) {
       decisionLogs.push({
         sequence: decisionLogs.length + 1,
+        engagementSequence: engagements.length + 1,
         type: 'ENGAGEMENT_LEAD',
         callSign: defender.callSign,
         statLabel: '클러치',
@@ -206,6 +222,7 @@ export function simulateTacticalRound(
         isolationHoldsPosition = random() < isolation.operator.stats.clutch / 100;
         decisionLogs.push({
           sequence: decisionLogs.length + 1,
+          engagementSequence: engagements.length + 1,
           type: 'ISOLATION',
           callSign: isolation.operator.callSign,
           statLabel: '클러치',
@@ -230,7 +247,16 @@ export function simulateTacticalRound(
       ? getIsolationAdjustment(isolation.side, isolationHoldsPosition)
       : 0;
     const winProbability = clamp(baseProbability + isolationAdjustment, 0.05, 0.95);
-    if (random() < winProbability) aliveDefenders.splice(defenderIndex, 1);
+    const attackersWon = random() < winProbability;
+    engagements.push({
+      sequence: engagements.length + 1,
+      attackerCallSign: attacker.callSign,
+      defenderCallSign: defender.callSign,
+      winner: attackersWon ? '공격' : '수비',
+      attackersAlive: aliveAttackers.length,
+      defendersAlive: aliveDefenders.length,
+    });
+    if (attackersWon) aliveDefenders.splice(defenderIndex, 1);
     else aliveAttackers.splice(attackerIndex, 1);
   }
 
@@ -243,6 +269,7 @@ export function simulateTacticalRound(
     defenderSurvivors: aliveDefenders.length,
     survivingScouts: search.survivingScouts,
     decisionLogs,
+    engagements,
   };
 }
 
