@@ -52,6 +52,25 @@ interface OperatorMotion {
   eliminated: boolean;
 }
 
+interface OperatorTokenRender {
+  root: Container;
+  ring: Graphics;
+  body: Graphics;
+  label: Text;
+}
+
+interface DynamicRenderState {
+  tokens: Map<string, OperatorTokenRender>;
+  tokenLayer: Container;
+  shockwave: Graphics;
+  fragments: Graphics;
+  route: Graphics;
+  flash: Graphics;
+  bulletTrail: Graphics;
+  bulletHeads: Graphics;
+  impacts: Graphics;
+}
+
 interface ReplayTiming {
   searchEnd: number;
   breachEnd: number;
@@ -248,42 +267,89 @@ function drawLine(graphics: any, from: TacticalPoint, to: TacticalPoint, color: 
   graphics.moveTo(from.x, from.y).lineTo(to.x, to.y).stroke({ color, width, alpha });
 }
 
-/** 마름모 오퍼레이터 토큰을 그립니다. */
-function drawOperatorToken(
-  container: Container,
-  motion: OperatorMotion,
-  scale: number,
-): void {
-  const graphics = new Graphics();
-  const color = motion.operator.side === '공격' ? ATTACKER_COLOR : DEFENDER_COLOR;
-  const ringColor = ROLE_RING_COLORS[motion.operator.role];
-  const radius = 11 / scale;
-  const pulseRadius = radius + (motion.pulse * 5) / scale;
-  graphics.circle(motion.position.x, motion.position.y, pulseRadius).stroke({
-    color: ringColor,
-    width: 1.15 / scale,
-    alpha: motion.visible ? 0.58 : 0.18,
-  });
-  graphics.moveTo(motion.position.x, motion.position.y - radius)
-    .lineTo(motion.position.x + radius, motion.position.y)
-    .lineTo(motion.position.x, motion.position.y + radius)
-    .lineTo(motion.position.x - radius, motion.position.y)
-    .closePath()
-    .fill({ color, alpha: motion.eliminated ? 0.13 : motion.visible ? 0.93 : 0.2 })
-    .stroke({ color: 0xe9f3ec, width: 0.7 / scale, alpha: motion.visible ? 0.75 : 0.22 });
+/** 동적 레이어에서 재사용할 오퍼레이터 그래픽을 준비합니다. */
+function createOperatorTokenRender(operator: Operator): OperatorTokenRender {
+  const root = new Container();
+  const ring = new Graphics();
+  const body = new Graphics();
   const label = new Text({
-    text: motion.operator.callSign,
+    text: operator.callSign,
     style: {
       fontFamily: 'Space Mono, monospace',
-      fontSize: 10 / scale,
-      fill: motion.eliminated ? 0x647375 : 0xe0e7dd,
+      fontSize: 10,
+      fill: 0xe0e7dd,
       letterSpacing: 0.7,
     },
   });
   label.anchor.set(0.5, 0);
-  label.x = motion.position.x;
-  label.y = motion.position.y + 14 / scale;
-  container.addChild(graphics, label);
+  root.addChild(ring, body, label);
+  return { root, ring, body, label };
+}
+
+/** 기존 그래픽을 지우고 현재 프레임의 오퍼레이터 토큰만 다시 그립니다. */
+function updateOperatorToken(
+  token: OperatorTokenRender,
+  motion: OperatorMotion,
+  scale: number,
+): void {
+  const color = motion.operator.side === '공격' ? ATTACKER_COLOR : DEFENDER_COLOR;
+  const ringColor = ROLE_RING_COLORS[motion.operator.role];
+  const radius = 11 / scale;
+  const pulseRadius = radius + (motion.pulse * 5) / scale;
+  token.root.position.set(motion.position.x, motion.position.y);
+  token.root.alpha = motion.eliminated ? 0.42 : 1;
+  token.ring.clear().circle(0, 0, pulseRadius).stroke({
+    color: ringColor,
+    width: 1.15 / scale,
+    alpha: motion.visible ? 0.58 : 0.18,
+  });
+  token.body.clear().moveTo(0, -radius)
+    .lineTo(radius, 0)
+    .lineTo(0, radius)
+    .lineTo(-radius, 0)
+    .closePath()
+    .fill({ color, alpha: motion.eliminated ? 0.13 : motion.visible ? 0.93 : 0.2 })
+    .stroke({ color: 0xe9f3ec, width: 0.7 / scale, alpha: motion.visible ? 0.75 : 0.22 });
+  token.label.scale.set(1 / scale);
+  token.label.position.set(0, 14 / scale);
+  token.label.style.fill = motion.eliminated ? 0x647375 : 0xe0e7dd;
+}
+
+/** 팀 전체의 동적 Pixi 객체를 한 번만 만들고 매 프레임 재사용합니다. */
+function createDynamicRenderState(
+  container: Container,
+  attackers: Operator[],
+  defenders: Operator[],
+): DynamicRenderState {
+  const tokens = new Map<string, OperatorTokenRender>();
+  const tokenLayer = new Container();
+  [...attackers, ...defenders].forEach((operator) => {
+    const token = createOperatorTokenRender(operator);
+    tokens.set(operator.callSign, token);
+    tokenLayer.addChild(token.root);
+  });
+  const state: DynamicRenderState = {
+    tokens,
+    tokenLayer,
+    shockwave: new Graphics(),
+    fragments: new Graphics(),
+    route: new Graphics(),
+    flash: new Graphics(),
+    bulletTrail: new Graphics(),
+    bulletHeads: new Graphics(),
+    impacts: new Graphics(),
+  };
+  container.addChild(
+    state.route,
+    state.shockwave,
+    state.fragments,
+    state.flash,
+    state.bulletTrail,
+    state.bulletHeads,
+    state.impacts,
+    state.tokenLayer,
+  );
+  return state;
 }
 
 /** 지도 지형과 엄폐물을 한 번 그립니다. */
