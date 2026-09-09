@@ -1,10 +1,9 @@
 /**
- * 포지션별 선수 능력치 상수 모듈
- * 각 포지션별 능력치의 평균(mean)과 표준편차(stdDev)를 정의합니다.
- * 모든 수치는 교체 가능한 임시값입니다.
+ * 전술 FPS 역할별 선수 능력치 분포 모듈입니다.
+ * 새 데이터의 중심축은 조준·진입·정보수집·수비설계·클러치입니다.
  */
 
-import { Position } from './Player';
+import type { Position, Role } from './Player';
 
 // 기복 → 표준편차 변환 경계값, 튜닝 대상
 export const MIN_VOLATILITY_STD_DEV = 2;
@@ -29,16 +28,14 @@ export interface StatDistribution {
   stdDev: number;
 }
 
-// 포지션별 5가지 능력치 타입 정의
-export interface PositionStats {
-  laning: StatDistribution;
-  // 파밍 능력치 분포 임시값, 사용자가 지정한 임시값입니다.
-  farming: StatDistribution;
-  // 시야 능력치 분포 임시값, 사용자가 지정한 임시값입니다.
-  vision: StatDistribution;
-  teamfight: StatDistribution;
-  macro: StatDistribution;
-  championPool: StatDistribution;
+// 역할별 전술 FPS 능력치와 기존 성향 분포 타입을 정의합니다.
+export interface RoleStats {
+  aim: StatDistribution;
+  entry: StatDistribution;
+  informationGathering: StatDistribution;
+  defensiveSetup: StatDistribution;
+  clutch: StatDistribution;
+  operatorPool: StatDistribution;
   volatility: StatDistribution;
   mastery: StatDistribution;
   // 공격성은 성능이 아니라 성격을 나타내며, 전력·승패 계산에서 제외합니다.
@@ -50,96 +47,97 @@ export interface PositionStats {
   teamSynergy: StatDistribution;
 }
 
-// 포지션별 능력치 임시 데이터 상수
-export const PLAYER_STATS_BY_POSITION: Record<Position, PositionStats> = {
-  TOP: {
-    laning: { mean: 70, stdDev: 10 },
-    farming: { mean: 66, stdDev: 10 },
-    vision: { mean: 45, stdDev: 12 },
-    teamfight: { mean: 65, stdDev: 12 },
-    macro: { mean: 60, stdDev: 10 },
-    championPool: { mean: 65, stdDev: 15 },
-    volatility: { mean: 50, stdDev: 20 },
-    // 숙련도 분포 임시값, 튜닝 전 임시값
-    mastery: { mean: 65, stdDev: 12 },
-    // 공격성 분포 임시값, 성격 튜닝 전 임시값
-    aggression: { mean: 56, stdDev: 16 },
-    // 숨은 능력치 분포 임시값, 특성 튜닝 전 임시값
-    composure: { mean: 55, stdDev: 16 },
-    recovery: { mean: 52, stdDev: 15 },
-    courage: { mean: 50, stdDev: 18 },
-    teamSynergy: { mean: 54, stdDev: 14 },
-  },
-  JUNGLE: {
-    laning: { mean: 55, stdDev: 10 },
-    farming: { mean: 70, stdDev: 10 },
-    vision: { mean: 68, stdDev: 10 },
-    teamfight: { mean: 70, stdDev: 12 },
-    macro: { mean: 75, stdDev: 10 },
-    championPool: { mean: 60, stdDev: 15 },
+export const PLAYER_STATS_BY_ROLE: Record<Role, RoleStats> = {
+  SEARCH: {
+    aim: { mean: 70, stdDev: 10 },
+    entry: { mean: 64, stdDev: 11 },
+    informationGathering: { mean: 86, stdDev: 9 },
+    defensiveSetup: { mean: 56, stdDev: 12 },
+    clutch: { mean: 68, stdDev: 12 },
+    operatorPool: { mean: 60, stdDev: 15 },
     volatility: { mean: 60, stdDev: 15 },
-    // 숙련도 분포 임시값, 튜닝 전 임시값
     mastery: { mean: 62, stdDev: 13 },
-    // 공격성 분포 임시값, 성격 튜닝 전 임시값
     aggression: { mean: 62, stdDev: 15 },
-    // 숨은 능력치 분포 임시값, 특성 튜닝 전 임시값
     composure: { mean: 60, stdDev: 14 },
     recovery: { mean: 56, stdDev: 14 },
     courage: { mean: 55, stdDev: 16 },
     teamSynergy: { mean: 62, stdDev: 13 },
   },
-  MID: {
-    laning: { mean: 75, stdDev: 10 },
-    farming: { mean: 72, stdDev: 10 },
-    vision: { mean: 48, stdDev: 12 },
-    teamfight: { mean: 75, stdDev: 10 },
-    macro: { mean: 65, stdDev: 10 },
-    championPool: { mean: 70, stdDev: 10 },
-    volatility: { mean: 55, stdDev: 15 },
-    // 숙련도 분포 임시값, 튜닝 전 임시값
-    mastery: { mean: 68, stdDev: 11 },
-    // 공격성 분포 임시값, 성격 튜닝 전 임시값
-    aggression: { mean: 60, stdDev: 14 },
-    // 숨은 능력치 분포 임시값, 특성 튜닝 전 임시값
-    composure: { mean: 57, stdDev: 15 },
-    recovery: { mean: 55, stdDev: 15 },
-    courage: { mean: 58, stdDev: 16 },
-    teamSynergy: { mean: 56, stdDev: 14 },
+  ENTRY: {
+    aim: { mean: 78, stdDev: 10 },
+    entry: { mean: 88, stdDev: 9 },
+    informationGathering: { mean: 60, stdDev: 12 },
+    defensiveSetup: { mean: 48, stdDev: 12 },
+    clutch: { mean: 74, stdDev: 11 },
+    operatorPool: { mean: 65, stdDev: 15 },
+    volatility: { mean: 50, stdDev: 20 },
+    mastery: { mean: 65, stdDev: 12 },
+    aggression: { mean: 56, stdDev: 16 },
+    composure: { mean: 55, stdDev: 16 },
+    recovery: { mean: 52, stdDev: 15 },
+    courage: { mean: 50, stdDev: 18 },
+    teamSynergy: { mean: 54, stdDev: 14 },
   },
-  ADC: {
-    laning: { mean: 65, stdDev: 10 },
-    farming: { mean: 78, stdDev: 9 },
-    vision: { mean: 42, stdDev: 12 },
-    teamfight: { mean: 80, stdDev: 10 },
-    macro: { mean: 50, stdDev: 15 },
-    championPool: { mean: 55, stdDev: 15 },
+  FIREPOWER: {
+    aim: { mean: 88, stdDev: 8 },
+    entry: { mean: 70, stdDev: 11 },
+    informationGathering: { mean: 62, stdDev: 12 },
+    defensiveSetup: { mean: 58, stdDev: 11 },
+    clutch: { mean: 76, stdDev: 10 },
+    operatorPool: { mean: 55, stdDev: 15 },
     volatility: { mean: 45, stdDev: 20 },
-    // 숙련도 분포 임시값, 튜닝 전 임시값
     mastery: { mean: 64, stdDev: 12 },
-    // 공격성 분포 임시값, 성격 튜닝 전 임시값
     aggression: { mean: 66, stdDev: 15 },
-    // 숨은 능력치 분포 임시값, 특성 튜닝 전 임시값
     composure: { mean: 52, stdDev: 16 },
     recovery: { mean: 50, stdDev: 16 },
     courage: { mean: 57, stdDev: 17 },
     teamSynergy: { mean: 51, stdDev: 15 },
   },
-  SUPPORT: {
-    laning: { mean: 60, stdDev: 12 },
-    farming: { mean: 35, stdDev: 12 },
-    vision: { mean: 82, stdDev: 9 },
-    teamfight: { mean: 70, stdDev: 12 },
-    macro: { mean: 80, stdDev: 10 },
-    championPool: { mean: 60, stdDev: 10 },
+  DEFENSIVE_SETUP: {
+    aim: { mean: 74, stdDev: 10 },
+    entry: { mean: 48, stdDev: 12 },
+    informationGathering: { mean: 66, stdDev: 11 },
+    defensiveSetup: { mean: 88, stdDev: 9 },
+    clutch: { mean: 66, stdDev: 12 },
+    operatorPool: { mean: 60, stdDev: 10 },
     volatility: { mean: 40, stdDev: 15 },
-    // 숙련도 분포 임시값, 튜닝 전 임시값
     mastery: { mean: 66, stdDev: 10 },
-    // 공격성 분포 임시값, 성격 튜닝 전 임시값
     aggression: { mean: 48, stdDev: 14 },
-    // 숨은 능력치 분포 임시값, 특성 튜닝 전 임시값
     composure: { mean: 63, stdDev: 13 },
     recovery: { mean: 61, stdDev: 13 },
     courage: { mean: 53, stdDev: 15 },
     teamSynergy: { mean: 67, stdDev: 12 },
   },
+  BLOCKING: {
+    aim: { mean: 80, stdDev: 10 },
+    entry: { mean: 52, stdDev: 12 },
+    informationGathering: { mean: 82, stdDev: 10 },
+    defensiveSetup: { mean: 74, stdDev: 10 },
+    clutch: { mean: 68, stdDev: 11 },
+    operatorPool: { mean: 70, stdDev: 10 },
+    volatility: { mean: 55, stdDev: 15 },
+    mastery: { mean: 68, stdDev: 11 },
+    aggression: { mean: 60, stdDev: 14 },
+    composure: { mean: 57, stdDev: 15 },
+    recovery: { mean: 55, stdDev: 15 },
+    courage: { mean: 58, stdDev: 16 },
+    teamSynergy: { mean: 56, stdDev: 14 },
+  },
 };
+
+// 아직 MOBA 표시·검증 코드가 남아 있어 역할을 옛 포지션으로 읽을 때만 사용합니다.
+const ROLE_FOR_LEGACY_POSITION: Record<Position, Role> = {
+  TOP: 'ENTRY',
+  JUNGLE: 'SEARCH',
+  MID: 'BLOCKING',
+  ADC: 'FIREPOWER',
+  SUPPORT: 'DEFENSIVE_SETUP',
+};
+
+// 기존 도메인 모듈이 컴파일되는 동안에만 옛 포지션 조회를 새 분포에서 파생합니다.
+export const PLAYER_STATS_BY_POSITION: Record<Position, RoleStats> = Object.fromEntries(
+  Object.entries(ROLE_FOR_LEGACY_POSITION).map(([position, role]) => [
+    position,
+    PLAYER_STATS_BY_ROLE[role],
+  ]),
+) as Record<Position, RoleStats>;
