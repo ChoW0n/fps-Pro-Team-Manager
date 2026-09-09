@@ -4,19 +4,8 @@
  */
 
 import { useEffect, useMemo, useRef, useState } from 'react';
-import {
-  printPlayersToConsole,
-  printSoloRankValidationToConsole,
-  printChampionsToConsole,
-  printMatchResultToConsole,
-  printMatchTimelineValidationToConsole,
-  printSimulationToConsole,
-  printStandingsToConsole,
-} from './domain/consoleOutput';
-import { SeasonSimulation } from './domain/SeasonSimulation';
 import { TeamGenerator } from './domain/TeamGenerator';
 import { CHAMPIONS, Champion, getChampionStatsAtLevel, getChampionsByPosition } from './domain/Champion';
-import { validateChampions } from './domain/championValidation';
 import { BanPickResult, DraftSession } from './domain/BanPick';
 import { MatchResult, getPhaseAdjustmentSummary } from './domain/MatchResult';
 import {
@@ -67,8 +56,6 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ErrorBoundary } from '@/components/error-boundary';
 
 const queryClient = new QueryClient();
-// StrictMode의 효과 재실행에도 콘솔 시뮬레이션을 한 번만 수행하는 플래그
-let hasSimulationRun = false;
 const interactiveTeams = new TeamGenerator().generateTenTeams();
 const POSITION_ORDER: Position[] = ['TOP', 'JUNGLE', 'MID', 'ADC', 'SUPPORT'];
 const SPEEDS = [1, 2, 4, 8] as const;
@@ -104,6 +91,50 @@ const POSITION_LABELS: Record<Position, string> = {
   SUPPORT: '서포터',
 };
 
+// 기본 진입에서는 무거운 시즌 검증을 실행하지 않고, 개발자가 URL로 명시했을 때만 예약합니다.
+let hasConsoleValidationBeenScheduled = false;
+function scheduleOptionalConsoleValidation(): void {
+  if (hasConsoleValidationBeenScheduled || typeof window === 'undefined') return;
+  const validationMode = new URLSearchParams(window.location.search).get('validation');
+  if (validationMode !== 'season') return;
+  hasConsoleValidationBeenScheduled = true;
+
+  const runValidation = () => {
+    // 검증을 요청한 경우에만 정적 데이터와 콘솔 출력용 시즌 계산을 실행합니다.
+    import('./domain/championValidation').then(({ validateChampions }) => {
+      import('./domain/consoleOutput').then((consoleOutput) => {
+        const championIssues = validateChampions(CHAMPIONS);
+        if (championIssues.length === 0) {
+          console.log('챔피언 25종 검증 완료');
+        } else {
+          championIssues.forEach((issue) => console.error(`챔피언 검증 실패: ${issue.message}`));
+        }
+        const teams = new TeamGenerator().generateTenTeams();
+        consoleOutput.printChampionsToConsole();
+        const generatedPlayers = teams.flatMap((team) => team.players);
+        consoleOutput.printPlayersToConsole(generatedPlayers);
+        consoleOutput.printSoloRankValidationToConsole(generatedPlayers);
+        return import('./domain/SeasonSimulation').then(({ SeasonSimulation }) => {
+          // 개발자 요청 시에만 100시즌 전체 실시간 AI 검증을 실행합니다.
+          const result = new SeasonSimulation().run(teams, 100);
+          consoleOutput.printMatchResultToConsole(result.firstSeasonMatch);
+          consoleOutput.printStandingsToConsole(result.firstSeasonStandings);
+          consoleOutput.printSimulationToConsole(result);
+        });
+      });
+    }).catch((error) => {
+      console.error('선택적 시즌 검증을 실행하지 못했습니다.', error);
+    });
+  };
+
+  // 화면이 먼저 그려진 뒤 유휴 시간에 실행해 개발자 검증도 초기 페인트를 막지 않습니다.
+  if ('requestIdleCallback' in window) {
+    window.requestIdleCallback(runValidation, { timeout: 2000 });
+  } else {
+    setTimeout(runValidation, 1500);
+  }
+}
+
 const ICON_PARTS: Record<string, { helmet: string; weapon: string }> = {
   하론: { helmet: 'HORN', weapon: 'GREATSWORD' },
   모르: { helmet: 'HOOD', weapon: 'SCYTHE' },
@@ -132,9 +163,7 @@ const ICON_PARTS: Record<string, { helmet: string; weapon: string }> = {
   크로: { helmet: 'HORN', weapon: 'SCYTHE' },
 };
 
-/**
- * 기존 시즌 검증 로그를 그대로 유지하면서, 첫 번째 두 팀을 사람이 플레이할 경기로 사용합니다.
- */
+  /** 첫 화면은 즉시 준비하고, 무거운 시즌 검증은 명시적으로 요청했을 때만 실행합니다. */
 function Home() {
   const [screen, setScreen] = useState<Screen>('prep');
   const [homeTeam] = useState<Team>(interactiveTeams[0]);
@@ -155,31 +184,7 @@ function Home() {
   const [activeTab, setActiveTab] = useState<AppTab>('team');
 
   useEffect(() => {
-    if (hasSimulationRun) return;
-    hasSimulationRun = true;
-    // 시뮬레이션 전에 정적 챔피언 데이터 문제를 콘솔에서 명확히 알립니다.
-    const championIssues = validateChampions(CHAMPIONS);
-    if (championIssues.length === 0) {
-      console.log('챔피언 25종 검증 완료');
-    } else {
-      championIssues.forEach((issue) => console.error(`챔피언 검증 실패: ${issue.message}`));
-    }
-    // 기존 선수 생성기를 재사용하여 같은 로스터의 팀 10개를 생성
-    const teams = new TeamGenerator().generateTenTeams();
-
-     // 챔피언 목록과 팀에 배정된 기존 선수 50명을 순서대로 콘솔에 출력
-     printChampionsToConsole();
-    const generatedPlayers = teams.flatMap((team) => team.players);
-    printPlayersToConsole(generatedPlayers);
-    printSoloRankValidationToConsole(generatedPlayers);
-
-    // 같은 로스터로 100시즌을 진행하여 첫 시즌 순위와 우승 분포를 검증
-    const result = new SeasonSimulation().run(teams, 100);
-
-     // 첫 시즌 상세 경기, 순위표와 100시즌 반복 검증 결과를 콘솔에 출력
-     printMatchResultToConsole(result.firstSeasonMatch);
-    printStandingsToConsole(result.firstSeasonStandings);
-    printSimulationToConsole(result);
+    scheduleOptionalConsoleValidation();
   }, []);
 
   const currentStep = draftSession?.currentStep;
@@ -192,7 +197,10 @@ function Home() {
     const generatedTimeline = generateMatchTimeline(result, generatedEvents);
     // 수동 관전도 시즌과 동일한 실시간 오퍼레이터 AI를 사용합니다.
     const tacticalRoundResult = result.tacticalRound ?? runRealtimeTacticalRound(homeTeam, awayTeam, draft);
-    printMatchTimelineValidationToConsole(generatedTimeline);
+    // 경기 완료 후에만 콘솔 검증 모듈을 불러와 초기 화면 번들을 가볍게 유지합니다.
+    void import('./domain/consoleOutput')
+      .then(({ printMatchTimelineValidationToConsole }) => printMatchTimelineValidationToConsole(generatedTimeline))
+      .catch((error) => console.error('경기 타임라인 검증 모듈을 불러오지 못했습니다.', error));
     const eventIssues = validateMatchEvents(result, generatedEvents, generatedSnapshots);
     if (eventIssues.length > 0) {
       eventIssues.forEach((issue) => console.error(`경기 이벤트 검증 실패: ${issue}`));
