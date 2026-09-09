@@ -6,7 +6,10 @@ import { Application, Container, Graphics, Text } from 'pixi.js';
 import { useEffect, useMemo, useRef, useState, type ReactElement } from 'react';
 import type { Operator } from '../domain/Operator';
 import { OPERATORS } from '../domain/Operator';
-import type { TacticalRoundResult } from '../domain/TacticalRoundSimulation';
+import type {
+  TacticalEngagementWinner,
+  TacticalRoundResult,
+} from '../domain/TacticalRoundSimulation';
 import { BREACHLINE_MAP, type TacticalMapDefinition, type TacticalPoint } from '../domain/tacticalMaps';
 
 const REPLAY_PHASES = ['수색', '브리칭', '교전', '결과'] as const;
@@ -429,9 +432,71 @@ function drawMapLayer(container: Container, map: TacticalMapDefinition, scale: n
   });
 }
 
-/** 동적 오퍼레이터와 소리, 탄흔을 현재 프레임에 그립니다. */
+/** 두 지점 사이의 거리를 계산합니다. */
+function distanceBetween(from: TacticalPoint, to: TacticalPoint): number {
+  return Math.hypot(to.x - from.x, to.y - from.y);
+}
+
+/** 두 꺾임점을 따라 이동하는 탄두의 위치를 계산합니다. */
+function pointAlongRoute(
+  start: TacticalPoint,
+  middle: TacticalPoint,
+  end: TacticalPoint,
+  progress: number,
+): TacticalPoint {
+  const firstLength = distanceBetween(start, middle);
+  const secondLength = distanceBetween(middle, end);
+  const totalLength = Math.max(1, firstLength + secondLength);
+  const traveled = Math.max(0, Math.min(1, progress)) * totalLength;
+  if (traveled <= firstLength) return mixPoint(start, middle, traveled / Math.max(1, firstLength));
+  return mixPoint(middle, end, (traveled - firstLength) / Math.max(1, secondLength));
+}
+
+/** 살아있는 교전 기록만 살펴봐 특정 오퍼레이터의 탈락 여부를 판정합니다. */
+function wasEliminated(
+  result: TacticalRoundResult,
+  callSign: string,
+  winner: TacticalEngagementWinner,
+  completedEngagements: number,
+): boolean {
+  return result.engagements.some((engagement, index) => (
+    index < completedEngagements
+    && engagement.winner === winner
+    && (winner === '공격' ? engagement.defenderCallSign : engagement.attackerCallSign) === callSign
+  ));
+}
+
+/** 발사 시점과 비행 시간을 가진 여러 발의 탄두와 꼬리를 재생합니다. */
+function drawProjectileBurst(
+  trail: Graphics,
+  heads: Graphics,
+  start: TacticalPoint,
+  middle: TacticalPoint,
+  end: TacticalPoint,
+  elapsed: number,
+  color: number,
+  scale: number,
+  delay = 0,
+): void {
+  const flightDuration = 0.46;
+  const emissionTimes = [0.14, 0.36, 0.58, 0.8];
+  emissionTimes.forEach((emissionTime, index) => {
+    const flightElapsed = elapsed - delay - emissionTime;
+    if (flightElapsed < 0 || flightElapsed > flightDuration) return;
+    const progress = flightElapsed / flightDuration;
+    const head = pointAlongRoute(start, middle, end, progress);
+    const tail = pointAlongRoute(start, middle, end, Math.max(0, progress - 0.14));
+    drawLine(trail, tail, head, color, (index % 2 === 0 ? 2.1 : 1.45) / scale, 0.92);
+    heads.circle(head.x, head.y, (index % 2 === 0 ? 3.2 : 2.25) / scale).fill({
+      color: 0xfff5c9,
+      alpha: 0.95,
+    });
+  });
+}
+
+/** 동적 오퍼레이터와 소리, 재사용 탄환 그래픽을 현재 프레임에 갱신합니다. */
 function renderDynamicLayer(
-  container: Container,
+  state: DynamicRenderState,
   result: TacticalRoundResult,
   map: TacticalMapDefinition,
   timing: ReplayTiming,
@@ -440,7 +505,13 @@ function renderDynamicLayer(
   attackers: Operator[],
   defenders: Operator[],
 ): void {
-  container.removeChildren().forEach((child: any) => child.destroy());
+  state.route.clear();
+  state.shockwave.clear();
+  state.fragments.clear();
+  state.flash.clear();
+  state.bulletTrail.clear();
+  state.bulletHeads.clear();
+  state.impacts.clear();
   const score = deriveScore(result, time, timing, attackers.length, defenders.length);
   const activeEngagementIndex = timing.engagementStarts.findIndex((start, index) => (
     time >= start && time < (timing.engagementStarts[index + 1] ?? timing.resultStart)
@@ -462,17 +533,15 @@ function renderDynamicLayer(
     const position = isScout && phase === '수색'
       ? (scoutProgress < 0.68 ? scoutOut : scoutBack)
       : { x: roaming.x + movementWave, y: roaming.y + Math.cos(time * 0.8 + index) * map.height * 0.006 };
-    const lastAttackerLoss = result.engagements.findIndex((engagement, engagementIndex) => (
-      engagementIndex < score.completed && engagement.winner === '수비' && engagement.attackerCallSign === operator.callSign
-    ));
-    const visible = lastAttackerLoss < 0;
+    const eliminated = wasEliminated(result, operator.callSign, '수비', score.completed);
+    const visible = !eliminated;
     positions.set(operator.callSign, {
       operator,
       index,
       position,
       visible,
       pulse: visible ? 0.5 + 0.5 * Math.sin(time * 4 + index) : 0.1,
-      eliminated: !visible,
+      eliminated,
     });
   });
   defenders.forEach((operator, index) => {
@@ -485,10 +554,8 @@ function renderDynamicLayer(
       x: coverPoint.x + relocation,
       y: coverPoint.y + Math.cos(time * 0.46 + index) * map.height * 0.008,
     };
-    const lastDefenderLoss = result.engagements.findIndex((engagement, engagementIndex) => (
-      engagementIndex < score.completed && engagement.winner === '공격' && engagement.defenderCallSign === operator.callSign
-    ));
-    const visible = lastDefenderLoss < 0;
+    const eliminated = wasEliminated(result, operator.callSign, '공격', score.completed);
+    const visible = !eliminated;
     const scoutPosition = attackers.find((candidate) => candidate.role === 'SEARCH');
     const scoutMotion = scoutPosition ? positions.get(scoutPosition.callSign) : undefined;
     const sightBlocked = scoutMotion ? hasBlockedSight(scoutMotion.position, position, map) : true;
@@ -498,27 +565,32 @@ function renderDynamicLayer(
       position,
       visible: visible && (!sightBlocked || infoHigh),
       pulse: visible ? 0.5 + 0.5 * Math.sin(time * 3.6 + index * 1.3) : 0.08,
-      eliminated: !visible,
+      eliminated,
     });
   });
-  positions.forEach((motion) => drawOperatorToken(container, motion, scale));
+  positions.forEach((motion) => {
+    const token = state.tokens.get(motion.operator.callSign);
+    if (token) updateOperatorToken(token, motion, scale);
+  });
 
   if (phase === '브리칭') {
     const shockProgress = Math.max(0, Math.min(1, (time - timing.searchEnd) / Math.max(0.1, timing.breachEnd - timing.searchEnd)));
-    const shock = new Graphics();
     const shockRadius = map.width * (0.035 + shockProgress * 0.16);
-    shock.circle(map.breachPoint.x, map.breachPoint.y, shockRadius).stroke({
+    state.shockwave.circle(map.breachPoint.x, map.breachPoint.y, shockRadius).stroke({
       color: MAP_ACCENT,
       width: (3 - shockProgress * 2) / scale,
       alpha: 0.85 - shockProgress * 0.7,
     });
-    shock.circle(map.breachPoint.x, map.breachPoint.y, map.width * 0.022).fill({ color: 0xfff0c6, alpha: 0.25 * (1 - shockProgress) });
-    container.addChild(shock);
+    state.shockwave.circle(map.breachPoint.x, map.breachPoint.y, map.width * 0.022).fill({
+      color: 0xfff0c6,
+      alpha: 0.25 * (1 - shockProgress),
+    });
     for (let index = 0; index < 9; index += 1) {
       const fragment = offsetAround(map.breachPoint, index, map.width * (0.05 + shockProgress * 0.12));
-      const fragmentShape = new Graphics();
-      fragmentShape.circle(fragment.x, fragment.y, (1.5 + (index % 3)) / scale).fill({ color: 0xf5d59b, alpha: 0.78 * (1 - shockProgress) });
-      container.addChild(fragmentShape);
+      state.fragments.circle(fragment.x, fragment.y, (1.5 + (index % 3)) / scale).fill({
+        color: 0xf5d59b,
+        alpha: 0.78 * (1 - shockProgress),
+      });
     }
   }
 
@@ -526,13 +598,8 @@ function renderDynamicLayer(
     const attacker = positions.get(currentEngagement.attackerCallSign);
     const defender = positions.get(currentEngagement.defenderCallSign);
     if (attacker && defender) {
-      const local = Math.max(0, Math.min(1, (time - (timing.engagementStarts[activeEngagementIndex] ?? time)) / 1.6));
-      const flash = new Graphics();
-      flash.circle(defender.position.x, defender.position.y, map.width * 0.026 * (1 + local)).fill({
-        color: 0xffe9b0,
-        alpha: local < 0.2 ? 0.45 : 0.12 * (1 - local),
-      });
-      container.addChild(flash);
+      const elapsed = Math.max(0, time - (timing.engagementStarts[activeEngagementIndex] ?? time));
+      const local = Math.max(0, Math.min(1, elapsed / 1.8));
       const blockedByInterior = hasBlockedSight(attacker.position, defender.position, map);
       const informationRoll = (
         Math.sin((activeEngagementIndex + 1) * 24.17 + result.informationAmount * 13.9) + 1
@@ -540,38 +607,55 @@ function renderDynamicLayer(
       const hasWallshot = infoHigh && blockedByInterior && informationRoll < result.informationAmount;
       const routeMid = hasWallshot
         ? mixPoint(attacker.position, defender.position, 0.5)
-        : map.doorGap.from;
-      const bullet = new Graphics();
-      if (hasWallshot) {
-        const shotStart = mixPoint(attacker.position, defender.position, Math.max(0, local - 0.22));
-        const shotEnd = mixPoint(attacker.position, defender.position, Math.min(1, local + 0.2));
-        drawLine(bullet, shotStart, shotEnd, 0xfff2c2, 2.1 / scale, 0.86);
-        drawLine(bullet, mixPoint(shotStart, attacker.position, 0.12), shotStart, 0x8ef0df, 1 / scale, 0.55);
-      } else {
-        const shotStart = mixPoint(attacker.position, routeMid, Math.max(0, local - 0.2));
-        const shotEnd = mixPoint(routeMid, defender.position, Math.min(1, local + 0.12));
-        drawLine(bullet, shotStart, shotEnd, 0xfff2c2, 1.8 / scale, 0.85);
-        drawLine(bullet, attacker.position, shotStart, 0x8ef0df, 0.9 / scale, 0.42);
+        : blockedByInterior
+          ? mixPoint(map.doorGap.from, map.doorGap.to, 0.5)
+          : mixPoint(attacker.position, defender.position, 0.5);
+      const muzzlePulse = Math.max(0, Math.sin(elapsed * 42));
+      state.flash.circle(attacker.position.x, attacker.position.y, map.width * 0.018 * muzzlePulse).fill({
+        color: 0xfff2c2,
+        alpha: 0.22 * muzzlePulse,
+      });
+      state.flash.circle(defender.position.x, defender.position.y, map.width * 0.026 * (1 + local)).fill({
+        color: 0xffe9b0,
+        alpha: local < 0.2 ? 0.45 : 0.12 * (1 - local),
+      });
+      drawProjectileBurst(
+        state.bulletTrail,
+        state.bulletHeads,
+        attacker.position,
+        routeMid,
+        defender.position,
+        elapsed,
+        ATTACKER_COLOR,
+        scale,
+      );
+      if (currentEngagement.winner === '수비') {
+        drawProjectileBurst(
+          state.bulletTrail,
+          state.bulletHeads,
+          defender.position,
+          routeMid,
+          attacker.position,
+          elapsed,
+          DEFENDER_COLOR,
+          scale,
+          0.32,
+        );
       }
-      container.addChild(bullet);
-      const impact = new Graphics();
-      impact.circle(defender.position.x, defender.position.y, map.width * 0.012).stroke({
+      if (elapsed > 0.92 && elapsed < 1.72) state.impacts.circle(defender.position.x, defender.position.y, map.width * 0.012).stroke({
         color: currentEngagement.winner === '공격' ? ATTACKER_COLOR : DEFENDER_COLOR,
         width: 1.4 / scale,
-        alpha: 0.8 * (1 - local),
+        alpha: 0.8 * (1 - Math.min(1, (elapsed - 0.92) / 0.8)),
       });
-      container.addChild(impact);
     }
   }
 
   if (infoHigh && phase === '교전' && activeEngagementIndex >= 0 && activeEngagementIndex % 2 === 1) {
-    const route = new Graphics();
     const start = map.breachEntryPoint;
-    const door = map.doorGap.from;
+    const door = mixPoint(map.doorGap.from, map.doorGap.to, 0.5);
     const end = map.objectiveZone;
-    drawLine(route, start, door, MAP_ACCENT, 1 / scale, 0.25);
-    drawLine(route, door, { x: end.x, y: end.y + end.height / 2 }, MAP_ACCENT, 1 / scale, 0.25);
-    container.addChild(route);
+    drawLine(state.route, start, door, MAP_ACCENT, 1 / scale, 0.25);
+    drawLine(state.route, door, { x: end.x, y: end.y + end.height / 2 }, MAP_ACCENT, 1 / scale, 0.25);
   }
 }
 
@@ -579,6 +663,39 @@ function renderDynamicLayer(
 function formatClock(seconds: number): string {
   const safeSeconds = Math.max(0, Math.ceil(seconds));
   return `${Math.floor(safeSeconds / 60).toString().padStart(2, '0')}:${(safeSeconds % 60).toString().padStart(2, '0')}`;
+}
+
+interface ReplayTempo {
+  multiplier: number;
+  label: string;
+  isSlow: boolean;
+}
+
+/** 교전과 클러치의 순간별 완급을 계산해 중계 속도에 반영합니다. */
+function getReplayTempo(
+  time: number,
+  timing: ReplayTiming,
+  result: TacticalRoundResult,
+): ReplayTempo {
+  const activeEngagementIndex = timing.engagementStarts.findIndex((start, index) => (
+    time >= start && time < (timing.engagementStarts[index + 1] ?? timing.resultStart)
+  ));
+  if (activeEngagementIndex < 0) return { multiplier: 1, label: '정상 속도', isSlow: false };
+  const elapsed = time - timing.engagementStarts[activeEngagementIndex];
+  const engagementNumber = activeEngagementIndex + 1;
+  const isFinalEngagement = activeEngagementIndex === result.engagements.length - 1;
+  const isClutch = result.decisionLogs.some((log) => (
+    log.engagementSequence === engagementNumber && log.type === 'ISOLATION'
+  ));
+  if (isClutch && elapsed >= 0.25 && elapsed < 1.18) {
+    return { multiplier: 0.34, label: '클러치 슬로모션', isSlow: true };
+  }
+  if (isFinalEngagement && elapsed >= 0.68 && elapsed < 1.32) {
+    return { multiplier: 0.3, label: '결정적 장면 슬로모션', isSlow: true };
+  }
+  if (elapsed < 0.62) return { multiplier: 1.6, label: '연사 구간 가속', isSlow: false };
+  if (elapsed < 1.35) return { multiplier: 1.15, label: '교전 진행', isSlow: false };
+  return { multiplier: 0.82, label: '탄착 확인', isSlow: false };
 }
 
 /** Pixi 캔버스와 중계 타이머를 연결합니다. */
@@ -591,22 +708,13 @@ export function TacticalRoundReplay({ result, operators = OPERATORS }: TacticalR
   const [playbackRate, setPlaybackRate] = useState(1);
   const [paused, setPaused] = useState(false);
   const [eventLog, setEventLog] = useState<ReplayEvent[]>([]);
-  const autoSlowRef = useRef(false);
   const timing = useMemo(() => createReplayTiming(result), [result]);
   const rosters = useMemo(() => deriveRosters(result, operators), [result, operators]);
   const events = useMemo(() => buildReplayEvents(result, timing), [result, timing]);
   const phase = getReplayPhase(playbackTime, timing);
   const score = deriveScore(result, playbackTime, timing, rosters.attackers.length, rosters.defenders.length);
   const currentEvent = events.filter((event) => event.time <= playbackTime).at(-1);
-  const autoSlow = events.some((event) => (
-    event.time <= playbackTime && playbackTime - event.time < 1.2
-    && (event.headline === '주도권 판단' || event.headline === '고립 판단')
-  )) || (result.engagements.length > 0 && playbackTime >= timing.engagementStarts.at(-1)! - 0.25 && playbackTime < timing.resultStart);
-
-  // 중요 순간 감속 여부를 Pixi 프레임 루프에 전달합니다.
-  useEffect(() => {
-    autoSlowRef.current = autoSlow;
-  }, [autoSlow]);
+  const tempo = getReplayTempo(playbackTime, timing, result);
 
   // 재생 시간이 바뀔 때 이벤트 로그를 순서대로 공개합니다.
   useEffect(() => {
@@ -629,6 +737,8 @@ export function TacticalRoundReplay({ result, operators = OPERATORS }: TacticalR
     let animationFrame: number | undefined;
     const mapLayer = new Container();
     const dynamicLayer = new Container();
+    const dynamicState = createDynamicRenderState(dynamicLayer, rosters.attackers, rosters.defenders);
+    let lastUiCommit = -Infinity;
 
     // 호스트 크기에 맞춰 Pixi 월드의 화면 비율을 맞춥니다.
     const resizeScene = (): void => {
@@ -652,9 +762,13 @@ export function TacticalRoundReplay({ result, operators = OPERATORS }: TacticalR
       const delta = Math.min(0.05, Math.max(0, (now - last) / 1000));
       application.__lastFrame = now;
       if (!pausedRef.current) {
-        const effectiveRate = autoSlowRef.current ? Math.min(rateRef.current, 0.42) : rateRef.current;
+        const replayTempo = getReplayTempo(playbackRef.current, timing, result);
+        const effectiveRate = rateRef.current * replayTempo.multiplier;
         playbackRef.current = Math.min(timing.duration, playbackRef.current + delta * effectiveRate);
-        setPlaybackTime(playbackRef.current);
+        if (now - lastUiCommit >= 50 || playbackRef.current >= timing.duration) {
+          lastUiCommit = now;
+          setPlaybackTime(playbackRef.current);
+        }
         if (playbackRef.current >= timing.duration) {
           pausedRef.current = true;
           setPaused(true);
@@ -663,7 +777,7 @@ export function TacticalRoundReplay({ result, operators = OPERATORS }: TacticalR
       const world = application.stage.getChildByName('tactical-world') as Container | undefined;
       const scale = world?.scale.x ?? 1;
       renderDynamicLayer(
-        dynamicLayer,
+        dynamicState,
         result,
         BREACHLINE_MAP,
         timing,
@@ -738,16 +852,16 @@ export function TacticalRoundReplay({ result, operators = OPERATORS }: TacticalR
   };
 
   return (
-    <section className="tactical-replay" aria-label="전술 FPS 라운드 중계">
+    <section className={`tactical-replay ${tempo.isSlow ? 'is-tempo-slow' : ''}`} aria-label="전술 FPS 라운드 중계">
       <header className="tactical-replay-header">
         <div>
           <p className="tactical-eyebrow">LIVE ROUND READOUT / 07</p>
           <h1>소리의 방향이 각도를 바꾼다</h1>
           <p className="tactical-subtitle">BREACHLINE · 중앙 격벽 · 감독실 중계 시점</p>
         </div>
-        <div className="tactical-live-indicator">
+        <div className={`tactical-live-indicator ${tempo.isSlow ? 'is-slow' : ''}`}>
           <span className={paused ? 'is-paused' : ''} />
-          {paused ? '일시정지' : '실시간 중계'}
+          {paused ? '일시정지' : tempo.label}
         </div>
       </header>
 
@@ -778,7 +892,7 @@ export function TacticalRoundReplay({ result, operators = OPERATORS }: TacticalR
               <h2>{BREACHLINE_MAP.name}</h2>
             </div>
             <span className="tactical-map-readout">
-              INFO {(result.informationAmount * 100).toFixed(0)}% · {autoSlow ? '중요 순간 자동 감속' : '정상 속도'}
+              INFO {(result.informationAmount * 100).toFixed(0)}% · {tempo.label}
             </span>
           </div>
           <div ref={canvasHostRef} className="tactical-pixi-host" />
