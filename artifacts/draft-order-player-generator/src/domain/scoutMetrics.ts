@@ -13,8 +13,8 @@ import {
   deriveMatchEconomySnapshot,
   getMatchPlayerKey,
 } from './matchEconomy';
-import { PLAYER_STATS_BY_POSITION } from './playerStats';
-import { Player, Position } from './Player';
+import { PLAYER_STATS_BY_ROLE } from './playerStats';
+import { Player, Position, Role } from './Player';
 import { Team } from './Team';
 
 export type ScoutMetricKey = 'gpm' | 'dpm' | 'csPerMinute' | 'kda' | 'damageShare' | 'goldShare' | 'visionPerMinute';
@@ -215,17 +215,24 @@ export function deriveScoutTrend(
 
 /** 선수별 지표 그래프에 표시할 리그 평균을 기존 포지션 분포에서 만듭니다. */
 export function getLeagueAverage(metric: ScoutMetricKey, position: Position): number {
-  const distribution = PLAYER_STATS_BY_POSITION[position];
-  const laning = distribution.laning.mean;
-  const teamfight = distribution.teamfight.mean;
-  const macro = distribution.macro.mean;
-  if (metric === 'gpm') return 220 + laning * 1.15 + macro * 0.45 + POSITION_GPM_BONUS[position];
-  if (metric === 'dpm') return 120 + teamfight * 5.2 + macro * 0.3;
-  if (metric === 'csPerMinute') return Math.max(2, 5.8 + laning * 0.025 + macro * 0.008 + POSITION_CS_BONUS[position]);
-  if (metric === 'kda') return 2.6 + teamfight / 100;
+  const roleByPosition: Record<Position, Role> = {
+    TOP: 'ENTRY',
+    JUNGLE: 'SEARCH',
+    MID: 'BLOCKING',
+    ADC: 'FIREPOWER',
+    SUPPORT: 'DEFENSIVE_SETUP',
+  };
+  const distribution = PLAYER_STATS_BY_ROLE[roleByPosition[position]];
+  const aim = distribution.aim.mean;
+  const clutch = distribution.clutch.mean;
+  const defensiveSetup = distribution.defensiveSetup.mean;
+  if (metric === 'gpm') return 220 + aim * 1.15 + defensiveSetup * 0.45 + POSITION_GPM_BONUS[position];
+  if (metric === 'dpm') return 120 + clutch * 5.2 + defensiveSetup * 0.3;
+  if (metric === 'csPerMinute') return Math.max(2, 5.8 + aim * 0.025 + defensiveSetup * 0.008 + POSITION_CS_BONUS[position]);
+  if (metric === 'kda') return 2.6 + clutch / 100;
   if (metric === 'damageShare') return position === 'ADC' || position === 'MID' ? 23 : 18;
   if (metric === 'goldShare') return position === 'ADC' ? 24 : position === 'SUPPORT' ? 12 : 21;
-  return 0.6 + macro * 0.009 + POSITION_VISION_BONUS[position];
+  return 0.6 + distribution.informationGathering.mean * 0.009 + POSITION_VISION_BONUS[position];
 }
 
 /** 선수의 챔피언 폭을 숙련 챔피언과 도전 챔피언으로 나눕니다. */
