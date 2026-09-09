@@ -15,7 +15,7 @@ import {
 } from './domain/consoleOutput';
 import { SeasonSimulation } from './domain/SeasonSimulation';
 import { TeamGenerator } from './domain/TeamGenerator';
-import { CHAMPIONS, Champion, getChampionsByPosition } from './domain/Champion';
+import { CHAMPIONS, Champion, getChampionStatsAtLevel, getChampionsByPosition } from './domain/Champion';
 import { validateChampions } from './domain/championValidation';
 import { BanPickResult, DraftSession } from './domain/BanPick';
 import { MatchResult, getPhaseAdjustmentSummary } from './domain/MatchResult';
@@ -31,6 +31,7 @@ import { MatchSimulator } from './domain/MatchSimulator';
 import { generateMatchTimeline, MatchTimeline } from './domain/matchTimeline';
 import { Player, Position } from './domain/Player';
 import { Team } from './domain/Team';
+import { getSoloRankChampionValue, getTournamentChampionValue } from './domain/soloRank';
 import {
   MatchEconomySnapshot,
   deriveCombatDamage,
@@ -78,6 +79,52 @@ const STAT_ITEMS = [
 ] as const;
 
 type Screen = 'prep' | 'draft' | 'watch';
+type AppTab = 'team' | 'players' | 'champions' | 'league' | 'records' | 'solo';
+
+const APP_TABS: Array<{ id: AppTab; label: string }> = [
+  { id: 'team', label: '팀' },
+  { id: 'players', label: '선수' },
+  { id: 'champions', label: '챔피언' },
+  { id: 'league', label: '리그' },
+  { id: 'records', label: '기록' },
+  { id: 'solo', label: '솔랭' },
+];
+
+const POSITION_LABELS: Record<Position, string> = {
+  TOP: '탑',
+  JUNGLE: '정글',
+  MID: '미드',
+  ADC: '원딜',
+  SUPPORT: '서포터',
+};
+
+const ICON_PARTS: Record<string, { helmet: string; weapon: string }> = {
+  하론: { helmet: 'HORN', weapon: 'GREATSWORD' },
+  모르: { helmet: 'HOOD', weapon: 'SCYTHE' },
+  이르마: { helmet: 'CROWN', weapon: 'BOW' },
+  라헨: { helmet: 'MASK', weapon: 'STAFF' },
+  벨트: { helmet: 'SKULL', weapon: 'CLAW' },
+  세블: { helmet: 'PRIEST', weapon: 'GLAIVE' },
+  카이르: { helmet: 'HORN', weapon: 'BELL' },
+  베론: { helmet: 'HOOD', weapon: 'FLAIL' },
+  카르: { helmet: 'CROWN', weapon: 'GREATSWORD' },
+  로웬: { helmet: 'MASK', weapon: 'SCYTHE' },
+  리안: { helmet: 'SKULL', weapon: 'BOW' },
+  리리아: { helmet: 'PRIEST', weapon: 'STAFF' },
+  토른: { helmet: 'HORN', weapon: 'CLAW' },
+  미르: { helmet: 'HOOD', weapon: 'GLAIVE' },
+  세라: { helmet: 'CROWN', weapon: 'BELL' },
+  베이라: { helmet: 'MASK', weapon: 'FLAIL' },
+  라스크: { helmet: 'SKULL', weapon: 'GREATSWORD' },
+  오린: { helmet: 'PRIEST', weapon: 'SCYTHE' },
+  드란: { helmet: 'HORN', weapon: 'BOW' },
+  티르: { helmet: 'HOOD', weapon: 'STAFF' },
+  아마라: { helmet: 'CROWN', weapon: 'CLAW' },
+  세린: { helmet: 'MASK', weapon: 'GLAIVE' },
+  바니: { helmet: 'SKULL', weapon: 'BELL' },
+  루엔: { helmet: 'PRIEST', weapon: 'FLAIL' },
+  크로: { helmet: 'HORN', weapon: 'SCYTHE' },
+};
 
 /**
  * 기존 시즌 검증 로그를 그대로 유지하면서, 첫 번째 두 팀을 사람이 플레이할 경기로 사용합니다.
@@ -98,6 +145,7 @@ function Home() {
   const [speed, setSpeed] = useState<number>(1);
   const [isPaused, setIsPaused] = useState(false);
   const [highlightMode, setHighlightMode] = useState(false);
+  const [activeTab, setActiveTab] = useState<AppTab>('team');
 
   useEffect(() => {
     if (hasSimulationRun) return;
@@ -228,9 +276,21 @@ function Home() {
     setDraftError('');
   };
 
+  if (activeTab !== 'team') {
+    return (
+      <AppFrame screen={screen} activeTab={activeTab} onSelectTab={setActiveTab}>
+        <ArchiveTab
+          tab={activeTab}
+          homeTeam={homeTeam}
+          awayTeam={awayTeam}
+        />
+      </AppFrame>
+    );
+  }
+
   if (screen === 'draft' && draftSession) {
     return (
-      <AppFrame screen={screen}>
+      <AppFrame screen={screen} activeTab={activeTab} onSelectTab={setActiveTab}>
         <DraftScreen
           homeTeam={homeTeam}
           awayTeam={awayTeam}
@@ -247,7 +307,7 @@ function Home() {
 
   if (screen === 'watch' && matchResult && timeline) {
     return (
-      <AppFrame screen={screen}>
+      <AppFrame screen={screen} activeTab={activeTab} onSelectTab={setActiveTab}>
         <WatchScreen
           result={matchResult}
           events={events}
@@ -268,13 +328,23 @@ function Home() {
   }
 
   return (
-    <AppFrame screen={screen}>
+    <AppFrame screen={screen} activeTab={activeTab} onSelectTab={setActiveTab}>
       <PreparationScreen homeTeam={homeTeam} awayTeam={awayTeam} onStart={startDraft} />
     </AppFrame>
   );
 }
 
-function AppFrame({ screen, children }: { screen: Screen; children: React.ReactNode }) {
+function AppFrame({
+  screen,
+  activeTab,
+  onSelectTab,
+  children,
+}: {
+  screen: Screen;
+  activeTab: AppTab;
+  onSelectTab: (tab: AppTab) => void;
+  children: React.ReactNode;
+}) {
   const steps = [
     { id: 'prep', label: '경기 준비' },
     { id: 'draft', label: '밴픽' },
@@ -292,6 +362,18 @@ function AppFrame({ screen, children }: { screen: Screen; children: React.ReactN
           <span>정규시즌 · 단판</span>
         </div>
       </header>
+      <nav className="app-tabs" aria-label="감독실 메뉴">
+        {APP_TABS.map((tab) => (
+          <button
+            className={`app-tab ${tab.id === activeTab ? 'is-active' : ''}`}
+            key={tab.id}
+            type="button"
+            onClick={() => onSelectTab(tab.id)}
+          >
+            {tab.label}
+          </button>
+        ))}
+      </nav>
       <nav className="flow-nav" aria-label="경기 진행 단계">
         {steps.map((step, index) => (
           <div className={`flow-step ${step.id === screen ? 'is-active' : ''}`} key={step.id}>
@@ -1688,6 +1770,357 @@ function MatchReview({
       </div>
     </section>
   );
+}
+
+function ArchiveTab({ tab, homeTeam, awayTeam }: { tab: AppTab; homeTeam: Team; awayTeam: Team }) {
+  if (tab === 'champions') return <ChampionCodex />;
+  const allPlayers = interactiveTeams.flatMap((team) => team.players);
+  const rankedPlayers = allPlayers
+    .filter((player): player is Player & { soloRank: NonNullable<Player['soloRank']> } => Boolean(player.soloRank))
+    .sort((left, right) => left.soloRank.ladderRank - right.soloRank.ladderRank);
+  const tierCounts = rankedPlayers.reduce<Record<string, number>>((counts, player) => {
+    counts[player.soloRank.tier] = (counts[player.soloRank.tier] ?? 0) + 1;
+    return counts;
+  }, {});
+  const tabData: Record<Exclude<AppTab, 'team' | 'champions' | 'solo'>, Array<{ title: string; description: string; value?: string }>> = {
+    players: [
+      { title: '우리 선수', description: '현재 팀 로스터와 포지션별 발휘를 확인하는 자리입니다.', value: `${homeTeam.players.length}명` },
+      { title: '영입 후보', description: '다음 이적 시장에서 비교할 선수를 모아 두는 자리입니다.', value: `${allPlayers.length}명` },
+      { title: '계약', description: '선수별 계약 기간과 조건을 관리하는 자리입니다.' },
+      { title: '성장 추이', description: '시즌 동안 변하는 선수 능력치를 기록하는 자리입니다.' },
+    ],
+    league: [
+      { title: '순위표', description: '현재 시즌 팀 순위와 승패를 보여주는 자리입니다.', value: `${interactiveTeams.length}팀` },
+      { title: '팀 목록', description: '리그에 참가한 팀과 로스터를 모아 보는 자리입니다.' },
+      { title: '일정표', description: '앞으로 치를 경기와 지난 경기를 확인하는 자리입니다.' },
+      { title: '패치 노트', description: '대회에 적용된 패치 변화와 적용 시점을 기록하는 자리입니다.' },
+    ],
+    records: [
+      { title: '경기 기록', description: '팀이 치른 경기의 결과와 흐름을 보관하는 자리입니다.' },
+      { title: '시즌 통계', description: '시즌 전체의 승률과 오브젝트 기록을 모으는 자리입니다.' },
+      { title: '밴픽 통계', description: '챔피언 선택과 금지 빈도를 비교하는 자리입니다.' },
+      { title: '명장면', description: '다시 보고 싶은 경기 장면을 모아 두는 자리입니다.' },
+    ],
+  };
+  if (tab === 'solo') {
+    const homeRanked = homeTeam.players
+      .filter((player): player is Player & { soloRank: NonNullable<Player['soloRank']> } => Boolean(player.soloRank))
+      .sort((left, right) => left.soloRank.ladderRank - right.soloRank.ladderRank);
+    return (
+      <section className="archive-screen screen-section">
+        <ArchiveHeading eyebrow="SOLO RANK / 06" title="개인의 기록을 읽으십시오." description="대회 전력과 분리된 공개 래더 데이터입니다." />
+        <div className="archive-tile-grid solo-tile-grid">
+          <ArchiveTile title="래더 순위" description="전체 선수의 현재 래더 위치입니다." value={`1위 — ${rankedPlayers[0]?.nickname ?? '기록 없음'}`} />
+          <ArchiveTile title="티어 분포" description="생성된 선수 집단의 티어별 인원입니다." value={`챌린저 ${tierCounts['챌린저'] ?? 0} · 그랜드마스터 ${tierCounts['그랜드마스터'] ?? 0} · 마스터 ${tierCounts['마스터'] ?? 0}`} />
+          <ArchiveTile title="챔피언 통계" description="챔피언별 솔로랭크 가치입니다." value={`최고 ${Math.max(...CHAMPIONS.map(getSoloRankChampionValue))} / 최저 ${Math.min(...CHAMPIONS.map(getSoloRankChampionValue))}`} />
+          <ArchiveTile title="우리 선수 위치" description="HOME 로스터의 현재 솔로랭크입니다." value={homeRanked.map((player) => `${player.nickname} ${player.soloRank.ladderRank}위`).join(' · ') || '기록 없음'} />
+        </div>
+        <div className="solo-roster-list">
+          {homeRanked.map((player) => (
+            <div className="solo-roster-row" key={player.nickname}>
+              <span>{player.soloRank.ladderRank}위</span>
+              <strong>{player.nickname}</strong>
+              <small>{POSITION_LABELS[player.position]} · {player.soloRank.tier} · {player.soloRank.points}점</small>
+            </div>
+          ))}
+        </div>
+      </section>
+    );
+  }
+  const slotTab = tab as Exclude<AppTab, 'team' | 'champions' | 'solo'>;
+  return (
+    <section className="archive-screen screen-section">
+      <ArchiveHeading eyebrow={`${APP_TABS.find((item) => item.id === tab)?.label.toUpperCase()} / 00`} title="기록을 꺼내 볼 준비를 하십시오." description="이 공간은 다음 관리 화면을 위한 자리입니다." />
+      <div className="archive-tile-grid">
+        {tabData[slotTab].map((item) => <ArchiveTile key={item.title} {...item} />)}
+      </div>
+      <div className="archive-context">
+        <span>현재 대진</span>
+        <strong>{homeTeam.name} <em>vs</em> {awayTeam.name}</strong>
+      </div>
+    </section>
+  );
+}
+
+function ArchiveHeading({ eyebrow, title, description }: { eyebrow: string; title: string; description: string }) {
+  return (
+    <div className="screen-heading archive-heading">
+      <div>
+        <div className="eyebrow">{eyebrow}</div>
+        <h1>{title}</h1>
+        <p>{description}</p>
+      </div>
+    </div>
+  );
+}
+
+function ArchiveTile({ title, description, value }: { title: string; description: string; value?: string }) {
+  return (
+    <article className="archive-tile">
+      <span className="panel-kicker">ARCHIVE SLOT</span>
+      <h2>{title}</h2>
+      <p>{description}</p>
+      {value && <strong>{value}</strong>}
+    </article>
+  );
+}
+
+type ChampionFilter = 'ALL' | 'TANK' | 'DAMAGE' | 'UTILITY' | 'DIVE' | 'POKE' | 'EARLY' | 'LATE';
+
+function ChampionCodex() {
+  const [filter, setFilter] = useState<ChampionFilter>('ALL');
+  const [selectedChampion, setSelectedChampion] = useState(CHAMPIONS[0]);
+  const filters: Array<{ id: ChampionFilter; label: string }> = [
+    { id: 'ALL', label: '전체' },
+    { id: 'TANK', label: '탱커' },
+    { id: 'DAMAGE', label: '딜러' },
+    { id: 'UTILITY', label: '유틸' },
+    { id: 'DIVE', label: '돌진' },
+    { id: 'POKE', label: '견제' },
+    { id: 'EARLY', label: '초반' },
+    { id: 'LATE', label: '후반' },
+  ];
+  const filteredChampions = CHAMPIONS.filter((champion) =>
+    filter === 'ALL'
+      || champion.role === filter
+      || champion.engagement === filter
+      || champion.timing === filter);
+  return (
+    <section className="codex-screen screen-section">
+      <ArchiveHeading eyebrow="CHAMPION CODEX / 03" title="챔피언의 기록을 펼치십시오." description="이미 등록된 태그와 수치를 읽어 밴픽과 경기 준비에 활용합니다." />
+      <div className="codex-layout">
+        <div className="codex-list-panel">
+          <div className="codex-toolbar">
+            <div className="codex-filters">
+              {filters.map((item) => (
+                <button
+                  className={filter === item.id ? 'is-active' : ''}
+                  key={item.id}
+                  type="button"
+                  onClick={() => setFilter(item.id)}
+                >
+                  {item.label}
+                </button>
+              ))}
+            </div>
+            <span className="codex-count">{filteredChampions.length}종</span>
+          </div>
+          <div className="codex-grid">
+            {filteredChampions.map((champion) => (
+              <button
+                className={`codex-card ${selectedChampion === champion ? 'is-selected' : ''}`}
+                key={champion.name}
+                type="button"
+                onClick={() => setSelectedChampion(champion)}
+              >
+                <ChampionIcon champion={champion} size={68} />
+                <strong>{champion.name}</strong>
+                <span>{roleDisplayNames[champion.role]} · 난이도 {champion.difficulty}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+        <ChampionDetail champion={selectedChampion} />
+      </div>
+    </section>
+  );
+}
+
+function ChampionIcon({ champion, size = 80 }: { champion: Champion; size?: number }) {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const context = canvas.getContext('2d');
+    if (!context) return;
+    const scale = window.devicePixelRatio || 1;
+    canvas.width = size * scale;
+    canvas.height = size * scale;
+    context.scale(scale, scale);
+    drawChampionIcon(context, champion, size);
+  }, [champion, size]);
+  return <canvas className="champion-icon" ref={canvasRef} width={size} height={size} aria-label={`${champion.name} 아이콘`} />;
+}
+
+function drawChampionIcon(context: CanvasRenderingContext2D, champion: Champion, size: number) {
+  const color = champion.symbolColor;
+  const center = size / 2;
+  const radius = size * 0.43;
+  const parts = ICON_PARTS[champion.name] ?? { helmet: 'HORN', weapon: 'GREATSWORD' };
+  context.clearRect(0, 0, size, size);
+  context.save();
+  context.translate(center, center);
+  context.beginPath();
+  for (let index = 0; index < 6; index += 1) {
+    const angle = Math.PI / 3 * index - Math.PI / 6;
+    const x = Math.cos(angle) * radius;
+    const y = Math.sin(angle) * radius;
+    if (index === 0) context.moveTo(x, y); else context.lineTo(x, y);
+  }
+  context.closePath();
+  context.fillStyle = '#0F0D09';
+  context.fill();
+  context.strokeStyle = color;
+  context.lineWidth = 1.5;
+  context.stroke();
+  drawIconWeapon(context, parts.weapon, color, size);
+  drawIconHelmet(context, parts.helmet, color, size);
+  context.restore();
+}
+
+function drawIconWeapon(context: CanvasRenderingContext2D, weapon: string, color: string, size: number) {
+  context.save();
+  context.rotate(-0.55);
+  context.strokeStyle = color;
+  context.fillStyle = '#090806';
+  context.lineWidth = Math.max(1.5, size / 34);
+  context.lineCap = 'square';
+  context.beginPath();
+  if (weapon === 'GREATSWORD') {
+    context.moveTo(-size * 0.38, size * 0.29); context.lineTo(size * 0.34, -size * 0.33);
+    context.moveTo(-size * 0.15, size * 0.12); context.lineTo(-size * 0.29, size * 0.28);
+    context.stroke();
+  } else if (weapon === 'SCYTHE') {
+    context.moveTo(-size * 0.33, size * 0.33); context.lineTo(size * 0.28, -size * 0.25);
+    context.arc(size * 0.2, -size * 0.2, size * 0.22, -2.5, 0.9);
+    context.stroke();
+  } else if (weapon === 'BOW') {
+    context.arc(0, 0, size * 0.32, -1.2, 1.2); context.moveTo(-size * 0.31, -size * 0.3); context.lineTo(size * 0.31, size * 0.3);
+    context.stroke();
+  } else if (weapon === 'STAFF') {
+    context.moveTo(-size * 0.3, size * 0.33); context.lineTo(size * 0.27, -size * 0.3);
+    context.arc(size * 0.26, -size * 0.31, size * 0.08, 0, Math.PI * 2);
+    context.stroke();
+  } else if (weapon === 'CLAW') {
+    context.moveTo(-size * 0.3, size * 0.24); context.lineTo(size * 0.25, -size * 0.12);
+    context.moveTo(-size * 0.15, size * 0.25); context.lineTo(size * 0.34, -size * 0.03);
+    context.moveTo(-size * 0.02, size * 0.26); context.lineTo(size * 0.4, size * 0.06);
+    context.stroke();
+  } else if (weapon === 'GLAIVE') {
+    context.moveTo(-size * 0.34, size * 0.3); context.lineTo(size * 0.28, -size * 0.23);
+    context.moveTo(size * 0.18, -size * 0.32); context.lineTo(size * 0.38, -size * 0.12); context.lineTo(size * 0.17, -size * 0.14);
+    context.stroke();
+  } else if (weapon === 'BELL') {
+    context.moveTo(-size * 0.3, size * 0.27); context.lineTo(size * 0.22, -size * 0.2);
+    context.moveTo(size * 0.18, -size * 0.28); context.lineTo(size * 0.35, -size * 0.1); context.lineTo(size * 0.18, -size * 0.04);
+    context.stroke();
+  } else {
+    context.moveTo(-size * 0.35, size * 0.32); context.lineTo(size * 0.25, -size * 0.25);
+    context.moveTo(size * 0.2, -size * 0.25); context.rect(size * 0.15, -size * 0.37, size * 0.16, size * 0.16);
+    context.stroke();
+  }
+  context.restore();
+}
+
+function drawIconHelmet(context: CanvasRenderingContext2D, helmet: string, color: string, size: number) {
+  context.strokeStyle = color;
+  context.fillStyle = '#14100B';
+  context.lineWidth = Math.max(1.5, size / 32);
+  context.beginPath();
+  if (helmet === 'HORN') {
+    context.moveTo(-size * 0.22, size * 0.2); context.lineTo(-size * 0.3, -size * 0.18); context.lineTo(-size * 0.16, -size * 0.08);
+    context.lineTo(0, -size * 0.27); context.lineTo(size * 0.16, -size * 0.08); context.lineTo(size * 0.3, -size * 0.18); context.lineTo(size * 0.22, size * 0.2);
+  } else if (helmet === 'HOOD') {
+    context.moveTo(-size * 0.25, size * 0.22); context.quadraticCurveTo(-size * 0.32, -size * 0.3, 0, -size * 0.34);
+    context.quadraticCurveTo(size * 0.32, -size * 0.3, size * 0.25, size * 0.22); context.lineTo(0, size * 0.1);
+  } else if (helmet === 'CROWN') {
+    context.moveTo(-size * 0.25, size * 0.2); context.lineTo(-size * 0.28, -size * 0.22); context.lineTo(-size * 0.1, -size * 0.08);
+    context.lineTo(0, -size * 0.27); context.lineTo(size * 0.1, -size * 0.08); context.lineTo(size * 0.28, -size * 0.22); context.lineTo(size * 0.25, size * 0.2);
+  } else if (helmet === 'MASK') {
+    context.moveTo(-size * 0.25, -size * 0.2); context.lineTo(0, -size * 0.32); context.lineTo(size * 0.25, -size * 0.2);
+    context.lineTo(size * 0.2, size * 0.23); context.lineTo(0, size * 0.31); context.lineTo(-size * 0.2, size * 0.23);
+  } else if (helmet === 'SKULL') {
+    context.arc(0, 0, size * 0.27, Math.PI, 0); context.lineTo(size * 0.22, size * 0.22); context.lineTo(-size * 0.22, size * 0.22); context.closePath();
+  } else {
+    context.moveTo(-size * 0.2, size * 0.22); context.lineTo(-size * 0.2, -size * 0.17); context.lineTo(0, -size * 0.31);
+    context.lineTo(size * 0.2, -size * 0.17); context.lineTo(size * 0.2, size * 0.22); context.closePath();
+  }
+  context.fill();
+  context.stroke();
+  context.beginPath();
+  context.moveTo(-size * 0.14, size * 0.03); context.lineTo(size * 0.14, size * 0.03);
+  context.stroke();
+}
+
+function ChampionDetail({ champion }: { champion: Champion }) {
+  const level18 = getChampionStatsAtLevel(champion, 18);
+  const basic = champion.skillsWithScaling.basic.scaling;
+  const ultimate = champion.skillsWithScaling.ultimate.scaling;
+  const patchValue = (key: string) => champion.patchStats.find((stat) => stat.key === key)?.currentValue ?? 0;
+  const ultimateRawDamage = ultimate.baseDamage + ultimate.damagePerLevel * (ultimate.maxLevel - 1) + level18.attack * ultimate.attackCoefficient;
+  const tags = [
+    positionDisplayNames[champion.position],
+    timingDisplayNames[champion.timing],
+    engagementDisplayNames[champion.engagement],
+    rangeDisplayNames[champion.range],
+    roleDisplayNames[champion.role],
+  ];
+  const positions = POSITION_ORDER.map((position) => ({ position, value: champion.getPositionFit(position) }));
+  const highestFit = Math.max(...positions.map((item) => item.value));
+  return (
+    <aside className="codex-detail">
+      <div className="detail-identity">
+        <ChampionIcon champion={champion} size={92} />
+        <div>
+          <span className="panel-kicker">CHAMPION FILE</span>
+          <h2>{champion.name}</h2>
+          <div className="detail-tags">{tags.map((tag) => <span key={tag}>{tag}</span>)}</div>
+          <small>난이도 {champion.difficulty} · {champion.title}</small>
+        </div>
+      </div>
+      <div className="detail-section">
+        <span className="section-label"><span>SKILLS</span><span>기존 스킬 기록</span></span>
+        <div className="skill-list">
+          <SkillDetail label="패시브" skill={champion.skillsWithScaling.passive} value={`${(patchValue('passiveEffectValue') * 100).toFixed(1)}%`} />
+          <SkillDetail label="기본기" skill={champion.skillsWithScaling.basic} value={`기본 ${basic.baseDamage} · 레벨당 ${basic.damagePerLevel} · 계수 ${basic.attackCoefficient.toFixed(2)} · 쿨타임 ${champion.combatStats.basicCooldown.toFixed(1)}초`} />
+          <SkillDetail label="궁극기" skill={champion.skillsWithScaling.ultimate} value={`기본 ${ultimate.baseDamage} · 레벨당 ${ultimate.damagePerLevel} · 계수 ${ultimate.attackCoefficient.toFixed(2)} · 쿨타임 ${champion.combatStats.ultimateCooldown.toFixed(1)}초`} />
+        </div>
+      </div>
+      <div className="detail-section">
+        <span className="section-label"><span>LEVEL 18 COMBAT</span><span>전투 수치</span></span>
+        <div className="combat-grid">
+          <DetailStat label="체력" value={level18.health.toFixed(0)} />
+          <DetailStat label="공격력" value={level18.attack.toFixed(0)} />
+          <DetailStat label="방어력" value={level18.armor.toFixed(0)} />
+          <DetailStat label="이동속도" value={champion.combatStats.movementSpeed.toFixed(0)} />
+          <DetailStat label="평타 사거리" value={champion.combatStats.attackRange.toFixed(0)} />
+          <DetailStat label="기본기 사거리" value={champion.combatStats.basicRange.toFixed(0)} />
+          <DetailStat label="궁극기 사거리" value={champion.combatStats.ultimateRange.toFixed(0)} />
+          <DetailStat label="궁극기 생피해" value={ultimateRawDamage.toFixed(0)} />
+        </div>
+      </div>
+      <div className="detail-section">
+        <span className="section-label"><span>POSITION FIT</span><span>포지션 적합도</span></span>
+        <div className="position-fit-list">
+          {positions.map(({ position, value }) => (
+            <div className="position-fit-row" key={position}>
+              <span>{POSITION_LABELS[position]}</span>
+              <i><b className={value === highestFit ? 'is-highest' : ''} style={{ width: `${value}%` }} /></i>
+              <strong>{value}</strong>
+            </div>
+          ))}
+        </div>
+      </div>
+      <div className="value-pair">
+        <div><span>솔로랭크 가치</span><strong>{getSoloRankChampionValue(champion)}</strong></div>
+        <div><span>대회 가치</span><strong>{getTournamentChampionValue(champion)}</strong></div>
+      </div>
+    </aside>
+  );
+}
+
+function SkillDetail({ label, skill, value }: { label: string; skill: Champion['skillsWithScaling']['basic']; value: string }) {
+  return (
+    <article className="skill-detail">
+      <div className="skill-heading"><span>{label}</span><strong>{skill.name}</strong></div>
+      <p>{skill.description}</p>
+      <small>{value}</small>
+    </article>
+  );
+}
+
+function DetailStat({ label, value }: { label: string; value: string }) {
+  return <div className="detail-stat"><span>{label}</span><strong>{value}</strong></div>;
 }
 
 function formatTimestamp(seconds: number) {
