@@ -5,7 +5,13 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { TeamGenerator } from './domain/TeamGenerator';
-import { CHAMPIONS, Champion, getChampionStatsAtLevel, getChampionsByPosition } from './domain/Champion';
+import {
+  CHAMPIONS,
+  Champion,
+  getChampionStatsAtLevel,
+  getChampionsByPosition,
+  printLevel18UltimateDamageValidation,
+} from './domain/Champion';
 import { BanPickResult, DraftSession } from './domain/BanPick';
 import { MatchResult, getPhaseAdjustmentSummary } from './domain/MatchResult';
 import {
@@ -99,32 +105,36 @@ function scheduleOptionalConsoleValidation(): void {
   if (validationMode !== 'season') return;
   hasConsoleValidationBeenScheduled = true;
 
-  const runValidation = () => {
-    // 검증을 요청한 경우에만 정적 데이터와 콘솔 출력용 시즌 계산을 실행합니다.
-    import('./domain/championValidation').then(({ validateChampions }) => {
-      import('./domain/consoleOutput').then((consoleOutput) => {
-        const championIssues = validateChampions(CHAMPIONS);
-        if (championIssues.length === 0) {
-          console.log('챔피언 25종 검증 완료');
-        } else {
-          championIssues.forEach((issue) => console.error(`챔피언 검증 실패: ${issue.message}`));
-        }
-        const teams = new TeamGenerator().generateTenTeams();
-        consoleOutput.printChampionsToConsole();
-        const generatedPlayers = teams.flatMap((team) => team.players);
-        consoleOutput.printPlayersToConsole(generatedPlayers);
-        consoleOutput.printSoloRankValidationToConsole(generatedPlayers);
-        return import('./domain/SeasonSimulation').then(({ SeasonSimulation }) => {
-          // 개발자 요청 시에만 100시즌 전체 실시간 AI 검증을 실행합니다.
-          const result = new SeasonSimulation().run(teams, 100);
-          consoleOutput.printMatchResultToConsole(result.firstSeasonMatch);
-          consoleOutput.printStandingsToConsole(result.firstSeasonStandings);
-          consoleOutput.printSimulationToConsole(result);
-        });
-      });
-    }).catch((error) => {
+  const runValidation = async () => {
+    try {
+      // 검증을 요청한 경우에만 정적 데이터와 콘솔 출력용 검증을 실행합니다.
+      const [{ validateChampions }, consoleOutput, tacticalModule] = await Promise.all([
+        import('./domain/championValidation'),
+        import('./domain/consoleOutput'),
+        import('./domain/TacticalRoundSimulation'),
+      ]);
+      const championIssues = validateChampions(CHAMPIONS);
+      if (championIssues.length === 0) {
+        console.log('챔피언 25종 검증 완료');
+      } else {
+        championIssues.forEach((issue) => console.error(`챔피언 검증 실패: ${issue.message}`));
+      }
+      printLevel18UltimateDamageValidation();
+      tacticalModule.printTacticalSimulationValidation();
+      const teams = new TeamGenerator().generateTenTeams();
+      consoleOutput.printChampionsToConsole();
+      const generatedPlayers = teams.flatMap((team) => team.players);
+      consoleOutput.printPlayersToConsole(generatedPlayers);
+      consoleOutput.printSoloRankValidationToConsole(generatedPlayers);
+      const { SeasonSimulation } = await import('./domain/SeasonSimulation');
+      // 개발자 요청 시에만 100시즌 전체 실시간 AI 검증을 실행합니다.
+      const result = new SeasonSimulation().run(teams, 100);
+      consoleOutput.printMatchResultToConsole(result.firstSeasonMatch);
+      consoleOutput.printStandingsToConsole(result.firstSeasonStandings);
+      consoleOutput.printSimulationToConsole(result);
+    } catch (error) {
       console.error('선택적 시즌 검증을 실행하지 못했습니다.', error);
-    });
+    }
   };
 
   // 화면이 먼저 그려진 뒤 유휴 시간에 실행해 개발자 검증도 초기 페인트를 막지 않습니다.

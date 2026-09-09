@@ -109,14 +109,6 @@ export function assignSoloRankLadder(players: Player[]): void {
     },
     { 챌린저: 0, 그랜드마스터: 0, 마스터: 0 },
   );
-  const total = rankedPlayers.length;
-  const tierSummary = (['챌린저', '그랜드마스터', '마스터'] as const)
-    .map((tier) => `${tier} ${tierCounts[tier]}명 (${total === 0 ? '0.0' : (tierCounts[tier] / total * 100).toFixed(1)}%)`)
-    .join(' | ');
-  console.log(
-    `[솔로랭크 래더] 1위 ${rankedPlayers[0]?.soloRank.ladderRank ?? 0}위 | `
-    + `최하위 ${rankedPlayers.at(-1)?.soloRank.ladderRank ?? 0}위 | ${tierSummary}`,
-  );
 }
 
 /** 챔피언 폭 능력치에 따라 솔로랭크에서 새로 연습한 챔피언을 소수 추가합니다. */

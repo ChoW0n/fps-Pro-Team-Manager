@@ -423,7 +423,7 @@ export function getChampionStatsAtLevel(champion: Champion, level: number) {
   };
 }
 
-function printLevel18UltimateDamageValidation(): void {
+export function printLevel18UltimateDamageValidation(): void {
   const level = 18;
   const tank = deriveCombatStats('TANK', 'DIVE', 'SINGLE', 'EARLY', 3);
   const tankHealth = tank.healthBase + tank.healthGrowth * (level - 1);
@@ -454,8 +454,6 @@ function printLevel18UltimateDamageValidation(): void {
     );
   });
 }
-
-printLevel18UltimateDamageValidation();
 
 /** 수식어와 고유명을 조합해 기존 소개용 전체 이름을 반환합니다. */
 export function formatChampionIntroduction(champion: Champion): string {
