@@ -10,6 +10,7 @@ import type {
   TacticalEngagementWinner,
   TacticalRoundResult,
 } from '../domain/TacticalRoundSimulation';
+import type { RealtimeUnitState } from '../domain/realtime/TacticalRealtimeSimulation';
 import { BREACHLINE_MAP, type TacticalMapDefinition, type TacticalPoint } from '../domain/tacticalMaps';
 
 const REPLAY_PHASES = ['수색', '브리칭', '교전', '결과'] as const;
@@ -219,10 +220,12 @@ function createReplayTiming(result: TacticalRoundResult): ReplayTiming {
   const searchEnd = Math.min(duration * 0.2, Math.max(5, duration * 0.16));
   const breachEnd = Math.min(duration * 0.31, searchEnd + 5.5);
   const engagementWindow = Math.max(0, duration - breachEnd - 5);
-  const engagementStep = result.engagements.length > 0
-    ? engagementWindow / result.engagements.length
-    : 0;
-  const engagementStarts = result.engagements.map((_, index) => breachEnd + index * engagementStep);
+  const realtimeDuration = result.realtime?.executionTime ?? 0;
+  const engagementStarts = result.realtime && realtimeDuration > 0
+    ? result.realtime.engagements.map((engagement) =>
+      breachEnd + Math.min(1, engagement.firstShotAt / realtimeDuration) * engagementWindow)
+    : result.engagements.map((_, index) =>
+      breachEnd + (result.engagements.length > 0 ? index / result.engagements.length : 0) * engagementWindow);
   return {
     searchEnd,
     breachEnd,
@@ -230,6 +233,51 @@ function createReplayTiming(result: TacticalRoundResult): ReplayTiming {
     resultStart: duration - 5,
     duration,
   };
+}
+
+/** 압축된 방송 시간을 실제 AI 시뮬레이션 시간으로 되돌립니다. */
+function getRealtimeTime(result: TacticalRoundResult, timing: ReplayTiming, time: number): number {
+  if (!result.realtime) return time;
+  return Math.max(0, Math.min(
+    result.realtime.executionTime,
+    (time / Math.max(0.1, timing.duration)) * result.realtime.executionTime,
+  ));
+}
+
+/** 실제 AI 스냅샷 사이를 보간해 프레임 사이의 떨림을 제거합니다. */
+function interpolateRealtimeUnits(
+  result: TacticalRoundResult,
+  timing: ReplayTiming,
+  time: number,
+): RealtimeUnitState[] | undefined {
+  const snapshots = result.realtime?.snapshots;
+  if (!snapshots?.length) return undefined;
+  const targetTime = getRealtimeTime(result, timing, time);
+  let nextIndex = snapshots.findIndex((snapshot) => snapshot.time >= targetTime);
+  if (nextIndex < 0) nextIndex = snapshots.length - 1;
+  const next = snapshots[nextIndex];
+  const previous = snapshots[Math.max(0, nextIndex - 1)];
+  const span = Math.max(0.1, next.time - previous.time);
+  const amount = Math.max(0, Math.min(1, (targetTime - previous.time) / span));
+  const nextById = new Map(next.units.map((unit) => [unit.id, unit]));
+  return previous.units.map((unit) => {
+    const target = nextById.get(unit.id) ?? unit;
+    return {
+      ...unit,
+      position: {
+        x: unit.position.x + (target.position.x - unit.position.x) * amount,
+        y: unit.position.y + (target.position.y - unit.position.y) * amount,
+      },
+      velocity: {
+        x: unit.velocity.x + (target.velocity.x - unit.velocity.x) * amount,
+        y: unit.velocity.y + (target.velocity.y - unit.velocity.y) * amount,
+      },
+      facing: unit.facing + (target.facing - unit.facing) * amount,
+      hp: unit.hp + (target.hp - unit.hp) * amount,
+      alive: unit.alive && target.alive,
+      action: amount < 0.5 ? unit.action : target.action,
+    };
+  });
 }
 
 /** 재생 시간에 따른 현재 단계를 반환합니다. */
@@ -248,6 +296,19 @@ function deriveScore(
   attackersCount: number,
   defendersCount: number,
 ): { attackers: number; defenders: number; completed: number } {
+  const realtimeUnits = interpolateRealtimeUnits(result, timing, time);
+  if (realtimeUnits) {
+    return {
+      attackers: realtimeUnits.filter((unit) => unit.side === '공격' && unit.alive).length,
+      defenders: realtimeUnits.filter((unit) => unit.side === '수비' && unit.alive).length,
+      completed: result.engagements.filter((engagement) => (
+        (result.realtime?.engagements.find((candidate) =>
+          candidate.attackerCallSign === engagement.attackerCallSign
+          && candidate.defenderCallSign === engagement.defenderCallSign
+        )?.firstShotAt ?? Number.POSITIVE_INFINITY) <= getRealtimeTime(result, timing, time)
+      )).length,
+    };
+  }
   let attackers = Math.max(attackersCount, result.engagements[0]?.attackersAlive ?? 0);
   let defenders = Math.max(defendersCount, result.engagements[0]?.defendersAlive ?? 0);
   let completed = 0;
@@ -520,54 +581,71 @@ function renderDynamicLayer(
   const infoHigh = result.informationAmount >= 0.35;
   const phase = getReplayPhase(time, timing);
   const positions = new Map<string, OperatorMotion>();
-  const attackerAnchor = phase === '수색' ? map.attackerSpawn
-    : phase === '브리칭' ? map.breachPoint
-      : map.breachEntryPoint;
-  attackers.forEach((operator, index) => {
-    const isScout = operator.role === 'SEARCH';
-    const scoutProgress = timing.searchEnd > 0 ? Math.min(1, time / timing.searchEnd) : 1;
-    const scoutOut = mixPoint(map.attackerSpawn, map.windowPoint, Math.min(1, scoutProgress / 0.68));
-    const scoutBack = mixPoint(map.windowPoint, map.returnPoint, Math.max(0, (scoutProgress - 0.68) / 0.32));
-    const roaming = offsetAround(attackerAnchor, index, map.width * 0.018 + (operator.stats.aggression / 100) * map.width * 0.012);
-    const movementWave = Math.sin(time * (0.72 + operator.stats.aggression / 280) + index * 1.7) * map.width * 0.008;
-    const position = isScout && phase === '수색'
-      ? (scoutProgress < 0.68 ? scoutOut : scoutBack)
-      : { x: roaming.x + movementWave, y: roaming.y + Math.cos(time * 0.8 + index) * map.height * 0.006 };
-    const eliminated = wasEliminated(result, operator.callSign, '수비', score.completed);
-    const visible = !eliminated;
-    positions.set(operator.callSign, {
-      operator,
-      index,
-      position,
-      visible,
-      pulse: visible ? 0.5 + 0.5 * Math.sin(time * 4 + index) : 0.1,
-      eliminated,
+  const realtimeUnits = interpolateRealtimeUnits(result, timing, time);
+  if (realtimeUnits) {
+    // 실제 AI 스냅샷을 직접 렌더링해 화면용 가짜 이동을 제거합니다.
+    [...attackers, ...defenders].forEach((operator, index) => {
+      const state = realtimeUnits.find((unit) => unit.callSign === operator.callSign
+        && unit.side === operator.side);
+      if (!state) return;
+      const speed = Math.hypot(state.velocity.x, state.velocity.y);
+      positions.set(operator.callSign, {
+        operator,
+        index,
+        position: state.position,
+        visible: state.alive && (operator.side === '공격' || infoHigh || state.knowledge.confidence > 0.25),
+        pulse: state.alive ? Math.min(1, 0.35 + speed / 42) : 0.08,
+        eliminated: !state.alive,
+      });
     });
-  });
-  defenders.forEach((operator, index) => {
-    const cover = map.covers[index % Math.max(1, map.covers.length)];
-    const coverPoint = cover
-      ? { x: cover.rect.x + cover.rect.width / 2, y: cover.rect.y + cover.rect.height / 2 }
-      : map.defenderSpawn;
-    const relocation = operator.stats.aggression > 55 ? Math.sin(time * 0.55 + index) * map.width * 0.025 : 0;
-    const position = {
-      x: coverPoint.x + relocation,
-      y: coverPoint.y + Math.cos(time * 0.46 + index) * map.height * 0.008,
-    };
-    const eliminated = wasEliminated(result, operator.callSign, '공격', score.completed);
-    const visible = !eliminated;
-    const scoutPosition = attackers.find((candidate) => candidate.role === 'SEARCH');
-    const scoutMotion = scoutPosition ? positions.get(scoutPosition.callSign) : undefined;
-    const sightBlocked = scoutMotion ? hasBlockedSight(scoutMotion.position, position, map) : true;
-    positions.set(operator.callSign, {
-      operator,
-      index: index + attackers.length,
-      position,
-      visible: visible && (!sightBlocked || infoHigh),
-      pulse: visible ? 0.5 + 0.5 * Math.sin(time * 3.6 + index * 1.3) : 0.08,
-      eliminated,
+  } else {
+    const attackerAnchor = phase === '수색' ? map.attackerSpawn
+      : phase === '브리칭' ? map.breachPoint
+        : map.breachEntryPoint;
+    attackers.forEach((operator, index) => {
+      const isScout = operator.role === 'SEARCH';
+      const scoutProgress = timing.searchEnd > 0 ? Math.min(1, time / timing.searchEnd) : 1;
+      const scoutOut = mixPoint(map.attackerSpawn, map.windowPoint, Math.min(1, scoutProgress / 0.68));
+      const scoutBack = mixPoint(map.windowPoint, map.returnPoint, Math.max(0, (scoutProgress - 0.68) / 0.32));
+      const roaming = offsetAround(attackerAnchor, index, map.width * 0.018 + (operator.stats.aggression / 100) * map.width * 0.012);
+      const movementWave = Math.sin(time * (0.72 + operator.stats.aggression / 280) + index * 1.7) * map.width * 0.008;
+      const position = isScout && phase === '수색'
+        ? (scoutProgress < 0.68 ? scoutOut : scoutBack)
+        : { x: roaming.x + movementWave, y: roaming.y + Math.cos(time * 0.8 + index) * map.height * 0.006 };
+      const eliminated = wasEliminated(result, operator.callSign, '수비', score.completed);
+      positions.set(operator.callSign, {
+        operator,
+        index,
+        position,
+        visible: !eliminated,
+        pulse: !eliminated ? 0.5 + 0.5 * Math.sin(time * 4 + index) : 0.1,
+        eliminated,
+      });
     });
-  });
+    defenders.forEach((operator, index) => {
+      const cover = map.covers[index % Math.max(1, map.covers.length)];
+      const coverPoint = cover
+        ? { x: cover.rect.x + cover.rect.width / 2, y: cover.rect.y + cover.rect.height / 2 }
+        : map.defenderSpawn;
+      const relocation = operator.stats.aggression > 55 ? Math.sin(time * 0.55 + index) * map.width * 0.025 : 0;
+      const position = {
+        x: coverPoint.x + relocation,
+        y: coverPoint.y + Math.cos(time * 0.46 + index) * map.height * 0.008,
+      };
+      const eliminated = wasEliminated(result, operator.callSign, '공격', score.completed);
+      const scoutPosition = attackers.find((candidate) => candidate.role === 'SEARCH');
+      const scoutMotion = scoutPosition ? positions.get(scoutPosition.callSign) : undefined;
+      const sightBlocked = scoutMotion ? hasBlockedSight(scoutMotion.position, position, map) : true;
+      positions.set(operator.callSign, {
+        operator,
+        index: index + attackers.length,
+        position,
+        visible: !eliminated && (!sightBlocked || infoHigh),
+        pulse: !eliminated ? 0.5 + 0.5 * Math.sin(time * 3.6 + index * 1.3) : 0.08,
+        eliminated,
+      });
+    });
+  }
   positions.forEach((motion) => {
     const token = state.tokens.get(motion.operator.callSign);
     if (token) updateOperatorToken(token, motion, scale);

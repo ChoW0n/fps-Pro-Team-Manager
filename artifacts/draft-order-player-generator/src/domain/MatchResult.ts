@@ -6,6 +6,7 @@
 import { Champion } from './Champion';
 import { Team } from './Team';
 import { Player } from './Player';
+import type { TacticalRoundResult } from './TacticalRoundSimulation';
 
 // 밴 또는 픽 한 차례의 기록 타입
 export interface DraftRecord {
@@ -62,5 +63,7 @@ export class MatchResult {
     public readonly awayPicks: Champion[],
     public readonly phases: PhaseResult[],
     public readonly winner: Team,
+    /** 실제 전술 AI가 만든 라운드 결과입니다. */
+    public readonly tacticalRound?: TacticalRoundResult,
   ) {}
 }

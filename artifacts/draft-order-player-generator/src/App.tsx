@@ -58,13 +58,10 @@ import {
 } from './domain/displayNames';
 import { formatPlayerName } from './domain/playerDisplay';
 import {
-  OPERATORS,
-} from './domain/Operator';
-import {
-  simulateTacticalRound,
   TacticalDecisionLog,
   TacticalRoundResult,
 } from './domain/TacticalRoundSimulation';
+import { runRealtimeTacticalRound } from './domain/realtime/tacticalRealtimeAdapter';
 import { TacticalRoundReplay } from './components/TacticalRoundReplay';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ErrorBoundary } from '@/components/error-boundary';
@@ -193,10 +190,8 @@ function Home() {
     const generatedEvents = generateMatchEvents(result);
     const generatedSnapshots = generateMatchPlayerSnapshots(result, generatedEvents);
     const generatedTimeline = generateMatchTimeline(result, generatedEvents);
-    const tacticalRoundResult = simulateTacticalRound(
-      OPERATORS.filter((operator) => operator.side === '공격').slice(0, 5),
-      OPERATORS.filter((operator) => operator.side === '수비').slice(0, 5),
-    );
+    // 수동 관전도 시즌과 동일한 실시간 오퍼레이터 AI를 사용합니다.
+    const tacticalRoundResult = result.tacticalRound ?? runRealtimeTacticalRound(homeTeam, awayTeam, draft);
     printMatchTimelineValidationToConsole(generatedTimeline);
     const eventIssues = validateMatchEvents(result, generatedEvents, generatedSnapshots);
     if (eventIssues.length > 0) {

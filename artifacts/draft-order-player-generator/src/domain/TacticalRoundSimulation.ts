@@ -4,6 +4,8 @@
  */
 
 import { OPERATOR_ROLE_LABELS, Operator, OPERATORS } from './Operator';
+import type { PhaseResult } from './MatchResult';
+import type { TacticalRealtimeResult } from './realtime/TacticalRealtimeSimulation';
 
 export const ROUND_DURATION_SECONDS = 180;
 export const SCOUT_RETURN_SECONDS = 20;
@@ -38,6 +40,10 @@ export interface TacticalRoundResult {
   survivingScouts: Operator[];
   decisionLogs: TacticalDecisionLog[];
   engagements: TacticalEngagementRecord[];
+  /** 실시간 결과를 기존 경기 구간 카드로 보여주기 위한 요약입니다. */
+  phaseSummaries?: PhaseResult[];
+  /** 실제 유닛 AI가 생성한 권위적 상태와 이벤트입니다. */
+  realtime?: TacticalRealtimeResult;
 }
 
 export interface TacticalRoundOptions {
