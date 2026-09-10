@@ -1,0 +1,44 @@
+uploads = []
+generated = []
+
+[[outputs]]
+id = "RWC_d8AJP2g-84XgcIj3z"
+uri = "file://screenshots/dev-draft-click-check.png"
+type = "image"
+title = "개발 미리보기 밴픽 클릭 검증"
+description = "시작 버튼 이후 실제 포인터 클릭으로 밴픽 화면에 진입한 증거 캡처입니다."
+logical_id = "07964249-442d-4a31-8474-2ba4f56cfaa5"
+content_hash = "sha256:0cd8a948ed72534c05d7fcc8d8fdd893726ee95f0f1c02b4bd822f3e95aeb968"
+size = 108352
+mtime_ms = 1789035038514
+storage_uri = "gcs://replit-rams-assets-pike/rams/assets/repl:218e75d1-0d6e-4ac7-a142-10735950f1e2/07964249-442d-4a31-8474-2ba4f56cfaa5/23929463-e67f-4cb3-9be8-cb25dc9dccf6"
+storage_version_token = "1789035149934932"
+content_type = "image/png"
+
+[[outputs]]
+id = "IuAsMjy58h-EZ_wKnJ8BK"
+uri = "file://screenshots/dev-watch-click-check.png"
+type = "image"
+title = "개발 미리보기 관전 진입 캡처"
+description = "실제 밴픽 완료 후 주 관전 화면에 진입한 직후의 캡처입니다. SVG 지도, 역할 도형, 선·텍스트 렌더링이 보입니다."
+logical_id = "ec94c79c-69d5-4367-88ce-71ad19d84341"
+content_hash = "sha256:708d9cc8b4e52234e9100d7889db756a469f9065105a8bffce76dad2585f77ed"
+size = 106698
+mtime_ms = 1789035049074
+storage_uri = "gcs://replit-rams-assets-pike/rams/assets/repl:218e75d1-0d6e-4ac7-a142-10735950f1e2/ec94c79c-69d5-4367-88ce-71ad19d84341/61e368cc-5bca-47a9-8f43-34d4dc9ab1fb"
+storage_version_token = "1789035151249940"
+content_type = "image/png"
+
+[[outputs]]
+id = "XBzaP6SzhbmQedKb3h4yc"
+uri = "file://screenshots/dev-watch-12s.png"
+type = "image"
+title = "개발 미리보기 관전 12초 캡처"
+description = "관전 12초 후 실제 탄약 감소·사망 OUT 상태와 이벤트 스트림을 확인한 캡처입니다."
+logical_id = "8940e42d-0eae-4486-9ca2-df8d172a8045"
+content_hash = "sha256:658e9e375af772dd444169102176749e09800f7b4d2efb8792f320c9ad111d48"
+size = 112413
+mtime_ms = 1789035061346
+storage_uri = "gcs://replit-rams-assets-pike/rams/assets/repl:218e75d1-0d6e-4ac7-a142-10735950f1e2/8940e42d-0eae-4486-9ca2-df8d172a8045/f0167cac-7345-4612-8ecd-0c905e02cec2"
+storage_version_token = "1789035152596803"
+content_type = "image/png"
