@@ -26,6 +26,13 @@ export interface TacticalRealtimeSimulationInput {
   seed?: number;
   maxSeconds?: number;
 }
+export type TacticalDirectorCommandMode = 'push' | 'hold' | 'retreat' | 'route';
+export interface TacticalDirectorCommand {
+  side: OperatorSide;
+  mode: TacticalDirectorCommandMode;
+  routeIndex?: number;
+  label: string;
+}
 export interface RealtimeVector extends TacticalPoint { }
 export type RealtimeAction = 'approach' | 'search' | 'hold' | 'take-cover' | 'reposition' | 'aim' | 'fire' | 'dead';
 export interface RealtimeUnitState {
@@ -42,7 +49,12 @@ export interface RealtimeSnapshot {
 export interface RealtimeEvent {
   time: number; type: 'move' | 'sound' | 'shot' | 'impact' | 'death' | 'action' | 'objective';
   actor?: string; target?: string; message: string; position?: RealtimeVector;
-  targetPosition?: RealtimeVector; goal?: string; hit?: boolean; blocked?: boolean;
+  targetPosition?: RealtimeVector; goal?: string; hit?: boolean; blocked?: boolean; side?: OperatorSide;
+}
+export interface RealtimeTick {
+  time: number;
+  snapshot: RealtimeSnapshot;
+  events: RealtimeEvent[];
 }
 export interface RealtimeEngagement {
   attackerCallSign: string; defenderCallSign: string; firstShotAt: number;
@@ -114,8 +126,10 @@ export class TacticalRealtimeSimulation {
   private readonly map: TacticalMapDefinition;
   public constructor(map: TacticalMapDefinition = BREACHLINE_MAP) { this.map = map; }
 
-  /** 공격·수비를 서로 다른 진입 전략으로 10Hz 진행합니다. */
-  public run(input: TacticalRealtimeSimulationInput): TacticalRealtimeResult {
+  /** 공격·수비를 서로 다른 진입 전략으로 10Hz 진행하는 틱 제너레이터입니다. */
+  public *runTicks(
+    input: TacticalRealtimeSimulationInput,
+  ): Generator<RealtimeTick, TacticalRealtimeResult, TacticalDirectorCommand | undefined> {
     if (!input.attackers.length || !input.defenders.length) throw new Error('공격과 수비에 각각 오퍼레이터가 필요합니다.');
     const map = input.map ?? this.map;
     const random = new SeededRandom(input.seed ?? 1);
@@ -138,16 +152,35 @@ export class TacticalRealtimeSimulation {
     const visualContactSince = new Map<string, { targetId: string; at: number }>();
     const searchUntil = new Map<string, number>();
     const searchOrigin = new Map<string, RealtimeVector>();
+    const directorOrders = new Map<OperatorSide, TacticalDirectorCommand>();
     const events: RealtimeEvent[] = []; const snapshots: RealtimeSnapshot[] = [];
     const bullets: Bullet[] = []; const sounds: SoundEvent[] = []; const engagements: RealtimeEngagement[] = [];
     const openingSearchSeconds = 12;
     const log = (event: RealtimeEvent) => events.push(event);
+    const applyDirectorCommand = (command: TacticalDirectorCommand, now: number): void => {
+      directorOrders.set(command.side, command);
+      if (command.mode === 'route' && command.side === '공격' && command.routeIndex !== undefined) {
+        units.filter((unit) => unit.side === '공격').forEach((unit, index) => {
+          unit.routeIndex = (command.routeIndex! + index) % map.attackerRoutes.length;
+          unit.routeStep = 0;
+        });
+      }
+      log({
+        time: now,
+        type: 'objective',
+        actor: 'director',
+        message: `감독 지시: ${command.label}`,
+        goal: command.label,
+        side: command.side,
+      });
+    };
     units.forEach((unit) => log({
       time: 0, type: 'action', actor: unit.id,
       message: `${unit.callSign}: ${unit.action}`,
       position: { ...unit.position }, goal: unit.goal,
     }));
     const living = (side: OperatorSide) => units.filter((u) => u.alive && u.side === side);
+    let eventCursor = 0;
     for (let tick = 0; tick < maxTicks; tick += 1) {
       const now = tick / 10;
       // 먼저 비행 중인 총알을 탄착시켜, 발사와 피해의 순서를 보장합니다.
@@ -164,7 +197,21 @@ export class TacticalRealtimeSimulation {
           if (target.hp <= 0) { target.alive = false; target.action = 'dead'; log({ time: now, type: 'death', actor: bullet.from, target: target.id, message: `${target.callSign} 사망`, position: target.position }); }
         }
       }
-      if (!living('공격').length || !living('수비').length) break;
+      if (!living('공격').length || !living('수비').length) {
+        // 사망 이벤트가 발생한 마지막 틱도 화면에 남겨 실제 이탈 위치를 그립니다.
+        const finalSnapshot = {
+          time: now,
+          units: units.map((u) => ({
+            ...u,
+            position: { ...u.position },
+            velocity: { ...u.velocity },
+            knowledge: { ...u.knowledge },
+          })),
+        };
+        snapshots.push(finalSnapshot);
+        yield { time: now, snapshot: finalSnapshot, events: events.slice(eventCursor) };
+        break;
+      }
       // 최근 2.5초의 소리만 유지해 감각 판정이 틱 수에 따라 느려지지 않게 합니다.
       for (let soundIndex = sounds.length - 1; soundIndex >= 0; soundIndex -= 1) {
         if (now - sounds[soundIndex].at >= 2.5) sounds.splice(soundIndex, 1);
@@ -276,9 +323,14 @@ export class TacticalRealtimeSimulation {
         const shouldFire = Boolean(seen && canFire && !losingPosition
           && (aggression > 0.25 || isClutch || aimTimedOut));
         const outOfAmmo = unit.ammo <= 0;
-        const shouldReposition = Boolean((losingPosition || outOfAmmo) && !shouldFire);
+        const directorOrder = directorOrders.get(unit.side);
+        const forcedPush = directorOrder?.mode === 'push';
+        const forcedHold = directorOrder?.mode === 'hold';
+        const forcedRetreat = directorOrder?.mode === 'retreat';
+        const shouldReposition = Boolean(forcedRetreat || ((losingPosition || outOfAmmo) && !shouldFire));
         const shouldSearch = Boolean(
           !seen
+          && !forcedHold
           && !holdAngleAfterSound
           && (isOpeningScout || investigateSound || hasUnresolvedLead || isSearching),
         );
@@ -286,11 +338,15 @@ export class TacticalRealtimeSimulation {
           ? 'reposition'
           : shouldFire
             ? 'fire'
+            : forcedHold
+              ? 'hold'
+              : forcedPush
+                ? 'approach'
             : seen
               ? 'aim'
               : shouldSearch
                 ? 'search'
-                  : openingSearch && unit.side === '공격' ? 'hold'
+                  : openingSearch && unit.side === '공격' && !forcedPush ? 'hold'
                 : unit.side === '수비' && defenderSet ? 'hold' : 'approach';
         // 액션 잠금/히스테리시스: 짧은 시야 변화에 매 틱 행동을 바꾸지 않습니다.
         if (unit.action === 'fire' && unit.cooldown > 0) desired = 'aim';
@@ -355,7 +411,11 @@ export class TacticalRealtimeSimulation {
         if (unit.cooldown <= 0 && unit.action === 'approach') sounds.push({ at: now, source: { ...unit.position }, kind: 'footstep', loudness: 0.25, owner: unit.id });
       }
       for (const e of sounds) if (e.at === now) log({ time: now, type: 'sound', actor: e.owner, message: e.kind === 'gunshot' ? '총성' : '발소리', position: e.source });
-      snapshots.push({ time: now, units: units.map((u) => ({ ...u, position: { ...u.position }, velocity: { ...u.velocity }, knowledge: { ...u.knowledge } })) });
+      const snapshot = { time: now, units: units.map((u) => ({ ...u, position: { ...u.position }, velocity: { ...u.velocity }, knowledge: { ...u.knowledge } })) };
+      snapshots.push(snapshot);
+      const command = yield { time: now, snapshot, events: events.slice(eventCursor) };
+      eventCursor = events.length;
+      if (command) applyDirectorCommand(command, now);
     }
     const a = living('공격').length; const d = living('수비').length;
     for (const e of engagements) { const target = units.find((u) => u.callSign === e.defenderCallSign); const shooter = units.find((u) => u.callSign === e.attackerCallSign); if (!target?.alive) e.winner = '공격'; else if (!shooter?.alive) e.winner = '수비'; }
@@ -530,6 +590,57 @@ export class TacticalRealtimeSimulation {
     let e = list.find((item) => item.attackerCallSign === shooter.callSign && item.defenderCallSign === target.callSign);
     if (!e) { e = { attackerCallSign: shooter.callSign, defenderCallSign: target.callSign, firstShotAt: now, shots: 0, hits: 0 }; list.push(e); }
     return e;
+  }
+  /** 시즌 시뮬레이션은 같은 틱 엔진을 끝까지 소비해 즉시 결과를 반환합니다. */
+  public run(input: TacticalRealtimeSimulationInput): TacticalRealtimeResult {
+    const runner = this.runTicks(input);
+    let next = runner.next();
+    while (!next.done) next = runner.next();
+    return next.value;
+  }
+  /** 관전 화면이 한 틱씩 소비할 수 있는 세션을 생성합니다. */
+  public createSession(input: TacticalRealtimeSimulationInput): TacticalRealtimeSession {
+    return new TacticalRealtimeSession(this.runTicks(input));
+  }
+}
+
+/** 화면이 보이는 동안만 다음 틱을 진행하고, 감독 지시를 엔진에 주입합니다. */
+export class TacticalRealtimeSession {
+  private readonly runner: Generator<RealtimeTick, TacticalRealtimeResult, TacticalDirectorCommand | undefined>;
+  private finalResult: TacticalRealtimeResult | null = null;
+  public isComplete = false;
+  public latestTick: RealtimeTick | null = null;
+
+  public get isDone(): boolean {
+    return this.isComplete;
+  }
+
+  public get currentSnapshot(): RealtimeSnapshot | null {
+    return this.latestTick?.snapshot ?? null;
+  }
+
+  public get newEvents(): RealtimeEvent[] {
+    return this.latestTick?.events ?? [];
+  }
+
+  public constructor(runner: Generator<RealtimeTick, TacticalRealtimeResult, TacticalDirectorCommand | undefined>) {
+    this.runner = runner;
+  }
+
+  public step(command?: TacticalDirectorCommand): RealtimeTick | undefined {
+    if (this.isComplete) return undefined;
+    const next = this.runner.next(command);
+    if (next.done) {
+      this.finalResult = next.value;
+      this.isComplete = true;
+      return undefined;
+    }
+    this.latestTick = next.value;
+    return next.value;
+  }
+
+  public getResult(): TacticalRealtimeResult | null {
+    return this.finalResult;
   }
 }
 

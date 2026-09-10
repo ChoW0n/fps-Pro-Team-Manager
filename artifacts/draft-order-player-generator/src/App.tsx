@@ -56,8 +56,9 @@ import {
   TacticalDecisionLog,
   TacticalRoundResult,
 } from './domain/TacticalRoundSimulation';
-import { runRealtimeTacticalRound } from './domain/realtime/tacticalRealtimeAdapter';
-import { TacticalRoundReplay } from './components/TacticalRoundReplay';
+import { createRealtimeUnitInputs } from './domain/realtime/tacticalRealtimeAdapter';
+import type { TacticalRealtimeSimulationInput } from './domain/realtime/TacticalRealtimeSimulation';
+import { TacticalRoundLive } from './components/TacticalRoundLive';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ErrorBoundary } from '@/components/error-boundary';
 
@@ -70,8 +71,8 @@ const AWAY_MAP_COLOR = '#8B4745';
 // 이벤트 생성기와 Canvas가 같은 표시용 고정 오브젝트 좌표를 사용합니다.
 const MAP_OBJECTS = MATCH_OBJECT_POSITIONS;
 const STAT_ITEMS = [
-  { key: 'laning', label: '라인전' },
-  { key: 'teamfight', label: '한타' },
+  { key: 'laning', label: '초기 교전' },
+  { key: 'teamfight', label: '집단 교전' },
   { key: 'macro', label: '운영' },
   { key: 'volatility', label: '기복' },
   { key: 'mastery', label: '숙련도' },
@@ -82,19 +83,19 @@ type AppTab = 'team' | 'players' | 'champions' | 'league' | 'records' | 'solo';
 
 const APP_TABS: Array<{ id: AppTab; label: string }> = [
   { id: 'team', label: '팀' },
-  { id: 'players', label: '선수' },
-  { id: 'champions', label: '챔피언' },
-  { id: 'league', label: '리그' },
-  { id: 'records', label: '기록' },
-  { id: 'solo', label: '솔랭' },
+  { id: 'players', label: '오퍼레이터' },
+  { id: 'champions', label: '장비' },
+  { id: 'league', label: '시즌' },
+  { id: 'records', label: '전적' },
+  { id: 'solo', label: '개인 기록' },
 ];
 
 const POSITION_LABELS: Record<Position, string> = {
-  TOP: '탑',
-  JUNGLE: '정글',
-  MID: '미드',
-  ADC: '원딜',
-  SUPPORT: '서포터',
+  TOP: '수비설계',
+  JUNGLE: '수색',
+  MID: '화력',
+  ADC: '진입',
+  SUPPORT: '차단',
 };
 
 // 기본 진입에서는 무거운 시즌 검증을 실행하지 않고, 개발자가 URL로 명시했을 때만 예약합니다.
@@ -187,6 +188,7 @@ function Home() {
   const [snapshots, setSnapshots] = useState<MatchPlayerSnapshot[]>([]);
   const [timeline, setTimeline] = useState<MatchTimeline | null>(null);
   const [tacticalRound, setTacticalRound] = useState<TacticalRoundResult | null>(null);
+  const [liveRoundInput, setLiveRoundInput] = useState<TacticalRealtimeSimulationInput | null>(null);
   const [currentFrameIndex, setCurrentFrameIndex] = useState(0);
   const [speed, setSpeed] = useState<number>(1);
   const [isPaused, setIsPaused] = useState(false);
@@ -201,33 +203,25 @@ function Home() {
 
   const finishDraft = (session: DraftSession) => {
     const draft: BanPickResult = session.getResult();
-    const result = new MatchSimulator().playWithDraft(homeTeam, awayTeam, draft);
-    const generatedEvents = generateMatchEvents(result);
-    const generatedSnapshots = generateMatchPlayerSnapshots(result, generatedEvents);
-    const generatedTimeline = generateMatchTimeline(result, generatedEvents);
-    // 수동 관전도 시즌과 동일한 실시간 오퍼레이터 AI를 사용합니다.
-    const tacticalRoundResult = result.tacticalRound ?? runRealtimeTacticalRound(homeTeam, awayTeam, draft);
-    // 경기 완료 후에만 콘솔 검증 모듈을 불러와 초기 화면 번들을 가볍게 유지합니다.
-    void import('./domain/consoleOutput')
-      .then(({ printMatchTimelineValidationToConsole, printRealtimeProcessValidationToConsole }) => {
-        printMatchTimelineValidationToConsole(generatedTimeline);
-        if (tacticalRoundResult.realtime) printRealtimeProcessValidationToConsole(tacticalRoundResult.realtime);
-      })
-      .catch((error) => console.error('경기 타임라인 검증 모듈을 불러오지 못했습니다.', error));
-    const eventIssues = validateMatchEvents(result, generatedEvents, generatedSnapshots);
-    if (eventIssues.length > 0) {
-      eventIssues.forEach((issue) => console.error(`경기 이벤트 검증 실패: ${issue}`));
-    }
-    setMatchResult(result);
-    setEvents(generatedEvents);
-    setSnapshots(generatedSnapshots);
-    setTimeline(generatedTimeline);
-    setTacticalRound(tacticalRoundResult);
+    const liveInput: TacticalRealtimeSimulationInput = {
+      attackers: createRealtimeUnitInputs(homeTeam, draft.homePicks, '공격'),
+      defenders: createRealtimeUnitInputs(awayTeam, draft.awayPicks, '수비'),
+      seed: draft.records.reduce((hash, record) => (
+        Math.imul(hash ^ record.champion.name.length, 16777619)
+      ), 2166136261) >>> 0,
+      maxSeconds: 180,
+    };
+    // 관전 진입에서는 결과를 미리 계산하지 않고, 화면이 실제 세션을 생성합니다.
+    setLiveRoundInput(liveInput);
+    setMatchResult(null);
+    setEvents([]);
+    setSnapshots([]);
+    setTimeline(null);
+    setTacticalRound(null);
     setCurrentFrameIndex(0);
     setSpeed(1);
     setIsPaused(false);
     setHighlightMode(false);
-    console.log('전장의 안개: 예');
     setScreen('watch');
   };
 
@@ -274,19 +268,6 @@ function Home() {
     return () => window.clearTimeout(timer);
   }, [screen, draftSession, draftRevision, currentStep, homeTeam.name]);
 
-  // 기록된 1초 프레임의 인덱스만 진행하므로 배속과 되감기가 경기 내용에 영향을 주지 않습니다.
-  useEffect(() => {
-    if (screen !== 'watch' || isPaused || !timeline || currentFrameIndex >= timeline.frames.length - 1) return;
-    const timer = window.setTimeout(() => {
-      setCurrentFrameIndex((index) => {
-        if (!highlightMode) return Math.min(index + 1, timeline.frames.length - 1);
-        return timeline.highlightSeconds.find((second) => second > index)
-          ?? timeline.frames.length - 1;
-      });
-    }, 1000 / speed);
-    return () => window.clearTimeout(timer);
-  }, [screen, isPaused, timeline, currentFrameIndex, speed, highlightMode]);
-
   const draftCounts = useMemo(
     () => ({
       home: draftSession?.homePicks ?? [],
@@ -304,6 +285,7 @@ function Home() {
     setSnapshots([]);
     setTimeline(null);
     setTacticalRound(null);
+    setLiveRoundInput(null);
     setCurrentFrameIndex(0);
     setDraftError('');
   };
@@ -337,10 +319,10 @@ function Home() {
     );
   }
 
-  if (screen === 'watch' && matchResult && timeline && tacticalRound) {
+  if (screen === 'watch' && liveRoundInput) {
     return (
       <AppFrame screen={screen} activeTab={activeTab} onSelectTab={setActiveTab}>
-        <TacticalRoundReplay result={tacticalRound} />
+        <TacticalRoundLive input={liveRoundInput} />
       </AppFrame>
     );
   }
@@ -369,7 +351,7 @@ function AppFrame({
     { id: 'watch', label: '경기 관전' },
   ];
   return (
-    <div className="app-shell">
+    <div className={`app-shell app-shell-${screen}`}>
       <header className="site-header">
         <div className="brand-mark">
           <span className="brand-kicker">DRAFT ORDER</span>
@@ -412,7 +394,7 @@ function PreparationScreen({ homeTeam, awayTeam, onStart }: { homeTeam: Team; aw
       <div className="screen-heading">
         <div>
           <h1>첫 경기를 준비하십시오.</h1>
-          <p>두 팀의 전력과 챔피언 폭을 검토한 뒤, 직접 밴픽을 시작합니다.</p>
+          <p>두 팀의 전력과 오퍼레이터 숙련도를 검토한 뒤, 직접 작전 구성을 시작합니다.</p>
         </div>
         <div className="heading-note">
           <span>HOME</span>
@@ -494,7 +476,7 @@ function PlayerCard({ player }: { player: Player }) {
         ))}
       </div>
       <div className="pool-row">
-        <span>챔피언 폭</span>
+        <span>오퍼레이터 숙련</span>
         <div className="pool-chips">
           {player.championPool.map((champion) => <span key={champion.name}>{champion.name}</span>)}
         </div>
@@ -535,7 +517,7 @@ function DraftScreen({
       <div className="screen-heading draft-heading">
         <div>
           <h1>전장을 설계하십시오.</h1>
-          <p>상대의 챔피언 폭을 읽고, 우리 팀의 빈틈을 한 자리씩 채우십시오.</p>
+          <p>상대의 오퍼레이터 구성을 읽고, 우리 팀의 작전 빈틈을 한 자리씩 채우십시오.</p>
         </div>
         <div className="draft-counter">
           <span>진행</span>
@@ -565,8 +547,8 @@ function DraftScreen({
         <div className="champion-select-area">
           <div className="select-area-heading">
             <div>
-              <span className="panel-kicker">CHAMPION ARCHIVE</span>
-              <h2>챔피언 선택</h2>
+                <span className="panel-kicker">OPERATOR ARCHIVE</span>
+                <h2>오퍼레이터 선택</h2>
             </div>
             <span className="archive-count">25 CHAMPIONS</span>
           </div>
@@ -583,7 +565,7 @@ function DraftScreen({
               return (
               <div className="position-group" key={position}>
                 <div className="position-heading">
-                  <span>{step?.targetPlayer ? `${positionDisplayNames[position]} 적합도 순` : '전체 챔피언'}</span>
+                  <span>{step?.targetPlayer ? `${positionDisplayNames[position]} 적합도 순` : '전체 오퍼레이터'}</span>
                   <span>25명 · 낮은 적합도 선택 가능</span>
                 </div>
                 <div className="champion-grid">
@@ -927,9 +909,9 @@ function MatchScoreboard({
         <strong className="score-number">{String(economy.away.kills).padStart(2, '0')}</strong>
       </div>
       <div className="broadcast-stat broadcast-gold-stat">
-        <span>총 골드</span>
+        <span>총 전투 자원</span>
         <strong className="gold-number">{economy.home.gold.toLocaleString()} : {economy.away.gold.toLocaleString()}</strong>
-        <div className="gold-bar" aria-label={`골드 격차 ${goldDifference.toLocaleString()}`}>
+        <div className="gold-bar" aria-label={`전투 자원 격차 ${goldDifference.toLocaleString()}`}>
           <i className="gold-bar-home" style={{ width: homeGoldWidth }} />
           <i className="gold-bar-away" style={{ width: awayGoldWidth }} />
         </div>
