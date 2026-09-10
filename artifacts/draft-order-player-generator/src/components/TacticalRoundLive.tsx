@@ -69,6 +69,8 @@ function eventLabel(event: RealtimeEvent, input: TacticalRealtimeSimulationInput
   if (event.type === 'impact') return { title: `${target} 탄착`, detail: event.hit ? '실제 피해 이벤트' : '탄착 없음', tone: 'danger' };
   if (event.type === 'death') return { title: `${target} 전투 이탈`, detail: '실제 사망 이벤트 · 현재 위치 고정', tone: 'danger' };
   if (event.type === 'sound') return { title: event.message === '총성' ? '총성 감지' : '발소리 감지', detail: `${actor} 위치의 실제 소리`, tone: 'info' };
+  if (event.type === 'intel') return { title: `${actor} 정보 보고`, detail: event.goal ?? '관측 시점의 위치만 공유', tone: 'info' };
+  if (event.type === 'reload') return { title: event.message, detail: event.goal ?? '실제 탄창·예비 탄약 상태', tone: 'objective' };
   if (event.type === 'objective') return { title: '감독 지시 적용', detail: event.message.replace('감독 지시: ', ''), tone: 'objective' };
   const action = event.message.split(': ').at(-1) ?? 'hold';
   const actionNames: Record<string, string> = {
@@ -78,6 +80,7 @@ function eventLabel(event: RealtimeEvent, input: TacticalRealtimeSimulationInput
     reposition: '후퇴·재배치',
     aim: '시야 확보 후 조준',
     fire: '발사 판단',
+    reload: '장전 진행',
     dead: '전투 이탈',
     'take-cover': '엄폐 진입',
   };
@@ -91,7 +94,9 @@ function eventPriority(event: RealtimeEvent, events: RealtimeEvent[], now: numbe
     : event.type === 'impact' ? 900
       : event.type === 'shot' ? 760
         : event.type === 'objective' ? 560
-          : event.type === 'sound' ? 340 : 180;
+          : event.type === 'intel' ? 420
+            : event.type === 'reload' ? 300
+              : event.type === 'sound' ? 340 : 180;
   const firstContact = event.type === 'shot' && events.filter((candidate) => candidate.type === 'shot' && candidate.time <= event.time).length === 1;
   const clutch = event.type === 'shot' && event.actor && events.filter((candidate) => candidate.type === 'shot' && candidate.time >= event.time - 1.5 && candidate.time <= event.time + 1.5).length >= 3;
   return base + (firstContact ? 240 : 0) + (clutch ? 260 : 0) - age * 90;
@@ -407,6 +412,11 @@ export function TacticalRoundLive({ input, map = BREACHLINE_MAP }: TacticalRound
               hp: 100,
               ammo: 30,
               cooldown: 0,
+              magazineSize: 30,
+              reserveAmmo: 90,
+              reloadRemaining: 0,
+              weaponName: '기본 주무기',
+              weaponProfileNote: '게임용 임시 설정 · 실측값 아님',
               goal: '틱 시작 대기',
               action: 'hold' as const,
               routeIndex: index,
@@ -419,7 +429,16 @@ export function TacticalRoundLive({ input, map = BREACHLINE_MAP }: TacticalRound
               return (
                 <div key={unit.id} className={`live-unit-card live-unit-card-${unit.side === '공격' ? 'attack' : 'defend'} ${!unit.alive ? 'is-dead' : ''}`}>
                   <span className={`live-mini-shape live-mini-${ROLE_SHAPES[operator.role]} ${unit.side === '공격' ? 'is-filled' : ''}`} />
-                  <div><strong>{unit.callSign}</strong><small>{ROLE_LABELS[operator.role]} · {unit.action}</small></div>
+                    <div>
+                      <strong>{unit.callSign}</strong>
+                      <small>{ROLE_LABELS[operator.role]} · {unit.action}</small>
+                      <small className="live-unit-loadout">
+                        {unit.weaponName} · {unit.reloadRemaining > 0
+                          ? `장전 ${unit.reloadRemaining.toFixed(1)}초`
+                          : `${unit.ammo}/${unit.magazineSize} · 예비 ${unit.reserveAmmo}`}
+                      </small>
+                      <small className="live-unit-profile-note">{unit.weaponProfileNote}</small>
+                    </div>
                   {unit.hp < 100 && <b className="live-unit-hp">{Math.ceil(unit.hp)}</b>}
                   {!unit.alive && <b className="live-unit-dead">OUT</b>}
                 </div>

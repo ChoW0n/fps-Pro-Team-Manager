@@ -656,6 +656,8 @@ h1 { color: var(--text); font-size: clamp(30px, 4vw, 56px); font-weight: 400; le
 .live-unit-card-defend { border-left-color: var(--live-defend); } .live-unit-card.is-dead { opacity: .48; } .live-unit-card div { min-width: 0; }
 .live-unit-card strong, .live-unit-card small { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .live-unit-card strong { color: var(--live-text); font-family: 'Space Mono', monospace; font-size: 10px; font-weight: 400; } .live-unit-card small { margin-top: 4px; color: var(--live-muted); font-size: 9px; }
+.live-unit-card .live-unit-loadout { margin-top: 3px; color: var(--live-objective); font-family: 'Space Mono', monospace; font-size: 8px; }
+.live-unit-card .live-unit-profile-note { margin-top: 2px; color: var(--live-muted); font-size: 7px; }
 .live-mini-shape { display: inline-block; width: 13px; height: 13px; flex: 0 0 13px; border: 1px solid currentColor; color: var(--live-defend); }
 .live-mini-shape.is-filled { background: var(--live-attack); border-color: var(--live-attack); color: var(--live-attack); } .live-mini-triangle { clip-path: polygon(50% 0, 100% 100%, 0 100%); } .live-mini-chevron { clip-path: polygon(0 0, 65% 0, 100% 50%, 65% 100%, 0 100%, 35% 50%); } .live-mini-diamond { transform: rotate(45deg) scale(.72); } .live-mini-hex { clip-path: polygon(20% 0, 80% 0, 100% 50%, 80% 100%, 20% 100%, 0 50%); }
 .live-unit-hp { margin-left: auto; color: var(--live-danger); font-family: 'Space Mono', monospace; font-size: 10px; font-weight: 400; } .live-unit-dead { margin-left: auto; color: var(--live-danger); font-family: 'Space Mono', monospace; font-size: 9px; font-weight: 400; }
