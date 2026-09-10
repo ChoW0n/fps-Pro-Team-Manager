@@ -1,0 +1,106 @@
+{
+  "scenario": "prepared",
+  "map": {
+    "id": "breachline-02",
+    "width": 3600,
+    "height": 2400
+  },
+  "rows": [
+    {
+      "seed": 3,
+      "ms": 856,
+      "duration": 107.7,
+      "winner": "공격",
+      "firstShot": 3.6,
+      "shots": 75,
+      "reversals": 9,
+      "movingButStationaryTicks": 11,
+      "loopWindows": 2,
+      "blockedEvents": 116
+    },
+    {
+      "seed": 11,
+      "ms": 819,
+      "duration": 107.7,
+      "winner": "공격",
+      "firstShot": 3.6,
+      "shots": 54,
+      "reversals": 9,
+      "movingButStationaryTicks": 12,
+      "loopWindows": 3,
+      "blockedEvents": 122
+    },
+    {
+      "seed": 23,
+      "ms": 896,
+      "duration": 107.6,
+      "winner": "공격",
+      "firstShot": 3.6,
+      "shots": 52,
+      "reversals": 18,
+      "movingButStationaryTicks": 12,
+      "loopWindows": 1,
+      "blockedEvents": 146
+    },
+    {
+      "seed": 41,
+      "ms": 973,
+      "duration": 118.8,
+      "winner": "공격",
+      "firstShot": 3.6,
+      "shots": 74,
+      "reversals": 16,
+      "movingButStationaryTicks": 14,
+      "loopWindows": 0,
+      "blockedEvents": 110
+    },
+    {
+      "seed": 51,
+      "ms": 1045,
+      "duration": 102.5,
+      "winner": "공격",
+      "firstShot": 3.6,
+      "shots": 47,
+      "reversals": 9,
+      "movingButStationaryTicks": 11,
+      "loopWindows": 0,
+      "blockedEvents": 100
+    },
+    {
+      "seed": 81,
+      "ms": 921,
+      "duration": 118.1,
+      "winner": "공격",
+      "firstShot": 3.6,
+      "shots": 58,
+      "reversals": 15,
+      "movingButStationaryTicks": 11,
+      "loopWindows": 0,
+      "blockedEvents": 119
+    },
+    {
+      "seed": 107,
+      "ms": 674,
+      "duration": 115.8,
+      "winner": "공격",
+      "firstShot": 3.6,
+      "shots": 54,
+      "reversals": 16,
+      "movingButStationaryTicks": 13,
+      "loopWindows": 0,
+      "blockedEvents": 105
+    },
+    {
+      "seed": 149,
+      "ms": 704,
+      "duration": 103.7,
+      "winner": "공격",
+      "firstShot": 3.6,
+      "shots": 53,
+      "reversals": 9,
+      "movingButStationaryTicks": 11,
+      "loopWindows": 1,
+      "blockedEvents": 105
+    }
+  ]
+}

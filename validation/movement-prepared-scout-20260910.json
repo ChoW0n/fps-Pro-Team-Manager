@@ -1,0 +1,106 @@
+{
+  "scenario": "scout",
+  "map": {
+    "id": "breachline-02",
+    "width": 3600,
+    "height": 2400
+  },
+  "rows": [
+    {
+      "seed": 3,
+      "ms": 856,
+      "duration": 180,
+      "winner": "수비",
+      "firstShot": 3.8,
+      "shots": 27,
+      "reversals": 36,
+      "movingButStationaryTicks": 46,
+      "loopWindows": 0,
+      "blockedEvents": 892
+    },
+    {
+      "seed": 11,
+      "ms": 1268,
+      "duration": 180,
+      "winner": "수비",
+      "firstShot": 3.8,
+      "shots": 29,
+      "reversals": 33,
+      "movingButStationaryTicks": 44,
+      "loopWindows": 3,
+      "blockedEvents": 897
+    },
+    {
+      "seed": 23,
+      "ms": 712,
+      "duration": 180,
+      "winner": "수비",
+      "firstShot": 3.8,
+      "shots": 31,
+      "reversals": 31,
+      "movingButStationaryTicks": 44,
+      "loopWindows": 3,
+      "blockedEvents": 897
+    },
+    {
+      "seed": 41,
+      "ms": 769,
+      "duration": 180,
+      "winner": "수비",
+      "firstShot": 3.8,
+      "shots": 32,
+      "reversals": 40,
+      "movingButStationaryTicks": 47,
+      "loopWindows": 3,
+      "blockedEvents": 891
+    },
+    {
+      "seed": 51,
+      "ms": 737,
+      "duration": 180,
+      "winner": "수비",
+      "firstShot": 3.8,
+      "shots": 35,
+      "reversals": 29,
+      "movingButStationaryTicks": 43,
+      "loopWindows": 2,
+      "blockedEvents": 895
+    },
+    {
+      "seed": 81,
+      "ms": 1017,
+      "duration": 180,
+      "winner": "수비",
+      "firstShot": 3.8,
+      "shots": 25,
+      "reversals": 30,
+      "movingButStationaryTicks": 44,
+      "loopWindows": 3,
+      "blockedEvents": 897
+    },
+    {
+      "seed": 107,
+      "ms": 1000,
+      "duration": 180,
+      "winner": "수비",
+      "firstShot": 3.8,
+      "shots": 31,
+      "reversals": 29,
+      "movingButStationaryTicks": 43,
+      "loopWindows": 3,
+      "blockedEvents": 895
+    },
+    {
+      "seed": 149,
+      "ms": 794,
+      "duration": 180,
+      "winner": "수비",
+      "firstShot": 3.8,
+      "shots": 38,
+      "reversals": 29,
+      "movingButStationaryTicks": 43,
+      "loopWindows": 3,
+      "blockedEvents": 895
+    }
+  ]
+}

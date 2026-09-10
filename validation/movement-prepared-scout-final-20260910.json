@@ -1,0 +1,234 @@
+{
+  "scenario": "scout",
+  "map": {
+    "id": "breachline-02",
+    "width": 3600,
+    "height": 2400
+  },
+  "rows": [
+    {
+      "seed": 3,
+      "ms": 947,
+      "duration": 155.1,
+      "winner": "공격",
+      "reason": "bombs-defused",
+      "plantedAt": 110.1,
+      "operationTransitions": [
+        {
+          "time": 40,
+          "phase": "operation:returning"
+        },
+        {
+          "time": 53.6,
+          "phase": "operation:regrouping"
+        },
+        {
+          "time": 53.7,
+          "phase": "operation:entering"
+        }
+      ],
+      "firstShot": 3.8,
+      "shots": 63,
+      "reversals": 9,
+      "movingButStationaryTicks": 9,
+      "loopWindows": 0,
+      "blockedEvents": 98
+    },
+    {
+      "seed": 11,
+      "ms": 770,
+      "duration": 155.1,
+      "winner": "공격",
+      "reason": "bombs-defused",
+      "plantedAt": 110.1,
+      "operationTransitions": [
+        {
+          "time": 40,
+          "phase": "operation:returning"
+        },
+        {
+          "time": 53.6,
+          "phase": "operation:regrouping"
+        },
+        {
+          "time": 53.7,
+          "phase": "operation:entering"
+        }
+      ],
+      "firstShot": 3.8,
+      "shots": 52,
+      "reversals": 9,
+      "movingButStationaryTicks": 8,
+      "loopWindows": 0,
+      "blockedEvents": 96
+    },
+    {
+      "seed": 23,
+      "ms": 803,
+      "duration": 155.1,
+      "winner": "공격",
+      "reason": "bombs-defused",
+      "plantedAt": 110.1,
+      "operationTransitions": [
+        {
+          "time": 40,
+          "phase": "operation:returning"
+        },
+        {
+          "time": 53.6,
+          "phase": "operation:regrouping"
+        },
+        {
+          "time": 53.7,
+          "phase": "operation:entering"
+        }
+      ],
+      "firstShot": 3.8,
+      "shots": 48,
+      "reversals": 5,
+      "movingButStationaryTicks": 8,
+      "loopWindows": 0,
+      "blockedEvents": 96
+    },
+    {
+      "seed": 41,
+      "ms": 751,
+      "duration": 156.9,
+      "winner": "공격",
+      "reason": "bombs-defused",
+      "plantedAt": 111.9,
+      "operationTransitions": [
+        {
+          "time": 40,
+          "phase": "operation:returning"
+        },
+        {
+          "time": 53.6,
+          "phase": "operation:regrouping"
+        },
+        {
+          "time": 53.7,
+          "phase": "operation:entering"
+        }
+      ],
+      "firstShot": 3.8,
+      "shots": 56,
+      "reversals": 5,
+      "movingButStationaryTicks": 11,
+      "loopWindows": 1,
+      "blockedEvents": 118
+    },
+    {
+      "seed": 51,
+      "ms": 845,
+      "duration": 151.2,
+      "winner": "공격",
+      "reason": "bombs-defused",
+      "plantedAt": 106.2,
+      "operationTransitions": [
+        {
+          "time": 40,
+          "phase": "operation:returning"
+        },
+        {
+          "time": 53.7,
+          "phase": "operation:regrouping"
+        },
+        {
+          "time": 53.8,
+          "phase": "operation:entering"
+        }
+      ],
+      "firstShot": 3.8,
+      "shots": 48,
+      "reversals": 7,
+      "movingButStationaryTicks": 6,
+      "loopWindows": 0,
+      "blockedEvents": 106
+    },
+    {
+      "seed": 81,
+      "ms": 1812,
+      "duration": 155.1,
+      "winner": "공격",
+      "reason": "bombs-defused",
+      "plantedAt": 110.1,
+      "operationTransitions": [
+        {
+          "time": 40,
+          "phase": "operation:returning"
+        },
+        {
+          "time": 53.6,
+          "phase": "operation:regrouping"
+        },
+        {
+          "time": 53.7,
+          "phase": "operation:entering"
+        }
+      ],
+      "firstShot": 3.8,
+      "shots": 41,
+      "reversals": 6,
+      "movingButStationaryTicks": 8,
+      "loopWindows": 0,
+      "blockedEvents": 96
+    },
+    {
+      "seed": 107,
+      "ms": 837,
+      "duration": 151.9,
+      "winner": "공격",
+      "reason": "bombs-defused",
+      "plantedAt": 106.9,
+      "operationTransitions": [
+        {
+          "time": 40,
+          "phase": "operation:returning"
+        },
+        {
+          "time": 53.7,
+          "phase": "operation:regrouping"
+        },
+        {
+          "time": 53.8,
+          "phase": "operation:entering"
+        }
+      ],
+      "firstShot": 3.8,
+      "shots": 42,
+      "reversals": 13,
+      "movingButStationaryTicks": 6,
+      "loopWindows": 0,
+      "blockedEvents": 107
+    },
+    {
+      "seed": 149,
+      "ms": 727,
+      "duration": 153.6,
+      "winner": "공격",
+      "reason": "bombs-defused",
+      "plantedAt": 108.6,
+      "operationTransitions": [
+        {
+          "time": 40,
+          "phase": "operation:returning"
+        },
+        {
+          "time": 53.7,
+          "phase": "operation:regrouping"
+        },
+        {
+          "time": 53.8,
+          "phase": "operation:entering"
+        }
+      ],
+      "firstShot": 3.8,
+      "shots": 67,
+      "reversals": 10,
+      "movingButStationaryTicks": 4,
+      "loopWindows": 1,
+      "blockedEvents": 106
+    }
+  ]
+}

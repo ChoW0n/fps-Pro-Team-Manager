@@ -58,6 +58,7 @@ import {
 } from './domain/TacticalRoundSimulation';
 import { createRealtimeUnitInputs } from './domain/realtime/tacticalRealtimeAdapter';
 import type { TacticalRealtimeSimulationInput } from './domain/realtime/TacticalRealtimeSimulation';
+import { OperatorPreparation } from './components/OperatorPreparation';
 import { TacticalRoundLive } from './components/TacticalRoundLive';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ErrorBoundary } from '@/components/error-boundary';
@@ -176,162 +177,22 @@ const ICON_PARTS: Record<string, { helmet: string; weapon: string }> = {
 
   /** 첫 화면은 즉시 준비하고, 무거운 시즌 검증은 명시적으로 요청했을 때만 실행합니다. */
 function Home() {
-  const [screen, setScreen] = useState<Screen>('prep');
-  const [homeTeam] = useState<Team>(interactiveTeams[0]);
-  const [awayTeam] = useState<Team>(interactiveTeams[1]);
-  const [draftSession, setDraftSession] = useState<DraftSession | null>(null);
-  const [draftRevision, setDraftRevision] = useState(0);
-  const [draftError, setDraftError] = useState('');
-  const [hoveredChampion, setHoveredChampion] = useState<Champion>(CHAMPIONS[0]);
-  const [matchResult, setMatchResult] = useState<MatchResult | null>(null);
-  const [events, setEvents] = useState<MatchEvent[]>([]);
-  const [snapshots, setSnapshots] = useState<MatchPlayerSnapshot[]>([]);
-  const [timeline, setTimeline] = useState<MatchTimeline | null>(null);
-  const [tacticalRound, setTacticalRound] = useState<TacticalRoundResult | null>(null);
-  const [liveRoundInput, setLiveRoundInput] = useState<TacticalRealtimeSimulationInput | null>(null);
-  const [currentFrameIndex, setCurrentFrameIndex] = useState(0);
-  const [speed, setSpeed] = useState<number>(1);
-  const [isPaused, setIsPaused] = useState(false);
-  const [highlightMode, setHighlightMode] = useState(false);
-  const [activeTab, setActiveTab] = useState<AppTab>('team');
-
-  useEffect(() => {
-    scheduleOptionalConsoleValidation();
-  }, []);
-
-  const currentStep = draftSession?.currentStep;
-
-  const finishDraft = (session: DraftSession) => {
-    const draft: BanPickResult = session.getResult();
-    const liveInput: TacticalRealtimeSimulationInput = {
-      attackers: createRealtimeUnitInputs(homeTeam, draft.homePicks, '공격'),
-      defenders: createRealtimeUnitInputs(awayTeam, draft.awayPicks, '수비'),
-      seed: draft.records.reduce((hash, record) => (
-        Math.imul(hash ^ record.champion.name.length, 16777619)
-      ), 2166136261) >>> 0,
-      maxSeconds: 180,
-    };
-    // 관전 진입에서는 결과를 미리 계산하지 않고, 화면이 실제 세션을 생성합니다.
-    setLiveRoundInput(liveInput);
-    setMatchResult(null);
-    setEvents([]);
-    setSnapshots([]);
-    setTimeline(null);
-    setTacticalRound(null);
-    setCurrentFrameIndex(0);
-    setSpeed(1);
-    setIsPaused(false);
-    setHighlightMode(false);
-    setScreen('watch');
-  };
-
-  const startDraft = () => {
-    setDraftSession(new DraftSession(homeTeam, awayTeam));
-    setDraftRevision(0);
-    setDraftError('');
-    setHoveredChampion(CHAMPIONS[0]);
-    setScreen('draft');
-  };
-
-  const handleManualSelection = (champion: Champion) => {
-    if (!draftSession || !currentStep || currentStep.teamName !== homeTeam.name) return;
-    try {
-      draftSession.advanceManual(champion);
-      setDraftError('');
-      setDraftRevision((revision) => revision + 1);
-      if (draftSession.isComplete) finishDraft(draftSession);
-    } catch (error) {
-      setDraftError(error instanceof Error ? error.message : '선택을 처리하지 못했습니다.');
-    }
-  };
-
-  // AWAY 차례는 기존 AI 로직을 호출해 한 번에 한 단계씩 자동 진행합니다.
-  useEffect(() => {
-    if (
-      screen !== 'draft'
-      || !draftSession
-      || draftSession.isComplete
-      || !currentStep
-      || currentStep.teamName === homeTeam.name
-    ) return;
-
-    const timer = window.setTimeout(() => {
-      try {
-        draftSession.advanceAi();
-        setDraftError('');
-        setDraftRevision((revision) => revision + 1);
-        if (draftSession.isComplete) finishDraft(draftSession);
-      } catch (error) {
-        setDraftError(error instanceof Error ? error.message : '상대 AI의 선택을 처리하지 못했습니다.');
-      }
-    }, 520);
-    return () => window.clearTimeout(timer);
-  }, [screen, draftSession, draftRevision, currentStep, homeTeam.name]);
-
-  const draftCounts = useMemo(
-    () => ({
-      home: draftSession?.homePicks ?? [],
-      away: draftSession?.awayPicks ?? [],
-      bans: draftSession?.records.filter((record) => record.action === 'BAN') ?? [],
-    }),
-    [draftSession, draftRevision],
-  );
-
-  const resetToPreparation = () => {
-    setScreen('prep');
-    setDraftSession(null);
-    setMatchResult(null);
-    setEvents([]);
-    setSnapshots([]);
-    setTimeline(null);
-    setTacticalRound(null);
-    setLiveRoundInput(null);
-    setCurrentFrameIndex(0);
-    setDraftError('');
-  };
-
-  if (activeTab !== 'team') {
-    return (
-      <AppFrame screen={screen} activeTab={activeTab} onSelectTab={setActiveTab}>
-        <ArchiveTab
-          tab={activeTab}
-          homeTeam={homeTeam}
-          awayTeam={awayTeam}
-        />
-      </AppFrame>
-    );
-  }
-
-  if (screen === 'draft' && draftSession) {
-    return (
-      <AppFrame screen={screen} activeTab={activeTab} onSelectTab={setActiveTab}>
-        <DraftScreen
-          homeTeam={homeTeam}
-          awayTeam={awayTeam}
-          session={draftSession}
-          revision={draftRevision}
-          hoveredChampion={hoveredChampion}
-          error={draftError}
-          onHoverChampion={setHoveredChampion}
-          onSelectChampion={handleManualSelection}
-        />
-      </AppFrame>
-    );
-  }
-
-  if (screen === 'watch' && liveRoundInput) {
-    return (
-      <AppFrame screen={screen} activeTab={activeTab} onSelectTab={setActiveTab}>
-        <TacticalRoundLive input={liveRoundInput} />
-      </AppFrame>
-    );
-  }
-
-  return (
-    <AppFrame screen={screen} activeTab={activeTab} onSelectTab={setActiveTab}>
-      <PreparationScreen homeTeam={homeTeam} awayTeam={awayTeam} onStart={startDraft} />
-    </AppFrame>
-  );
+  const [screen,setScreen]=useState<Screen>('prep');
+  const [homeTeam]=useState<Team>(interactiveTeams[0]);
+  const [awayTeam]=useState<Team>(interactiveTeams[1]);
+  const [activeTab,setActiveTab]=useState<AppTab>('team');
+  const [liveRoundInput,setLiveRoundInput]=useState<TacticalRealtimeSimulationInput|null>(null);
+  useEffect(()=>{scheduleOptionalConsoleValidation();},[]);
+  /** 확정 편성을 실시간 세션에 넘기며 결과를 사전에 실행하지 않습니다. */
+  function startRound(input:TacticalRealtimeSimulationInput):void {setLiveRoundInput(input);setScreen('watch');}
+  /** 새 경기 준비로 돌아갈 때만 현재 세션 화면을 해제합니다. */
+  function returnToPreparation():void {setLiveRoundInput(null);setScreen('prep');}
+  return <AppFrame screen={screen} activeTab={activeTab} onSelectTab={setActiveTab}>
+    {activeTab!=='team' && <ArchiveTab tab={activeTab} homeTeam={homeTeam} awayTeam={awayTeam}/>}
+    <div hidden={activeTab!=='team'}>{screen==='draft' ? <OperatorPreparation homeTeam={homeTeam} awayTeam={awayTeam} onStart={startRound} onBack={returnToPreparation}/>
+      : screen==='watch'&&liveRoundInput ? <><TacticalRoundLive input={liveRoundInput}/><button className="outline-button" onClick={returnToPreparation}>경기 준비로 돌아가기</button></>
+      : <PreparationScreen homeTeam={homeTeam} awayTeam={awayTeam} onStart={()=>setScreen('draft')}/>}</div>
+  </AppFrame>;
 }
 
 function AppFrame({
@@ -347,7 +208,7 @@ function AppFrame({
 }) {
   const steps = [
     { id: 'prep', label: '경기 준비' },
-    { id: 'draft', label: '밴픽' },
+    { id: 'draft', label: '편성·작전' },
     { id: 'watch', label: '경기 관전' },
   ];
   return (
@@ -359,7 +220,7 @@ function AppFrame({
         </div>
         <div className="header-status">
           <span className="status-dot" />
-          <span>정규시즌 · 단판</span>
+          <span>전술 훈련 · 단일 라운드</span>
         </div>
       </header>
       <nav className="app-tabs" aria-label="감독실 메뉴">
@@ -420,10 +281,10 @@ function PreparationScreen({ homeTeam, awayTeam, onStart }: { homeTeam: Team; aw
       <div className="action-bar">
         <div>
           <span className="action-label">준비 완료</span>
-          <p>홈 팀 차례부터 14번의 밴픽을 진행합니다. 상대 팀은 AI가 선택합니다.</p>
+          <p>선수별 오퍼레이터와 선발조를 편성합니다. 수비팀은 습득 목록 안에서 자동 배정합니다.</p>
         </div>
         <button className="outline-button primary-action" type="button" onClick={onStart} data-testid="button-start-draft">
-          밴픽 시작 <span aria-hidden="true">→</span>
+          편성과 작전 준비 <span aria-hidden="true">→</span>
         </button>
       </div>
     </section>

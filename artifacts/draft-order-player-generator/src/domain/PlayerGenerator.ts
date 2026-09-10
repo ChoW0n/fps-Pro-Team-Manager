@@ -42,10 +42,12 @@ export class PlayerGenerator {
   /**
    * 기존 챔피언 폭 수치를 새 오퍼레이터 폭으로 바꿔 무작위 목록을 만듭니다.
    */
-  private generateOperatorPool(poolStat: number): Operator[] {
-    const count = Math.max(1, Math.min(5, Math.round(poolStat / 20)));
-    const candidates = [...OPERATORS];
-    const pool: Operator[] = [];
+  private generateOperatorPool(poolStat: number, role: Role): Operator[] {
+    const count = Math.max(2, Math.min(5, Math.round(poolStat / 20)));
+    // 새로 생성하는 선수에게만 기본 공수 한 명씩을 부여합니다. 기존 저장 선수는 변경하지 않습니다.
+    const basics: Record<Role, [string,string]> = {SEARCH:['ARBEL','HALLORAN'],ENTRY:['MAGPIE','MARCHAND'],FIREPOWER:['COLLIER','BRANDT'],DEFENSIVE_SETUP:['해동','REUSS'],BLOCKING:['AUBERT','성곽']};
+    const pool = basics[role].map(name=>OPERATORS.find(operator=>operator.callSign===name)!);
+    const candidates = OPERATORS.filter(operator=>!pool.includes(operator));
     while (pool.length < count) {
       const index = Math.floor(Math.random() * candidates.length);
       pool.push(candidates.splice(index, 1)[0]);
@@ -82,7 +84,7 @@ export class PlayerGenerator {
       this.generateStat(stats.informationGathering),
       this.generateStat(stats.defensiveSetup),
       this.generateStat(stats.clutch),
-      this.generateOperatorPool(poolStat),
+      this.generateOperatorPool(poolStat, role),
       this.generateStat(stats.volatility),
       this.generateStat(stats.mastery),
       this.generateStat(stats.aggression),

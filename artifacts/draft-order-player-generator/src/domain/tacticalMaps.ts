@@ -107,8 +107,11 @@ export interface TacticalMapDefinition {
   loops: TacticalLoop[];
 }
 
+/** 점 좌표를 간결하게 정의합니다. */
 const p = (x: number, y: number): TacticalPoint => ({ x, y });
+/** 방과 엄폐의 공통 사각형을 정의합니다. */
 const rect = (x: number, y: number, width: number, height: number): TacticalRect => ({ x, y, width, height });
+/** 시각과 충돌이 공유할 벽 선분을 정의합니다. */
 const wall = (id: string, from: TacticalPoint, to: TacticalPoint, kind: TacticalWall['kind'] = 'interior'): TacticalWall =>
   ({ id, from, to, kind });
 
@@ -174,12 +177,12 @@ export const BREACHLINE_MAP: TacticalMapDefinition = {
     {
       id: 'A', label: 'A 사이트 · 관제 데이터', roomId: 'objective-a-hall',
       bounds: rect(2360, 1050, 560, 300), center: p(2640, 1200),
-      plantAnchors: [p(2480, 1160), p(2800, 1240)], defendAnchors: [p(2460, 1280), p(2820, 1120)],
+      plantAnchors: [p(2480, 1160), p(2750, 1210)], defendAnchors: [p(2460, 1280), p(2820, 1120), p(2700, 1280), p(2350, 1190), p(2900, 1150)],
     },
     {
       id: 'B', label: 'B 사이트 · 냉각 코어', roomId: 'objective-b-hall',
       bounds: rect(1700, 1460, 500, 360), center: p(1950, 1640),
-      plantAnchors: [p(1830, 1580), p(2090, 1720)], defendAnchors: [p(1800, 1760), p(2120, 1510)],
+      plantAnchors: [p(1830, 1580), p(2090, 1720)], defendAnchors: [p(1800, 1760), p(2120, 1510), p(1740, 1680), p(2180, 1660), p(2050, 1870)],
     },
   ],
   loops: [
@@ -191,7 +194,9 @@ export const BREACHLINE_MAP: TacticalMapDefinition = {
     wall('outer-top-east', p(960, 300), p(3200, 300), 'outer'),
     wall('outer-right-north', p(3200, 300), p(3200, 1560), 'outer'),
     wall('outer-right-south', p(3200, 1640), p(3200, 2100), 'outer'),
-    wall('outer-bottom-west', p(400, 2100), p(2315, 2100), 'outer'),
+    wall('outer-bottom-west', p(400, 2100), p(665, 2100), 'outer'),
+    wall('maintenance-hatch-gap', p(665, 2100), p(735, 2100), 'door-gap'),
+    wall('outer-bottom-middle', p(735, 2100), p(2315, 2100), 'outer'),
     wall('outer-bottom-east', p(2405, 2100), p(3200, 2100), 'outer'),
     wall('outer-left-north', p(400, 300), p(400, 1000), 'outer'),
     wall('outer-left-south', p(400, 1080), p(400, 2100), 'outer'),
@@ -217,9 +222,6 @@ export const BREACHLINE_MAP: TacticalMapDefinition = {
     wall('north-south-boundary-right', p(2120, 1000), p(2600, 1000)),
     wall('north-south-boundary-a-gap', p(2600, 1000), p(2680, 1000), 'door-gap'),
     wall('north-south-boundary-control', p(2680, 1000), p(3000, 1000)),
-    wall('south-maintenance-service', p(1060, 1400), p(1700, 1400)),
-    wall('south-service-b', p(1620, 1400), p(1500, 1400)),
-    wall('south-b-loading', p(2240, 1400), p(1800, 1400)),
     wall('south-boundary-west', p(500, 1400), p(820, 1400)),
     wall('south-boundary-maintenance-gap', p(820, 1400), p(900, 1400), 'door-gap'),
     wall('south-boundary-service', p(900, 1400), p(1300, 1400)),
@@ -264,9 +266,9 @@ export const BREACHLINE_MAP: TacticalMapDefinition = {
     { id: 'cover-yard-east', label: '동쪽 외곽 컨테이너', rect: rect(3270, 1120, 48, 180) },
   ],
   attackerRoutes: [
-    { id: 'north-roof', label: '북측 창문 진입', loopId: 'outer-loop', points: [p(900, 180), p(900, 420), p(900, 760), p(860, 960), p(860, 1060), p(1400, 1200), p(2500, 1200)] },
+    { id: 'north-roof', label: '북측 창문 진입', loopId: 'outer-loop', points: [p(650, 180), p(900, 180), p(900, 420), p(900, 760), p(860, 960), p(860, 1060), p(1400, 1200), p(2500, 1200)] },
     { id: 'west-gate', label: '서문 정문 진입', loopId: 'inner-loop', points: [p(260, 1040), p(520, 1040), p(820, 1040), p(900, 1040), p(1400, 1200), p(2500, 1200)] },
-    { id: 'south-dock', label: '남쪽 적재장 진입', loopId: 'inner-loop', points: [p(2360, 2240), p(2360, 1960), p(2600, 1840), p(1980, 1840), p(1980, 1360), p(1980, 1200), p(2600, 1200)] },
+    { id: 'south-dock', label: '남쪽 적재장 진입', loopId: 'inner-loop', points: [p(2360, 2240), p(2360, 1960), p(2600, 1840), p(1980, 1840), p(1940, 1360), p(1940, 1200), p(2600, 1200)] },
     { id: 'east-service', label: '동쪽 서비스 진입', loopId: 'outer-loop', points: [p(3340, 1600), p(3060, 1600), p(3060, 1200), p(2800, 1200), p(2500, 1200)] },
     { id: 'maintenance-hatch', label: '남서 유지보수 해치', loopId: 'outer-loop', points: [p(700, 2240), p(700, 1960), p(780, 1800), p(860, 1360), p(860, 1200), p(1400, 1200), p(2500, 1200)] },
     { id: 'inner-north', label: '내부 북측 순환', loopId: 'inner-loop', points: [p(900, 760), p(1280, 820), p(1480, 1040), p(1800, 1200), p(2080, 1040), p(2480, 820), p(2640, 1040)] },
@@ -276,10 +278,10 @@ export const BREACHLINE_MAP: TacticalMapDefinition = {
     { id: 'outer-south', label: '남쪽 외곽 우회', loopId: 'outer-loop', points: [p(700, 2240), p(1400, 2240), p(2200, 2240), p(3000, 2240), p(3060, 1900), p(2800, 1600)] },
   ],
   defenderSetups: [
-    { id: 'north-roof-watch', label: '북측 창문 감시', position: p(900, 520), fallback: p(760, 820) },
+    { id: 'north-roof-watch', label: '북측 창문 감시', position: p(760, 820), fallback: p(930, 540) },
     { id: 'gate-crossfire', label: '서문 교차각', position: p(700, 760), fallback: p(900, 820) },
-    { id: 'office-cross', label: '사무실 교차각', position: p(1280, 620), fallback: p(1480, 820) },
-    { id: 'server-rack', label: '서버랙 수비', position: p(1900, 650), fallback: p(2050, 820) },
+    { id: 'a-site-anchor', label: 'A 사이트 앵커', position: p(2700, 1280), fallback: p(2360, 1160) },
+    { id: 'b-site-anchor', label: 'B 사이트 앵커', position: p(1800, 1720), fallback: p(1740, 1840) },
     { id: 'control-a-left', label: 'A 좌측 통제', position: p(2460, 700), fallback: p(2360, 1160) },
     { id: 'a-hall-right', label: 'A 홀 우측', position: p(2820, 1160), fallback: p(2700, 1280) },
     { id: 'atrium-rotate', label: '아트리움 회전', position: p(1500, 1200), fallback: p(1300, 1320) },

@@ -1,0 +1,106 @@
+{
+  "scenario": "prepared",
+  "map": {
+    "id": "breachline-02",
+    "width": 3600,
+    "height": 2400
+  },
+  "rows": [
+    {
+      "seed": 3,
+      "ms": 1167,
+      "duration": 131.2,
+      "winner": "공격",
+      "firstShot": 3.6,
+      "shots": 68,
+      "reversals": 69,
+      "movingButStationaryTicks": 32,
+      "loopWindows": 1,
+      "blockedEvents": 313
+    },
+    {
+      "seed": 11,
+      "ms": 790,
+      "duration": 119.5,
+      "winner": "공격",
+      "firstShot": 3.6,
+      "shots": 50,
+      "reversals": 47,
+      "movingButStationaryTicks": 27,
+      "loopWindows": 0,
+      "blockedEvents": 451
+    },
+    {
+      "seed": 23,
+      "ms": 808,
+      "duration": 119.5,
+      "winner": "공격",
+      "firstShot": 3.6,
+      "shots": 50,
+      "reversals": 47,
+      "movingButStationaryTicks": 26,
+      "loopWindows": 0,
+      "blockedEvents": 447
+    },
+    {
+      "seed": 41,
+      "ms": 819,
+      "duration": 180,
+      "winner": "수비",
+      "firstShot": 3.6,
+      "shots": 46,
+      "reversals": 31,
+      "movingButStationaryTicks": 11,
+      "loopWindows": 0,
+      "blockedEvents": 1888
+    },
+    {
+      "seed": 51,
+      "ms": 828,
+      "duration": 180,
+      "winner": "수비",
+      "firstShot": 3.6,
+      "shots": 44,
+      "reversals": 105,
+      "movingButStationaryTicks": 115,
+      "loopWindows": 4,
+      "blockedEvents": 372
+    },
+    {
+      "seed": 81,
+      "ms": 743,
+      "duration": 116,
+      "winner": "공격",
+      "firstShot": 3.6,
+      "shots": 45,
+      "reversals": 22,
+      "movingButStationaryTicks": 19,
+      "loopWindows": 1,
+      "blockedEvents": 423
+    },
+    {
+      "seed": 107,
+      "ms": 833,
+      "duration": 180,
+      "winner": "수비",
+      "firstShot": 3.6,
+      "shots": 36,
+      "reversals": 56,
+      "movingButStationaryTicks": 67,
+      "loopWindows": 0,
+      "blockedEvents": 977
+    },
+    {
+      "seed": 149,
+      "ms": 867,
+      "duration": 180,
+      "winner": "수비",
+      "firstShot": 3.6,
+      "shots": 44,
+      "reversals": 89,
+      "movingButStationaryTicks": 90,
+      "loopWindows": 5,
+      "blockedEvents": 359
+    }
+  ]
+}

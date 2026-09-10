@@ -1,0 +1,165 @@
+{ time: 28.3, focus: 'MAGPIE' }
+
+** (inkscape:31): WARNING **: 07:53:07.976: Unimplemented style property 377
+
+** (inkscape:31): WARNING **: 07:53:07.976: Unimplemented style property 377
+
+** (inkscape:31): WARNING **: 07:53:07.976: Unimplemented style property 377
+
+** (inkscape:31): WARNING **: 07:53:07.976: Unimplemented style property 377
+
+** (inkscape:31): WARNING **: 07:53:07.976: Unimplemented style property 377
+
+** (inkscape:31): WARNING **: 07:53:07.976: Unimplemented style property 377
+
+** (inkscape:31): WARNING **: 07:53:07.977: Unimplemented style property 377
+
+** (inkscape:31): WARNING **: 07:53:07.977: Unimplemented style property 377
+
+** (inkscape:31): WARNING **: 07:53:07.977: Unimplemented style property 377
+
+** (inkscape:31): WARNING **: 07:53:07.978: Unimplemented style property 377
+
+** (inkscape:31): WARNING **: 07:53:07.978: Unimplemented style property 377
+
+** (inkscape:31): WARNING **: 07:53:07.978: Unimplemented style property 377
+
+** (inkscape:31): WARNING **: 07:53:07.979: Unimplemented style property 377
+
+** (inkscape:31): WARNING **: 07:53:07.979: Unimplemented style property 377
+
+** (inkscape:31): WARNING **: 07:53:07.979: Unimplemented style property 377
+
+** (inkscape:31): WARNING **: 07:53:07.979: Unimplemented style property 377
+
+** (inkscape:31): WARNING **: 07:53:07.980: Unimplemented style property 377
+
+** (inkscape:31): WARNING **: 07:53:07.980: Unimplemented style property 377
+
+** (inkscape:31): WARNING **: 07:53:07.980: Unimplemented style property 377
+
+** (inkscape:31): WARNING **: 07:53:07.980: Unimplemented style property 377
+
+** (inkscape:31): WARNING **: 07:53:07.981: Failed to wrap object of type 'GtkRecentManager'. Hint: this error is commonly caused by failing to call a library init() function.
+
+** (inkscape:31): WARNING **: 07:53:07.998: Unimplemented style property 377
+
+** (inkscape:31): WARNING **: 07:53:07.998: Unimplemented style property 377
+
+** (inkscape:31): WARNING **: 07:53:08.002: Unimplemented style property 377
+
+** (inkscape:31): WARNING **: 07:53:08.002: Unimplemented style property 377
+
+** (inkscape:31): WARNING **: 07:53:08.006: Unimplemented style property 377
+
+** (inkscape:31): WARNING **: 07:53:08.006: Unimplemented style property 377
+
+** (inkscape:31): WARNING **: 07:53:08.006: Unimplemented style property 377
+
+** (inkscape:31): WARNING **: 07:53:08.006: Unimplemented style property 377
+
+** (inkscape:31): WARNING **: 07:53:08.007: Unimplemented style property 377
+
+** (inkscape:31): WARNING **: 07:53:08.007: Unimplemented style property 377
+
+** (inkscape:31): WARNING **: 07:53:08.007: Unimplemented style property 377
+
+** (inkscape:31): WARNING **: 07:53:08.007: Unimplemented style property 377
+
+** (inkscape:31): WARNING **: 07:53:08.007: Unimplemented style property 377
+
+** (inkscape:31): WARNING **: 07:53:08.007: Unimplemented style property 377
+
+** (inkscape:31): WARNING **: 07:53:08.008: Unimplemented style property 377
+
+** (inkscape:31): WARNING **: 07:53:08.008: Unimplemented style property 377
+
+** (inkscape:31): WARNING **: 07:53:08.008: Unimplemented style property 377
+
+** (inkscape:31): WARNING **: 07:53:08.008: Unimplemented style property 377
+
+** (inkscape:31): WARNING **: 07:53:08.008: Unimplemented style property 377
+
+** (inkscape:31): WARNING **: 07:53:08.008: Unimplemented style property 377
+
+** (inkscape:39): WARNING **: 07:53:08.388: Unimplemented style property 377
+
+** (inkscape:39): WARNING **: 07:53:08.388: Unimplemented style property 377
+
+** (inkscape:39): WARNING **: 07:53:08.388: Unimplemented style property 377
+
+** (inkscape:39): WARNING **: 07:53:08.388: Unimplemented style property 377
+
+** (inkscape:39): WARNING **: 07:53:08.389: Unimplemented style property 377
+
+** (inkscape:39): WARNING **: 07:53:08.389: Unimplemented style property 377
+
+** (inkscape:39): WARNING **: 07:53:08.389: Unimplemented style property 377
+
+** (inkscape:39): WARNING **: 07:53:08.389: Unimplemented style property 377
+
+** (inkscape:39): WARNING **: 07:53:08.390: Unimplemented style property 377
+
+** (inkscape:39): WARNING **: 07:53:08.390: Unimplemented style property 377
+
+** (inkscape:39): WARNING **: 07:53:08.390: Unimplemented style property 377
+
+** (inkscape:39): WARNING **: 07:53:08.390: Unimplemented style property 377
+
+** (inkscape:39): WARNING **: 07:53:08.391: Unimplemented style property 377
+
+** (inkscape:39): WARNING **: 07:53:08.391: Unimplemented style property 377
+
+** (inkscape:39): WARNING **: 07:53:08.391: Unimplemented style property 377
+
+** (inkscape:39): WARNING **: 07:53:08.391: Unimplemented style property 377
+
+** (inkscape:39): WARNING **: 07:53:08.392: Unimplemented style property 377
+
+** (inkscape:39): WARNING **: 07:53:08.392: Unimplemented style property 377
+
+** (inkscape:39): WARNING **: 07:53:08.392: Unimplemented style property 377
+
+** (inkscape:39): WARNING **: 07:53:08.392: Unimplemented style property 377
+
+** (inkscape:39): WARNING **: 07:53:08.393: Failed to wrap object of type 'GtkRecentManager'. Hint: this error is commonly caused by failing to call a library init() function.
+
+** (inkscape:39): WARNING **: 07:53:08.411: Unimplemented style property 377
+
+** (inkscape:39): WARNING **: 07:53:08.411: Unimplemented style property 377
+
+** (inkscape:39): WARNING **: 07:53:08.415: Unimplemented style property 377
+
+** (inkscape:39): WARNING **: 07:53:08.415: Unimplemented style property 377
+
+** (inkscape:39): WARNING **: 07:53:08.419: Unimplemented style property 377
+
+** (inkscape:39): WARNING **: 07:53:08.419: Unimplemented style property 377
+
+** (inkscape:39): WARNING **: 07:53:08.419: Unimplemented style property 377
+
+** (inkscape:39): WARNING **: 07:53:08.419: Unimplemented style property 377
+
+** (inkscape:39): WARNING **: 07:53:08.420: Unimplemented style property 377
+
+** (inkscape:39): WARNING **: 07:53:08.420: Unimplemented style property 377
+
+** (inkscape:39): WARNING **: 07:53:08.420: Unimplemented style property 377
+
+** (inkscape:39): WARNING **: 07:53:08.420: Unimplemented style property 377
+
+** (inkscape:39): WARNING **: 07:53:08.420: Unimplemented style property 377
+
+** (inkscape:39): WARNING **: 07:53:08.420: Unimplemented style property 377
+
+** (inkscape:39): WARNING **: 07:53:08.421: Unimplemented style property 377
+
+** (inkscape:39): WARNING **: 07:53:08.421: Unimplemented style property 377
+
+** (inkscape:39): WARNING **: 07:53:08.421: Unimplemented style property 377
+
+** (inkscape:39): WARNING **: 07:53:08.421: Unimplemented style property 377
+
+** (inkscape:39): WARNING **: 07:53:08.422: Unimplemented style property 377
+
+** (inkscape:39): WARNING **: 07:53:08.422: Unimplemented style property 377

@@ -1,0 +1,13 @@
+vite v7.3.6 building client environment for production...
+transforming...
+✓ 113 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/public/index.html                                    1.57 kB │ gzip:   0.60 kB
+dist/public/assets/index-DJ3fCOcQ.css                    64.88 kB │ gzip:  12.34 kB
+dist/public/assets/championValidation-B2tLqgQ6.js         2.41 kB │ gzip:   1.21 kB
+dist/public/assets/SeasonSimulation-DuvlFiY9.js           2.77 kB │ gzip:   1.34 kB
+dist/public/assets/TacticalRoundSimulation-Cwkf-ypu.js    5.43 kB │ gzip:   2.56 kB
+dist/public/assets/consoleOutput-CyG0fuqR.js              8.91 kB │ gzip:   3.79 kB
+dist/public/assets/index-Dv0CurZI.js                    356.84 kB │ gzip: 114.07 kB
+✓ built in 1.72s

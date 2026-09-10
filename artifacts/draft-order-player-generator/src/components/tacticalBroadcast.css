@@ -170,3 +170,13 @@
     font-size: 15px;
   }
 }
+.broadcast-objective { display:flex; align-items:center; gap:16px; padding:14px 18px; margin:0 0 14px; border:1px solid #262D31; border-left:3px solid #FFC53D; background:#161A1D; }
+.broadcast-objective > strong { font:700 32px/1 monospace; color:#FFC53D; }
+.broadcast-objective > strong span { display:block; font-size:10px; margin-top:4px; letter-spacing:2px; }
+.broadcast-objective > div { display:grid; gap:5px; }
+.broadcast-objective small, .broadcast-objective-rule { font-size:12px; color:#A6B1B7; }
+.broadcast-objective-rule { margin-left:auto; }
+.broadcast-objective progress { width:140px; height:6px; accent-color:#FFC53D; }
+.broadcast-objective.is-active { border-left-color:#2FD4C4; }
+.battle-door-label { font:500 12px sans-serif; fill:#E0D8BF; paint-order:stroke; stroke:#263035; stroke-width:3px; }
+@media (max-width:700px) { .broadcast-objective { flex-wrap:wrap; gap:10px; padding:12px; } .broadcast-objective-rule { width:100%; margin-left:0; } }

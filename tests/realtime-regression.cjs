@@ -10,7 +10,7 @@ require.extensions['.ts'] = (module, filename) => {
   module._compile(output.outputText, filename);
 };
 const root = '../artifacts/draft-order-player-generator/src/';
-const { TacticalRealtimeSimulation, realtimeUnitId } = require(root + 'domain/realtime/TacticalRealtimeSimulation.ts');
+const { TacticalRealtimeSimulation, realtimeUnitId, UNIT_RADIUS } = require(root + 'domain/realtime/TacticalRealtimeSimulation.ts');
 const { Player } = require(root + 'domain/Player.ts');
 const { OPERATORS } = require(root + 'domain/Operator.ts');
 const { BREACHLINE_MAP } = require(root + 'domain/tacticalMaps.ts');
@@ -32,7 +32,7 @@ function test(name, fn) {
 }
 const distance = (a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
 let base;
-test('실제 5대5 엔진 90초 종료',()=>{base=new TacticalRealtimeSimulation().run(fixture());assert(base.snapshots.length>0); assert(base.executionTime<=90);});
+test('실제 5대5 엔진 목표 판정으로 종료',()=>{base=new TacticalRealtimeSimulation().run(fixture());assert(base.snapshots.length>0); assert(base.executionTime<=142); assert.equal(base.objective.phase,'resolved');});
 test('같은 시드: run / createSession 사건·스냅샷·결과 동일',()=>{
   const session=new TacticalRealtimeSimulation().createSession(fixture());
   for(let i=0;i<2000&&!session.isComplete;i++) session.step();
@@ -47,7 +47,7 @@ test('같은 명령 틱: generator / session 동일',()=>{
     next=runner.next(command);session.step(command);
   }
   assert.deepEqual(next.value,session.getResult());
-  assert.equal(next.value.events.filter(e=>e.type==='objective').length,1);
+  assert.equal(next.value.events.filter(e=>e.actor==='director'&&e.type==='objective').length,1);
 });
 test('모든 초기 배치와 이동 선분이 벽·엄폐 반경 밖',()=>{
   const engine=new TacticalRealtimeSimulation();
@@ -56,10 +56,10 @@ test('모든 초기 배치와 이동 선분이 벽·엄폐 반경 밖',()=>{
     if(i)assert(engine.canTraverse(base.snapshots[i-1].units.find(v=>v.id===u.id).position,u.position,BREACHLINE_MAP),`cross ${u.callSign}`);
   }
 });
-test('아군 몸 반경 36 이상 유지',()=>{
+test('아군 몸 지름 24 이상 유지',()=>{
   for(const s of base.snapshots)for(let i=0;i<s.units.length;i++)for(let j=i+1;j<s.units.length;j++){
     const a=s.units[i],b=s.units[j];
-    if(a.alive&&b.alive&&a.side===b.side) assert(distance(a.position,b.position)>=36-1e-6,`overlap ${s.time}: ${a.callSign}/${b.callSign}`);
+    if(a.alive&&b.alive&&a.side===b.side) assert(distance(a.position,b.position)>=UNIT_RADIUS*2-1e-6,`overlap ${s.time}: ${a.callSign}/${b.callSign}`);
   }
 });
 test('사망자 이동·발사·장전 재개 금지',()=>{
@@ -133,6 +133,41 @@ test('세 원화·총구 메타데이터와 정적 파일 존재',()=>{
   for(const name of ['MAGPIE','COLLIER','해동']){const v=operatorVisual(name);assert(v);for(const f of [v.sprite,v.portrait])assert(fs.statSync(path.join(__dirname,'../artifacts/draft-order-player-generator/public/operators',f)).size>0);
     const p=muzzlePosition(name,{x:0,y:0},Math.PI/2);assert(Math.abs(p.y-(v.muzzle[0]-v.pivot[0])*OPERATOR_SCALE)<1e-8);
   }assert.equal(operatorVisual('REUSS'),undefined);
+});
+test('모든 문·출입구·A/B 설치 위치가 물리 통행과 일치',()=>{
+  const engine=new TacticalRealtimeSimulation(),map=BREACHLINE_MAP;
+  assert.equal(new Set(map.portals.map(p=>p.id)).size,map.portals.length);
+  for(const portal of map.portals)assert(engine.canStand(portal.center,map),portal.id);
+  for(const entrance of map.entrances)assert(engine.canTraverse(entrance.outside,entrance.inside,map),entrance.id);
+  for(const site of map.sites)for(const point of [...site.plantAnchors,...site.defendAnchors])assert(engine.canStand(point,map),site.id);
+});
+test('양 사이트는 모든 공격 진입 지점에서 도달 가능',()=>{
+  const engine=new TacticalRealtimeSimulation(),map=BREACHLINE_MAP,nodes=engine.buildNavigationNodes(map);
+  for(const route of map.attackerRoutes.slice(0,5))for(const site of map.sites){
+    const path=engine.findPath(route.points[0],site.plantAnchors[0],map,nodes);assert(path.length,route.id+' → '+site.id);
+    assert(distance(path.at(-1),site.plantAnchors[0])<1e-6);
+  }
+});
+test('개인 시야는 뒤쪽·범위 밖·벽 뒤의 실시간 좌표를 받지 않음',()=>{
+  const engine=new TacticalRealtimeSimulation(),map={...BREACHLINE_MAP,walls:[],covers:[]};
+  const observer={position:{x:1500,y:1200},facing:0};
+  assert(engine.canSee(observer,{x:1800,y:1200},map));
+  assert(!engine.canSee(observer,{x:1200,y:1200},map));
+  assert(!engine.canSee(observer,{x:2900,y:1200},map));
+  map.walls=[{id:'wall',kind:'interior',from:{x:1650,y:900},to:{x:1650,y:1500}}];
+  assert(!engine.canSee(observer,{x:1800,y:1200},map));
+});
+test('실제 틱의 설치와 무력화는 정지·생존·장전 종료 상태에서만 진행',()=>{
+  const input=fixture(41,180);
+  input.defenders=input.defenders.slice(0,1);
+  input.map={...BREACHLINE_MAP,attackerRoutes:[{x:2380,y:1200},{x:2420,y:1160},{x:2480,y:1160},{x:2380,y:1280},{x:2420,y:1280}].map((point,index)=>({id:'plant-fixture-'+index,label:'5인 설치·엄호 검사',points:[point]})),defenderSetups:[{id:'far-guard',label:'외곽 수비',position:{x:3500,y:2280},fallback:{x:3500,y:2200}}]};
+  const round=new TacticalRealtimeSimulation().run(input);
+  const planted=round.events.find(e=>e.goal==='planted');assert(planted,'실제 경기 설치 사례 필요');
+  for(const snap of round.snapshots)for(const unit of snap.units)if(['plant','disable'].includes(unit.action)){
+    assert(unit.alive);assert.equal(unit.reloadRemaining,0);assert.deepEqual(unit.velocity,{x:0,y:0});
+    assert(!round.events.some(e=>e.type==='shot'&&e.actor===unit.id&&e.time===snap.time));
+  }
+  assert(['bombs-defused','device-disabled','defenders-eliminated'].includes(round.objective.reason));
 });
 const report={generatedAt:new Date().toISOString(),passed:results.filter(r=>r.pass).length,total:results.length,tests:results,
   round:base&&{duration:base.executionTime,shots:base.validation.shots,impacts:base.validation.impacts,minSeparation:base.validation.minimumTeamSeparation,winner:base.winner}};

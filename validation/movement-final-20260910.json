@@ -1,0 +1,105 @@
+{
+  "map": {
+    "id": "breachline-02",
+    "width": 3600,
+    "height": 2400
+  },
+  "rows": [
+    {
+      "seed": 3,
+      "ms": 999,
+      "duration": 52.1,
+      "winner": "공격",
+      "firstShot": 0,
+      "shots": 50,
+      "reversals": 48,
+      "movingButStationaryTicks": 3,
+      "loopWindows": 2,
+      "blockedEvents": 0
+    },
+    {
+      "seed": 11,
+      "ms": 1910,
+      "duration": 180,
+      "winner": "수비",
+      "firstShot": 0,
+      "shots": 69,
+      "reversals": 179,
+      "movingButStationaryTicks": 1,
+      "loopWindows": 5,
+      "blockedEvents": 4
+    },
+    {
+      "seed": 23,
+      "ms": 1892,
+      "duration": 180,
+      "winner": "수비",
+      "firstShot": 0,
+      "shots": 49,
+      "reversals": 158,
+      "movingButStationaryTicks": 1,
+      "loopWindows": 0,
+      "blockedEvents": 0
+    },
+    {
+      "seed": 41,
+      "ms": 3018,
+      "duration": 156.4,
+      "winner": "공격",
+      "firstShot": 0,
+      "shots": 82,
+      "reversals": 332,
+      "movingButStationaryTicks": 1,
+      "loopWindows": 1,
+      "blockedEvents": 5
+    },
+    {
+      "seed": 51,
+      "ms": 1172,
+      "duration": 54.1,
+      "winner": "공격",
+      "firstShot": 0,
+      "shots": 50,
+      "reversals": 54,
+      "movingButStationaryTicks": 0,
+      "loopWindows": 0,
+      "blockedEvents": 0
+    },
+    {
+      "seed": 81,
+      "ms": 1025,
+      "duration": 52.1,
+      "winner": "공격",
+      "firstShot": 0,
+      "shots": 42,
+      "reversals": 50,
+      "movingButStationaryTicks": 1,
+      "loopWindows": 0,
+      "blockedEvents": 3
+    },
+    {
+      "seed": 107,
+      "ms": 1335,
+      "duration": 58,
+      "winner": "공격",
+      "firstShot": 0,
+      "shots": 45,
+      "reversals": 57,
+      "movingButStationaryTicks": 0,
+      "loopWindows": 0,
+      "blockedEvents": 0
+    },
+    {
+      "seed": 149,
+      "ms": 2440,
+      "duration": 180,
+      "winner": "수비",
+      "firstShot": 0,
+      "shots": 78,
+      "reversals": 212,
+      "movingButStationaryTicks": 5,
+      "loopWindows": 21,
+      "blockedEvents": 4
+    }
+  ]
+}

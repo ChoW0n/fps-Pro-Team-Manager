@@ -1,8 +1,9 @@
 import { memo, type ReactElement } from 'react';
+import type { BombState } from '../domain/realtime/BombObjective';
 import type { Operator } from '../domain/Operator';
 import type { RealtimeEvent, RealtimeSnapshot } from '../domain/realtime/TacticalRealtimeSimulation';
 import type { TacticalMapDefinition } from '../domain/tacticalMaps';
-import { operatorVisual, OPERATOR_SCALE } from '../domain/operatorVisuals';
+import { operatorVisual, OPERATOR_SCALE, TEMPORARY_OPERATOR_SCALE } from '../domain/operatorVisuals';
 
 export const SIDE_COLOR = { 공격: '#2FD4C4', 수비: '#F0873C' };
 const ASSET_ROOT = `${import.meta.env.BASE_URL}operators/`;
@@ -50,12 +51,12 @@ function Soldier({ unit, operator, selected, onSelect }: {
   return <g role="button" tabIndex={0} aria-label={`${unit.callSign} 선수 선택`} aria-pressed={selected}
     data-unit-id={unit.id} className={`battle-soldier ${unit.alive ? '' : 'is-out'}`}
     onClick={() => onSelect(unit.id)} onKeyDown={(event) => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); onSelect(unit.id); } }}>
-    <title>{unit.callSign} · {unit.weaponName} · {unit.goal}{visual ? '' : ' · 임시 외형'}</title>
+    <title>{`${unit.callSign} · ${unit.weaponName} · ${unit.goal}${visual ? '' : ' · 임시 외형'}`}</title>
     <g transform={`translate(${unit.position.x} ${unit.position.y})`}>
       <circle r="17" fill="transparent" stroke={selected ? '#FFC53D' : color} strokeWidth={selected ? 2.5 : 1.3} strokeDasharray={unit.side === '수비' ? '5 4' : undefined} />
       <g transform={`rotate(${unit.facing * 180 / Math.PI})`}>
         {visual ? <image href={ASSET_ROOT + visual.sprite} x={-visual.pivot[0] * OPERATOR_SCALE} y={-visual.pivot[1] * OPERATOR_SCALE}
-          width={visual.width * OPERATOR_SCALE} height={visual.height * OPERATOR_SCALE} /> : <TemporaryOperator operator={operator} />}
+          width={visual.width * OPERATOR_SCALE} height={visual.height * OPERATOR_SCALE} /> : <g transform={`scale(${TEMPORARY_OPERATOR_SCALE})`}><TemporaryOperator operator={operator} /></g>}
         <path d="M-5 -15 L0 -15 L0 -12 L-5 -12 Z" fill={color} />
       </g>
       {!unit.alive && <path d="M-7 -7 L7 7 M7 -7 L-7 7" stroke="#E5484D" strokeWidth="3" />}
@@ -65,6 +66,7 @@ function Soldier({ unit, operator, selected, onSelect }: {
   </g>;
 }
 
+/** 문 폭과 축을 시각 표식의 사각형으로 변환합니다. */
 function portalRect(portal: TacticalMapDefinition['portals'][number]): { x: number; y: number; width: number; height: number } {
   return portal.axis === 'horizontal'
     ? { x: portal.center.x - portal.width / 2, y: portal.center.y - 10, width: portal.width, height: 20 }
@@ -72,12 +74,16 @@ function portalRect(portal: TacticalMapDefinition['portals'][number]): { x: numb
 }
 
 /** 충돌 데이터의 방·문·벽·엄폐 영역을 같은 지도 데이터로 그립니다. */
-const Interior = memo(function Interior({ map }: { map: TacticalMapDefinition }): ReactElement {
+const Interior = memo(function Interior({ map, detail }: { map: TacticalMapDefinition; detail: boolean }): ReactElement {
   return <g>
     <rect width={map.width} height={map.height} fill="#20292c" />
+    <rect {...map.building} fill="#535d61" />
     {map.rooms.map((room) => <g key={room.id}>
-      <rect {...room.rect} fill={room.kind === 'yard' ? '#303a3c' : room.kind === 'corridor' ? '#5d6669' : '#586065'} />
-      <text x={room.rect.x + 20} y={room.rect.y + 34} className="battle-room">{room.label}</text>
+      <rect {...room.rect} fill={room.kind === 'yard' ? '#303a3c' : room.kind === 'corridor' ? '#666d6c' : '#4c5a61'} />
+      {detail && room.kind !== 'yard' && <g stroke="#82908f" opacity=".16" strokeWidth="1">
+        {Array.from({ length: Math.floor(room.rect.width / 80) }, (_, index) => <path key={index} d={`M${room.rect.x + (index + 1) * 80} ${room.rect.y} v${room.rect.height}`} />)}
+      </g>}
+      <text x={room.rect.x + 20} y={room.rect.y + 34} className="battle-room" style={{fontSize:detail?15:28}}>{room.label}</text>
     </g>)}
     <rect {...map.building} fill="none" stroke="#87918f" strokeWidth="4" />
     {map.sites.map((site) => <g key={site.id}>
@@ -86,7 +92,7 @@ const Interior = memo(function Interior({ map }: { map: TacticalMapDefinition })
     </g>)}
     {map.portals.map((portal) => <g key={portal.id}>
       <rect {...portalRect(portal)} fill="#c7b27a" opacity=".5" stroke="#f4d88a" strokeWidth="3" />
-      <text x={portal.center.x} y={portal.center.y - 16} textAnchor="middle" className="battle-room">{portal.label}</text>
+      {detail && <text x={portal.center.x} y={portal.center.y - 24} textAnchor="middle" className="battle-door-label">{portal.label}</text>}
     </g>)}
     {map.entrances.map((entrance) => <g key={entrance.id}>
       <line x1={entrance.outside.x} y1={entrance.outside.y} x2={entrance.inside.x} y2={entrance.inside.y} stroke="#FFC53D" strokeWidth="4" strokeDasharray="14 10" />
@@ -103,18 +109,40 @@ const Interior = memo(function Interior({ map }: { map: TacticalMapDefinition })
       {Array.from({ length: Math.floor((cover.rect.width > cover.rect.height ? cover.rect.width : cover.rect.height) / 24) }, (_, n) => cover.rect.width > cover.rect.height
         ? <path key={n} d={`M${cover.rect.x + 12 + n * 24} ${cover.rect.y + 6} v${cover.rect.height - 12}`} stroke="#273237" strokeWidth="2" />
         : <path key={n} d={`M${cover.rect.x + 6} ${cover.rect.y + 12 + n * 24} h${cover.rect.width - 12}`} stroke="#273237" strokeWidth="3" />)}
+      {detail && /console|desk|bench/.test(cover.id) && <g>
+        <rect x={cover.rect.x+14} y={cover.rect.y+8} width={Math.min(45,cover.rect.width-25)} height={Math.min(18,cover.rect.height-14)} rx="2" fill="#152930" stroke="#92A7A9" strokeWidth="1"/>
+        <path d={`M${cover.rect.x+19} ${cover.rect.y+14} h22 m-22 5 h15`} stroke="#538A90" strokeWidth="2"/>
+        <rect x={cover.rect.x+72} y={cover.rect.y+12} width="23" height="14" rx="2" fill="#8C9998"/>
+      </g>}
+      {detail && /rack|cabinet/.test(cover.id) && <g>
+        {Array.from({length:Math.max(1,Math.floor(cover.rect.height/24))},(_,row)=><g key={row}>
+          <rect x={cover.rect.x+8} y={cover.rect.y+9+row*24} width="5" height="3" fill="#7FBDAD"/>
+          <path d={`M${cover.rect.x+19} ${cover.rect.y+10+row*24} h14`} stroke="#8E9B9D" strokeWidth="2"/>
+        </g>)}
+      </g>}
+      {detail && /crat|cargo|yard/.test(cover.id) && <path d={`M${cover.rect.x+8} ${cover.rect.y+8} L${cover.rect.x+cover.rect.width-8} ${cover.rect.y+cover.rect.height-8} M${cover.rect.x+cover.rect.width-8} ${cover.rect.y+8} L${cover.rect.x+8} ${cover.rect.y+cover.rect.height-8}`} stroke="#9C8D70" strokeWidth="3"/>}
+      {detail && /core|pipes/.test(cover.id) && <g>
+        <rect x={cover.rect.x+10} y={cover.rect.y+10} width={cover.rect.width-20} height={cover.rect.height-20} rx="10" fill="#607A80" stroke="#9EADAE" strokeWidth="2"/>
+        <path d={`M${cover.rect.x+24} ${cover.rect.y+6} v${cover.rect.height-12} M${cover.rect.x+cover.rect.width-24} ${cover.rect.y+6} v${cover.rect.height-12}`} stroke="#BDCBC6" strokeWidth="3"/>
+      </g>}
     </g>)}
   </g>;
 });
 
 /** 전체 지도와 확대 화면이 같은 스냅샷·사건 기록을 그립니다. */
-export function TacticalBattlefield({ map, units, operators, events, time, selectedId, onSelect, viewBox, miniature = false }: {
+export function TacticalBattlefield({ map, units, operators, events, time, objective, selectedId, onSelect, viewBox, miniature = false }: {
   map: TacticalMapDefinition; units: BattleUnit[]; operators: Map<string, Operator>; events: RealtimeEvent[];
-  time: number; selectedId: string | null; onSelect: (id: string) => void; viewBox?: string; miniature?: boolean;
+  time: number; objective?: BombState; selectedId: string | null; onSelect: (id: string) => void; viewBox?: string; miniature?: boolean;
 }): ReactElement {
   return <svg className={miniature ? 'battle-mini-map' : 'battlefield'} viewBox={viewBox ?? `0 0 ${map.width} ${map.height}`}
     aria-label={miniature ? '전체 전황 전략 보기' : '인물과 총기가 표시되는 실시간 경기'}>
-    <Interior map={map} />
+    <Interior map={map} detail={!miniature && Boolean(viewBox && Number(viewBox.split(' ')[2]) < map.width / 2)} />
+    {objective?.devicePosition && <g transform={`translate(${objective.devicePosition.x} ${objective.devicePosition.y})`} aria-label="실제 해체 장치 위치">
+      <rect x="-12" y="-9" width="24" height="18" rx="2" fill="#242d31" stroke="#FFC53D" strokeWidth="2" />
+      <rect x="-7" y="-5" width="10" height="7" fill={objective.activeUntil ? '#2FD4C4' : '#8A959B'} />
+      <path d="M-5 -9 v-4 h10 v4" fill="none" stroke="#c1c8c5" strokeWidth="2" />
+      {!miniature && <text y="-20" textAnchor="middle" className="battle-label">{objective.phase === 'dropped' ? '유실 장치' : objective.phase === 'planting' ? '설치 중' : '해체 장치'}</text>}
+    </g>}
     {units.map(unit => {
       const operator = operators.get(unit.id);
       return miniature ? <circle key={unit.id} cx={unit.position.x} cy={unit.position.y} r={unit.id === selectedId ? 22 : 15}
