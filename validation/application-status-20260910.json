@@ -1,0 +1,31 @@
+{
+  "checkedAt": "2026-09-10",
+  "sourceCommit": "879309058ac8b5a20133f2c1e1f3424bccd558ae",
+  "replitRunningCommit": "135bacb6d52c96bbde724e1c5b837a5f338cf8ae",
+  "sourceComparison": "All application sources, assets, tests and docs matched the locally verified Git blobs. Final validation records were subsequently synced to main.",
+  "localVerification": {
+    "automatedChecks": 79,
+    "typecheck": "passed",
+    "productionBuild": "passed",
+    "browserPlay": "not performed: development URL blocked by browser Cloud URL policy",
+    "staticReview": "Actual engine snapshots rendered with the React SVG component; not browser screenshots"
+  },
+  "replitReport": {
+    "webBuild": "passed",
+    "webWorkflow": "restarted",
+    "initialScreen": "New operations bay, north research facility and quick/regular match controls rendered",
+    "workingTree": "clean",
+    "interactiveBrowser": "Unavailable; no clicks through preparation, live round or side swap performed",
+    "final79ChecksRerun": false
+  },
+  "publicDeployment": "not updated",
+  "cost": {
+    "requested": "Free only; no Power, Max, paid upgrade or public deployment requested",
+    "actualBillingMode": "not exposed by connector; not independently verified"
+  },
+  "remaining": [
+    "Interactive browser validation of the complete loop and side swap",
+    "Animation frames and further weapon visual verification",
+    "Broader AI/balance scenarios; bounded regression results are not a general quality guarantee"
+  ]
+}
