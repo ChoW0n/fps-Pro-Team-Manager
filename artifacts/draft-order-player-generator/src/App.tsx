@@ -57,9 +57,7 @@ import {
   TacticalRoundResult,
 } from './domain/TacticalRoundSimulation';
 import { createRealtimeUnitInputs } from './domain/realtime/tacticalRealtimeAdapter';
-import type { TacticalRealtimeSimulationInput } from './domain/realtime/TacticalRealtimeSimulation';
-import { OperatorPreparation } from './components/OperatorPreparation';
-import { TacticalRoundLive } from './components/TacticalRoundLive';
+import { TacticalMatch } from './components/TacticalMatch';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ErrorBoundary } from '@/components/error-boundary';
 
@@ -181,16 +179,12 @@ function Home() {
   const [homeTeam]=useState<Team>(interactiveTeams[0]);
   const [awayTeam]=useState<Team>(interactiveTeams[1]);
   const [activeTab,setActiveTab]=useState<AppTab>('team');
-  const [liveRoundInput,setLiveRoundInput]=useState<TacticalRealtimeSimulationInput|null>(null);
   useEffect(()=>{scheduleOptionalConsoleValidation();},[]);
-  /** 확정 편성을 실시간 세션에 넘기며 결과를 사전에 실행하지 않습니다. */
-  function startRound(input:TacticalRealtimeSimulationInput):void {setLiveRoundInput(input);setScreen('watch');}
   /** 새 경기 준비로 돌아갈 때만 현재 세션 화면을 해제합니다. */
-  function returnToPreparation():void {setLiveRoundInput(null);setScreen('prep');}
+  function returnToPreparation():void {setScreen('prep');}
   return <AppFrame screen={screen} activeTab={activeTab} onSelectTab={setActiveTab}>
     {activeTab!=='team' && <ArchiveTab tab={activeTab} homeTeam={homeTeam} awayTeam={awayTeam}/>}
-    <div hidden={activeTab!=='team'}>{screen==='draft' ? <OperatorPreparation homeTeam={homeTeam} awayTeam={awayTeam} onStart={startRound} onBack={returnToPreparation}/>
-      : screen==='watch'&&liveRoundInput ? <><TacticalRoundLive input={liveRoundInput}/><button className="outline-button" onClick={returnToPreparation}>경기 준비로 돌아가기</button></>
+    <div hidden={activeTab!=='team'}>{screen==='draft' ? <TacticalMatch homeTeam={homeTeam} awayTeam={awayTeam} onBack={returnToPreparation}/>
       : <PreparationScreen homeTeam={homeTeam} awayTeam={awayTeam} onStart={()=>setScreen('draft')}/>}</div>
   </AppFrame>;
 }
@@ -220,7 +214,7 @@ function AppFrame({
         </div>
         <div className="header-status">
           <span className="status-dot" />
-          <span>전술 훈련 · 단일 라운드</span>
+          <span>전술 매치 · 공수 교대</span>
         </div>
       </header>
       <nav className="app-tabs" aria-label="감독실 메뉴">
