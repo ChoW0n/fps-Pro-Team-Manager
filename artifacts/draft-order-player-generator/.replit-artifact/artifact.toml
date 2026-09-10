@@ -1,0 +1,28 @@
+kind = "web"
+previewPath = "/"
+title = "DRAFT ORDER 선수 생성기"
+description = "MOBA e스포츠 매니저 게임의 1단계로, 포지션별 능력치 분포에 따라 가상 선수 50명을 생성하고 결과를 브라우저 콘솔에 출력하는 React 웹 프로젝트입니다."
+version = "1.0.0"
+id = "artifacts/draft-order-player-generator"
+router = "path"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 20049
+
+[services.development]
+run = "pnpm --filter @workspace/draft-order-player-generator run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/draft-order-player-generator", "run", "build" ]
+serve = "static"
+publicDir = "artifacts/draft-order-player-generator/dist/public"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "20049"
+BASE_PATH = "/"
