@@ -568,7 +568,13 @@ export class TacticalRealtimeSimulation {
         );
         const contact = visualContactSince.get(unit.id);
         const visualContactDuration = contact ? now - contact.at : 0;
-        const isClutch = enemies.length >= 2 && living(unit.side).length === 1;
+        // 교전 인원은 보이는 적과 최근 보고 위치로 추정합니다. 미관측 생존자를 세지 않습니다.
+        const knownPositions:TacticalPoint[]=visible.map(enemy=>enemy.position);
+        for(const report of teamReports.get(unit.side)!) {
+          if(report.kind==='visual'&&now-report.at<3&&knownPositions.every(point=>distance(point,report.position)>90))knownPositions.push(report.position);
+        }
+        const knownThreats=Math.min(5,knownPositions.length);
+        const isClutch = knownThreats >= 2 && living(unit.side).length === 1;
         const aggression = clamp((me.player.aggression + me.operator.stats.aggression) / 200, 0, 1);
         const aim = clamp((me.player.aim + me.player.composure + me.player.mastery + me.operator.stats.aim
           + (me.loadout?.strength ?? 50) * 0.18 + (me.loadout?.positionFit ?? 50) * 0.12) / 440, 0, 1);
@@ -602,7 +608,7 @@ export class TacticalRealtimeSimulation {
           && (!investigateSound || unit.routeIndex % 2 === 0),
         );
         const lowHealth = unit.hp <= 35;
-        const outnumbered = enemies.length > living(unit.side).length;
+        const outnumbered = knownThreats > living(unit.side).length;
         const priorRetreat=retreatGoals.get(unit.id);
         if(priorRetreat&&(distance(unit.position,priorRetreat)<28||now-(retreatStarted.get(unit.id)??now)>3)) {
           retreatGoals.delete(unit.id);retreatStarted.delete(unit.id);retreatRestUntil.set(unit.id,now+5);

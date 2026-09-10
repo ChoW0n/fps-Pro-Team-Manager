@@ -34,7 +34,8 @@ export function planOpponent(history:readonly RoundObservation[], side:OperatorS
   const variation=((seed>>>0)%5+past.length)%5;
   return {entry:variation,site:last?.site==='A'?'B':variation%2?'B':'A',
     attackStyle:last?.won?'balanced':past.length?'breach':'smoke',
-    defenseStyle:last?.smoke?'roam':repeated!==undefined?'crossfire':variation%2?'roam':'anchor',
+    // 연막에 같은 대응을 고집하지 않고 지난 방어의 성공·실패와 누적 관측을 함께 봅니다.
+    defenseStyle:last?.smoke?(last.won?'crossfire':past.length%2?'anchor':'roam'):repeated!==undefined?'crossfire':variation%2?'roam':'anchor',
     anticipatedEntry:repeated,revision:past.length};
 }
 
