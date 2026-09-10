@@ -2,7 +2,7 @@ import type { TacticalPoint } from '../tacticalMaps';
 
 export interface ScoutPlan { indices: number[]; seconds: 25 | 40 | 55 | 70; entryRoute: number }
 export type ScoutPhase = 'scouting' | 'returning' | 'regrouping' | 'entering';
-export interface ScoutState { phase: ScoutPhase; scoutIds: string[]; searchSeconds: number; phaseStartedAt: number }
+export interface ScoutState { phase: ScoutPhase; scoutIds: string[]; searchSeconds: number; phaseStartedAt: number; rally?:Array<{id:string;position:TacticalPoint}> }
 export interface ScoutActor { id: string; alive: boolean; position: TacticalPoint }
 
 /** 작전 국면은 개인의 사격·장전 상태와 분리해 복귀 임무가 교전으로 지워지지 않게 합니다. */
@@ -16,7 +16,7 @@ export class ScoutOperation {
     this.state={phase:scoutIds.length?'scouting':'entering',scoutIds:[...scoutIds],searchSeconds:seconds,phaseStartedAt:0};
   }
   /** 스냅샷과 UI가 내부 선발조 목록을 바꾸지 못하도록 복사합니다. */
-  public snapshot(): ScoutState { return {...this.state,scoutIds:[...this.state.scoutIds]}; }
+  public snapshot(): ScoutState { return {...this.state,scoutIds:[...this.state.scoutIds],rally:[...this.rally].map(([id,position])=>({id,position:{...position}}))}; }
   /** 시간 종료 후 실제 복귀, 전원 합류 확인, 함께 재진입을 순서대로 진행합니다. */
   public step(now: number, actors: readonly ScoutActor[], recall=false): boolean {
     if(!Number.isFinite(now)||now<0||now<this.previousTime) throw new Error('작전 시각은 역행할 수 없습니다.');

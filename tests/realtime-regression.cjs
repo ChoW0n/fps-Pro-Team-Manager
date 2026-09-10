@@ -73,7 +73,13 @@ test('탄창 소모·장전·탄약 보존 및 장전 중 사격 금지',()=>{
   let count=0;
   const input=fixture(81,45);
   [...input.attackers,...input.defenders].forEach(u=>{u.operator={...u.operator,firearms:['C14 팀버울프']};});
-  const reloadRun=new TacticalRealtimeSimulation().run(input);
+  for(const unit of [...input.attackers,...input.defenders])unit.player={...unit.player,aim:0,mastery:0,composure:0,aggression:40};
+  input.map={...BREACHLINE_MAP,walls:[],covers:[]};input.maxSeconds=60;
+  class ReloadArena extends TacticalRealtimeSimulation {
+    startPosition(unit,index,count){return {x:1000+(unit.side==='공격'?index:index-count)*90,y:unit.side==='공격'?900:1600};}
+    startFacing(unit){return unit.side==='공격'?Math.PI/2:-Math.PI/2;}
+  }
+  const reloadRun=new ReloadArena().run(input);
   for(const [index, first] of reloadRun.snapshots[0].units.entries()){
     for(const snap of reloadRun.snapshots){const u=snap.units[index]; const shots=reloadRun.events.filter(e=>e.type==='shot'&&e.actor===u.id&&e.time<=snap.time).length;
       assert.equal(u.ammo+u.reserveAmmo+shots,first.magazineSize+first.reserveAmmo);assert(u.ammo>=0&&u.ammo<=u.magazineSize);
@@ -129,10 +135,10 @@ test('엄폐물 모서리 경로의 모든 선분 통행 가능',()=>{
     for(const point of path){assert(engine.canTraverse(prior,point,BREACHLINE_MAP));prior=point;}
   }
 });
-test('세 원화·총구 메타데이터와 정적 파일 존재',()=>{
+test('12명 원화·총구 메타데이터와 정적 파일 존재',()=>{
   for(const name of ['MAGPIE','COLLIER','해동']){const v=operatorVisual(name);assert(v);for(const f of [v.sprite,v.portrait])assert(fs.statSync(path.join(__dirname,'../artifacts/draft-order-player-generator/public/operators',f)).size>0);
     const p=muzzlePosition(name,{x:0,y:0},Math.PI/2);assert(Math.abs(p.y-(v.muzzle[0]-v.pivot[0])*OPERATOR_SCALE)<1e-8);
-  }assert.equal(operatorVisual('REUSS'),undefined);
+  }for(const operator of OPERATORS){const visual=operatorVisual(operator.callSign);assert(visual);assert(fs.existsSync(path.join(__dirname,'../artifacts/draft-order-player-generator/public/operators',visual.sprite)));}
 });
 test('모든 문·출입구·A/B 설치 위치가 물리 통행과 일치',()=>{
   const engine=new TacticalRealtimeSimulation(),map=BREACHLINE_MAP;

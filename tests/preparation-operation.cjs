@@ -30,7 +30,7 @@ test('실제 엔진에서 선발조 복귀·합류를 거쳐 재진입하며 순
   while(!session.isComplete)session.step();assert.deepEqual(session.getResult(),round);
   const start=round.snapshots[0];
   for(const [index,snapshot]of round.snapshots.entries())for(const unit of snapshot.units.filter(unit=>unit.side==='공격')){
-    if(snapshot.operation.phase==='regrouping'&&snapshot.operation.scoutIds.includes(unit.id))assert(Math.hypot(unit.position.x-start.units.find(v=>v.id===unit.id).position.x,unit.position.y-start.units.find(v=>v.id===unit.id).position.y)<32);
+    if(snapshot.operation.phase==='regrouping'&&snapshot.operation.scoutIds.includes(unit.id))assert(Math.hypot(unit.position.x-snapshot.operation.rally.find(v=>v.id===unit.id).position.x,unit.position.y-snapshot.operation.rally.find(v=>v.id===unit.id).position.y)<32);
     if(index){const previous=round.snapshots[index-1].units.find(v=>v.id===unit.id);assert(Math.hypot(unit.position.x-previous.position.x,unit.position.y-previous.position.y)<12);assert(engine.canTraverse(previous.position,unit.position,input.map));}
   }
 });

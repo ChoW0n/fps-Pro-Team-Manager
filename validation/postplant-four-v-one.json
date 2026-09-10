@@ -1,0 +1,33 @@
+{
+  "note": "초기 배치가 고정된 4개 시드 검사. 모든 1대4 상황에 대한 보장이 아님.",
+  "rows": [
+    {
+      "seed": 11,
+      "winner": "공격",
+      "reason": "defenders-eliminated",
+      "seconds": 37.6,
+      "attackerDeaths": 1
+    },
+    {
+      "seed": 41,
+      "winner": "공격",
+      "reason": "defenders-eliminated",
+      "seconds": 37.6,
+      "attackerDeaths": 1
+    },
+    {
+      "seed": 81,
+      "winner": "공격",
+      "reason": "defenders-eliminated",
+      "seconds": 22.4,
+      "attackerDeaths": 0
+    },
+    {
+      "seed": 149,
+      "winner": "공격",
+      "reason": "defenders-eliminated",
+      "seconds": 36,
+      "attackerDeaths": 1
+    }
+  ]
+}

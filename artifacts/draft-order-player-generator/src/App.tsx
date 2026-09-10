@@ -57,6 +57,7 @@ import {
   TacticalRoundResult,
 } from './domain/TacticalRoundSimulation';
 import { createRealtimeUnitInputs } from './domain/realtime/tacticalRealtimeAdapter';
+import { GameLobby } from './components/GameLobby';
 import { TacticalMatch } from './components/TacticalMatch';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ErrorBoundary } from '@/components/error-boundary';
@@ -174,19 +175,16 @@ const ICON_PARTS: Record<string, { helmet: string; weapon: string }> = {
 };
 
   /** 첫 화면은 즉시 준비하고, 무거운 시즌 검증은 명시적으로 요청했을 때만 실행합니다. */
+/** 경기 화면 생명주기를 유지하며 작전실과 출전을 부드럽게 연결합니다. */
 function Home() {
-  const [screen,setScreen]=useState<Screen>('prep');
-  const [homeTeam]=useState<Team>(interactiveTeams[0]);
-  const [awayTeam]=useState<Team>(interactiveTeams[1]);
-  const [activeTab,setActiveTab]=useState<AppTab>('team');
+  const [playing,setPlaying]=useState(false),[quick,setQuick]=useState(true);
+  const [homeTeam]=useState<Team>(interactiveTeams[0]),[awayTeam]=useState<Team>(interactiveTeams[1]);
   useEffect(()=>{scheduleOptionalConsoleValidation();},[]);
-  /** 새 경기 준비로 돌아갈 때만 현재 세션 화면을 해제합니다. */
-  function returnToPreparation():void {setScreen('prep');}
-  return <AppFrame screen={screen} activeTab={activeTab} onSelectTab={setActiveTab}>
-    {activeTab!=='team' && <ArchiveTab tab={activeTab} homeTeam={homeTeam} awayTeam={awayTeam}/>}
-    <div hidden={activeTab!=='team'}>{screen==='draft' ? <TacticalMatch homeTeam={homeTeam} awayTeam={awayTeam} onBack={returnToPreparation}/>
-      : <PreparationScreen homeTeam={homeTeam} awayTeam={awayTeam} onStart={()=>setScreen('draft')}/>}</div>
-  </AppFrame>;
+  return <main className={`game-shell ${playing?'is-playing':''}`} style={{backgroundImage:`linear-gradient(90deg,#0E11131A,#0E1113BA),url(${import.meta.env.BASE_URL}art/operations-bay.webp)`}}>
+    <nav className="game-nav" aria-label="게임 메뉴"><b>DRAFT ORDER</b><span>북부 연구동 / 폭탄전</span>{playing&&<button onClick={()=>setPlaying(false)}>작전실</button>}</nav>
+    {playing?<TacticalMatch homeTeam={homeTeam} awayTeam={awayTeam} quick={quick} onBack={()=>setPlaying(false)}/>
+      :<GameLobby team={homeTeam} onStart={fast=>{setQuick(fast);setPlaying(true);}}/>}
+  </main>;
 }
 
 function AppFrame({

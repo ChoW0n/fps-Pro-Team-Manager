@@ -8,6 +8,7 @@ export interface MatchRoundRecord {
 }
 export interface TacticalMatchState {
   seed: number;
+  quick?: boolean;
   rounds: MatchRoundRecord[];
 }
 
@@ -24,9 +25,9 @@ export function matchScore(state: TacticalMatchState): [number, number] {
 export function nextMatchRound(state: TacticalMatchState) {
   const score = matchScore(state);
   const round = score[0] + score[1] + 1;
-  const overtime = Math.min(...score) >= 6;
-  const finished = Math.max(...score) >= (overtime ? 8 : 7);
-  const homeSide: OperatorSide = round <= 6 || (round > 12 && round % 2 === 1) ? '공격' : '수비';
+  const overtime = !state.quick && Math.min(...score) >= 6;
+  const finished = Math.max(...score) >= (state.quick ? 2 : overtime ? 8 : 7);
+  const homeSide: OperatorSide = state.quick ? (round%2===1?'공격':'수비') : round <= 6 || (round > 12 && round % 2 === 1) ? '공격' : '수비';
   // 무승부 재경기도 다른 시드를 가지며, 같은 경기 이력에서는 언제나 같은 입력입니다.
   const seed = (state.seed + Math.imul(state.rounds.length + 1, 2654435761)) >>> 0;
   return { round, homeSide, seed, score, finished, overtime, attempt: state.rounds.length };

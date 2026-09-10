@@ -1,7 +1,9 @@
-import { memo, type ReactElement } from 'react';
+import { memo, useId, useMemo, type ReactElement } from 'react';
+import { breachWalls } from '../domain/realtime/breachGeometry';
+import { visionPolygon } from '../domain/realtime/spectatorView';
 import type { BombState } from '../domain/realtime/BombObjective';
 import type { Operator } from '../domain/Operator';
-import type { RealtimeEvent, RealtimeSnapshot } from '../domain/realtime/TacticalRealtimeSimulation';
+import type { RealtimeEvent, RealtimeSnapshot, RealtimeGadget, RealtimeBreach } from '../domain/realtime/TacticalRealtimeSimulation';
 import type { TacticalMapDefinition } from '../domain/tacticalMaps';
 import { operatorVisual, OPERATOR_SCALE, TEMPORARY_OPERATOR_SCALE } from '../domain/operatorVisuals';
 
@@ -12,7 +14,16 @@ export type BattleUnit = RealtimeSnapshot['units'][number];
 /** 배포 하위 경로에서도 같은 정적 인물 파일을 읽습니다. */
 export function portraitUrl(callSign: string): string | undefined {
   const visual = operatorVisual(callSign);
-  return visual ? ASSET_ROOT + visual.portrait : undefined;
+  return visual?.portrait ? ASSET_ROOT + visual.portrait : undefined;
+}
+
+/** 편성과 선수 카드에서도 같은 고유 원화를 재사용합니다. */
+export function OperatorArt({callSign}: {callSign:string}): ReactElement {
+  const visual=operatorVisual(callSign),portrait=portraitUrl(callSign),clipId=useId().replaceAll(':','');
+  return portrait?<img src={portrait} alt={`${callSign} 오퍼레이터`}/>:visual?.region?<svg viewBox={`0 0 ${visual.width} ${visual.height}`} role="img" aria-label={`${callSign} 장비 원화`}>
+    <defs><clipPath id={clipId}><rect width={visual.width} height={visual.height}/></clipPath></defs>
+    <g clipPath={`url(#${clipId})`}><image href={ASSET_ROOT+visual.sprite} x={-visual.region[0]} y={-visual.region[1]} width="1254" height="1254"/></g>
+  </svg>:<span>{callSign}</span>;
 }
 
 /** 미제작 인물의 임시 몸체와 주무기 종류를 표현합니다. 제조사 도면은 아닙니다. */
@@ -47,23 +58,35 @@ function Soldier({ unit, operator, selected, onSelect }: {
   unit: BattleUnit; operator: Operator; selected: boolean; onSelect: (id: string) => void;
 }): ReactElement {
   const visual = operatorVisual(unit.callSign);
+  const clipId=useId().replaceAll(':','');
   const color = SIDE_COLOR[unit.side];
   return <g role="button" tabIndex={0} aria-label={`${unit.callSign} 선수 선택`} aria-pressed={selected}
     data-unit-id={unit.id} className={`battle-soldier ${unit.alive ? '' : 'is-out'}`}
     onClick={() => onSelect(unit.id)} onKeyDown={(event) => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); onSelect(unit.id); } }}>
     <title>{`${unit.callSign} · ${unit.weaponName} · ${unit.goal}${visual ? '' : ' · 임시 외형'}`}</title>
     <g transform={`translate(${unit.position.x} ${unit.position.y})`}>
-      <circle r="17" fill="transparent" stroke={selected ? '#FFC53D' : color} strokeWidth={selected ? 2.5 : 1.3} strokeDasharray={unit.side === '수비' ? '5 4' : undefined} />
+      {(unit.alive||selected)&&<circle r="17" fill="transparent" stroke={selected ? '#FFC53D' : color} strokeWidth={selected ? 2.5 : 1.3} strokeDasharray={unit.side === '수비' ? '5 4' : undefined} />}
       <g transform={`rotate(${unit.facing * 180 / Math.PI})`}>
-        {visual ? <image href={ASSET_ROOT + visual.sprite} x={-visual.pivot[0] * OPERATOR_SCALE} y={-visual.pivot[1] * OPERATOR_SCALE}
+        {visual?.region ? <g>
+          <defs><clipPath id={clipId}><rect x={-visual.pivot[0]*OPERATOR_SCALE} y={-visual.pivot[1]*OPERATOR_SCALE} width={visual.width*OPERATOR_SCALE} height={visual.height*OPERATOR_SCALE}/></clipPath></defs>
+          <g clipPath={`url(#${clipId})`}><image href={ASSET_ROOT+visual.sprite} x={-(visual.region[0]+visual.pivot[0])*OPERATOR_SCALE} y={-(visual.region[1]+visual.pivot[1])*OPERATOR_SCALE} width={1254*OPERATOR_SCALE} height={1254*OPERATOR_SCALE}/></g>
+        </g> : visual ? <image href={ASSET_ROOT + visual.sprite} x={-visual.pivot[0] * OPERATOR_SCALE} y={-visual.pivot[1] * OPERATOR_SCALE}
           width={visual.width * OPERATOR_SCALE} height={visual.height * OPERATOR_SCALE} /> : <g transform={`scale(${TEMPORARY_OPERATOR_SCALE})`}><TemporaryOperator operator={operator} /></g>}
+        {unit.shieldRaised&&<g aria-label="실제 전방 방패 방어"><path d="M15 -19 L23 -16 L23 17 L15 20 Z" fill="#4F606B" stroke="#BCC6C9" strokeWidth="1.2"/><path d="M18 -10 L22 -9 L22 3 L18 4 Z" fill="#172C3B" stroke="#788E9A" strokeWidth=".6"/></g>}
         <path d="M-5 -15 L0 -15 L0 -12 L-5 -12 Z" fill={color} />
       </g>
       {!unit.alive && <path d="M-7 -7 L7 7 M7 -7 L-7 7" stroke="#E5484D" strokeWidth="3" />}
       {unit.reloadRemaining > 0 && <text y="-29" textAnchor="middle" className="battle-label reload-label">장전 {unit.reloadRemaining.toFixed(1)}</text>}
-       <text y="30" textAnchor="middle" className="battle-label">{unit.callSign}</text>
+       {unit.alive&&<text y="30" textAnchor="middle" className="battle-label">{unit.callSign}</text>}
     </g>
   </g>;
+}
+
+/** 투척 시작·착지 시각에 정의된 가젯 궤적만 그립니다. */
+function gadgetPosition(gadget:RealtimeGadget,time:number):{x:number;y:number} {
+  if(!gadget.from||gadget.thrownAt===undefined||gadget.landedAt===undefined||time>=gadget.landedAt)return gadget.position;
+  const amount=Math.max(0,Math.min(1,(time-gadget.thrownAt)/(gadget.landedAt-gadget.thrownAt)));
+  return {x:gadget.from.x+(gadget.position.x-gadget.from.x)*amount,y:gadget.from.y+(gadget.position.y-gadget.from.y)*amount};
 }
 
 /** 문 폭과 축을 시각 표식의 사각형으로 변환합니다. */
@@ -76,10 +99,11 @@ function portalRect(portal: TacticalMapDefinition['portals'][number]): { x: numb
 /** 충돌 데이터의 방·문·벽·엄폐 영역을 같은 지도 데이터로 그립니다. */
 const Interior = memo(function Interior({ map, detail }: { map: TacticalMapDefinition; detail: boolean }): ReactElement {
   return <g>
-    <rect width={map.width} height={map.height} fill="#20292c" />
+    <defs><pattern id={`floor-${detail?'detail':'small'}`} width="80" height="80" patternUnits="userSpaceOnUse"><rect width="80" height="80" fill="#56636A"/><path d="M0 0 H80 V80" fill="none" stroke="#859296" strokeWidth="1" opacity=".3"/><path d="M4 4 H76" fill="none" stroke="#A3ACAA" strokeWidth="1" opacity=".15"/></pattern></defs>
+    <rect width={map.width} height={map.height} fill="#202B30" />
     <rect {...map.building} fill="#535d61" />
     {map.rooms.map((room) => <g key={room.id}>
-      <rect {...room.rect} fill={room.kind === 'yard' ? '#303a3c' : room.kind === 'corridor' ? '#666d6c' : '#4c5a61'} />
+      <rect {...room.rect} fill={room.kind === 'yard' ? '#303D40' : room.kind === 'corridor' ? '#747A75' : `url(#floor-${detail?'detail':'small'})`} />
       {detail && room.kind !== 'yard' && <g stroke="#82908f" opacity=".16" strokeWidth="1">
         {Array.from({ length: Math.floor(room.rect.width / 80) }, (_, index) => <path key={index} d={`M${room.rect.x + (index + 1) * 80} ${room.rect.y} v${room.rect.height}`} />)}
       </g>}
@@ -104,7 +128,7 @@ const Interior = memo(function Interior({ map, detail }: { map: TacticalMapDefin
       {[wall.from, wall.to].map((point, index) => <rect key={index} x={point.x - 6} y={point.y - 6} width="12" height="12" fill="#d1d3c9" />)}
     </g>)}
     {map.covers.map((cover, index) => <g key={cover.id}>
-      <rect {...cover.rect} fill="#202a30" stroke="#a2aaa4" strokeWidth="2" />
+      <rect x={cover.rect.x+9} y={cover.rect.y+12} width={cover.rect.width} height={cover.rect.height} fill="#10181CB0"/><rect {...cover.rect} fill="#202a30" stroke="#a2aaa4" strokeWidth="2" />
       <rect x={cover.rect.x + 4} y={cover.rect.y + 4} width={cover.rect.width - 8} height={cover.rect.height - 8} fill={index === 3 ? '#93836c' : '#48545a'} />
       {Array.from({ length: Math.floor((cover.rect.width > cover.rect.height ? cover.rect.width : cover.rect.height) / 24) }, (_, n) => cover.rect.width > cover.rect.height
         ? <path key={n} d={`M${cover.rect.x + 12 + n * 24} ${cover.rect.y + 6} v${cover.rect.height - 12}`} stroke="#273237" strokeWidth="2" />
@@ -130,19 +154,27 @@ const Interior = memo(function Interior({ map, detail }: { map: TacticalMapDefin
 });
 
 /** 전체 지도와 확대 화면이 같은 스냅샷·사건 기록을 그립니다. */
-export function TacticalBattlefield({ map, units, operators, events, time, objective, selectedId, onSelect, viewBox, miniature = false }: {
+export function TacticalBattlefield({ map:baseMap, units, operators, events, time, objective, selectedId, onSelect, viewBox, visionUnits, gadgets=[], breaches=[], miniature = false }: {
   map: TacticalMapDefinition; units: BattleUnit[]; operators: Map<string, Operator>; events: RealtimeEvent[];
-  time: number; objective?: BombState; selectedId: string | null; onSelect: (id: string) => void; viewBox?: string; miniature?: boolean;
+  time: number; objective?: BombState; selectedId: string | null; onSelect: (id: string) => void; viewBox?: string; visionUnits?: BattleUnit[]; gadgets?:RealtimeGadget[];breaches?:RealtimeBreach[]; miniature?: boolean;
 }): ReactElement {
+  const maskId=useId().replaceAll(':','');
+  const map=useMemo(()=>({...baseMap,walls:breaches.reduce((walls,breach)=>breachWalls(walls,breach.wallId,breach.position,breach.width),baseMap.walls)}),[baseMap,breaches]);
+  const smokes=useMemo(()=>gadgets.filter(gadget=>gadget.kind==='smoke'&&time>=gadget.activeAt&&time<gadget.until),[gadgets,time]);
+  const sight=useMemo(()=>visionUnits?.map(unit=>({id:unit.id,points:visionPolygon(unit,map,smokes),position:unit.position})),[visionUnits,map,smokes]);
   return <svg className={miniature ? 'battle-mini-map' : 'battlefield'} viewBox={viewBox ?? `0 0 ${map.width} ${map.height}`}
     aria-label={miniature ? '전체 전황 전략 보기' : '인물과 총기가 표시되는 실시간 경기'}>
     <Interior map={map} detail={!miniature && Boolean(viewBox && Number(viewBox.split(' ')[2]) < map.width / 2)} />
+    {visionUnits&&<><defs><mask id={maskId}><rect width={map.width} height={map.height} fill="white"/>{sight!.map(unit=><g key={unit.id}><polygon points={unit.points} fill="black"/><circle cx={unit.position.x} cy={unit.position.y} r="60" fill="black"/></g>)}</mask></defs><rect width={map.width} height={map.height} fill="#03080D" opacity=".86" mask={`url(#${maskId})`} pointerEvents="none"/></>}
     {objective?.devicePosition && <g transform={`translate(${objective.devicePosition.x} ${objective.devicePosition.y})`} aria-label="실제 해체 장치 위치">
       <rect x="-12" y="-9" width="24" height="18" rx="2" fill="#242d31" stroke="#FFC53D" strokeWidth="2" />
       <rect x="-7" y="-5" width="10" height="7" fill={objective.activeUntil ? '#2FD4C4' : '#8A959B'} />
       <path d="M-5 -9 v-4 h10 v4" fill="none" stroke="#c1c8c5" strokeWidth="2" />
       {!miniature && <text y="-20" textAnchor="middle" className="battle-label">{objective.phase === 'dropped' ? '유실 장치' : objective.phase === 'planting' ? '설치 중' : '해체 장치'}</text>}
     </g>}
+    {gadgets.filter(gadget=>gadget.until>time).map(gadget=><g key={gadget.id} transform={`translate(${gadgetPosition(gadget,time).x} ${gadgetPosition(gadget,time).y})`} aria-label={gadget.kind==='smoke'?'실제 연막':gadget.kind==='camera'?'관측 카메라':'수류탄 신관'}>
+      {gadget.kind==='smoke'&&time>=gadget.activeAt?<g fill="#A7B4B8" opacity=".94"><circle r={gadget.radius} fill="#7C919A"/>{[-1,0,1].map((n,index)=><ellipse key={n} cx={n*gadget.radius*.35} cy={index%2?20:-13} rx={gadget.radius*.65} ry={gadget.radius*.72} opacity=".65"/>)}</g>:gadget.kind==='camera'?<g><path d="M-12 -6 h20 v12 h-20 Z M8 -4 l6 -5 v18 l-6 -5 Z" fill="#53676F" stroke="#9CB0B9" strokeWidth="2"/><circle cx="0" cy="0" r="4" fill="#6EA8FF"/></g>:gadget.kind==='grenade'?<g><circle r="7" fill="#63724B" stroke="#FFC53D" strokeWidth="2"/><circle r="18" fill="none" stroke="#F0873C" strokeWidth="2" strokeDasharray={`${Math.max(0,(gadget.activeAt-time)*70)} 120`}/></g>:null}
+    </g>)}
     {units.map(unit => {
       const operator = operators.get(unit.id);
       return miniature ? <circle key={unit.id} cx={unit.position.x} cy={unit.position.y} r={unit.id === selectedId ? 22 : 15}
