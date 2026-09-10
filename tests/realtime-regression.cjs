@@ -1,0 +1,142 @@
+// 설치된 TypeScript만 사용해 실제 앱 엔진을 Node에서 재실행합니다.
+const fs = require('node:fs');
+const path = require('node:path');
+const assert = require('node:assert/strict');
+const ts = require('typescript');
+require.extensions['.ts'] = (module, filename) => {
+  const output = ts.transpileModule(fs.readFileSync(filename, 'utf8'), {
+    compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022, esModuleInterop: true, resolveJsonModule: true },
+  });
+  module._compile(output.outputText, filename);
+};
+const root = '../artifacts/draft-order-player-generator/src/';
+const { TacticalRealtimeSimulation, realtimeUnitId } = require(root + 'domain/realtime/TacticalRealtimeSimulation.ts');
+const { Player } = require(root + 'domain/Player.ts');
+const { OPERATORS } = require(root + 'domain/Operator.ts');
+const { BREACHLINE_MAP } = require(root + 'domain/tacticalMaps.ts');
+const { muzzlePosition, operatorVisual, OPERATOR_SCALE } = require(root + 'domain/operatorVisuals.ts');
+const results = [];
+// 고정 선수 입력을 만들어 생성기 난수와 엔진 난수를 분리합니다.
+function entry(operator, index, side = operator.side) {
+  return { operator, side, teamName: side, player: new Player(`선수${index}`, `검사${index}`, operator.role, 20,
+    75,75,75,75,75,[operator],20,75,65,70,70,70,70) };
+}
+function fixture(seed=41, seconds=90) {
+  return { attackers: OPERATORS.filter(o=>o.side==='공격').slice(0,5).map((o,i)=>entry(o,i)),
+    defenders: OPERATORS.filter(o=>o.side==='수비').slice(0,5).map((o,i)=>entry(o,i+5)), seed, maxSeconds:seconds };
+}
+function test(name, fn) {
+  const started = performance.now();
+  try { fn(); results.push({name, pass:true, ms:Math.round(performance.now()-started)}); console.log('PASS', name); }
+  catch(error) { results.push({name, pass:false, error:error.message}); console.error('FAIL',name,error.message); }
+}
+const distance = (a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
+let base;
+test('실제 5대5 엔진 90초 종료',()=>{base=new TacticalRealtimeSimulation().run(fixture());assert(base.snapshots.length>0); assert(base.executionTime<=90);});
+test('같은 시드: run / createSession 사건·스냅샷·결과 동일',()=>{
+  const session=new TacticalRealtimeSimulation().createSession(fixture());
+  for(let i=0;i<2000&&!session.isComplete;i++) session.step();
+  assert.deepEqual(session.getResult(),base);
+});
+test('같은 명령 틱: generator / session 동일',()=>{
+  const input=fixture(51,20), engine=new TacticalRealtimeSimulation();
+  const runner=engine.runTicks(input), session=engine.createSession(input);
+  let next=runner.next();session.step();
+  for(let i=1;i<220&&!next.done;i++){
+    const command=i===15?{side:'공격',mode:'retreat',label:'복귀 검사'}:undefined;
+    next=runner.next(command);session.step(command);
+  }
+  assert.deepEqual(next.value,session.getResult());
+  assert.equal(next.value.events.filter(e=>e.type==='objective').length,1);
+});
+test('모든 초기 배치와 이동 선분이 벽·엄폐 반경 밖',()=>{
+  const engine=new TacticalRealtimeSimulation();
+  for(let i=0;i<base.snapshots.length;i++)for(const u of base.snapshots[i].units){
+    assert(engine.canStand(u.position,BREACHLINE_MAP),`illegal ${u.callSign} ${JSON.stringify(u.position)}`);
+    if(i)assert(engine.canTraverse(base.snapshots[i-1].units.find(v=>v.id===u.id).position,u.position,BREACHLINE_MAP),`cross ${u.callSign}`);
+  }
+});
+test('아군 몸 반경 36 이상 유지',()=>{
+  for(const s of base.snapshots)for(let i=0;i<s.units.length;i++)for(let j=i+1;j<s.units.length;j++){
+    const a=s.units[i],b=s.units[j];
+    if(a.alive&&b.alive&&a.side===b.side) assert(distance(a.position,b.position)>=36-1e-6,`overlap ${s.time}: ${a.callSign}/${b.callSign}`);
+  }
+});
+test('사망자 이동·발사·장전 재개 금지',()=>{
+  for(const event of base.events.filter(e=>e.type==='death')){
+    const states=base.snapshots.filter(s=>s.time>=event.time).map(s=>s.units.find(u=>u.id===event.target));
+    for(const u of states){assert.equal(u.action,'dead');assert.deepEqual(u.position,states[0].position);assert.equal(u.hp,0);}
+    assert(!base.events.some(e=>e.actor===event.target&&e.time>=event.time&&['shot','reload'].includes(e.type)));
+  }
+});
+test('탄창 소모·장전·탄약 보존 및 장전 중 사격 금지',()=>{
+  let count=0;
+  const input=fixture(81,45);
+  [...input.attackers,...input.defenders].forEach(u=>{u.operator={...u.operator,firearms:['C14 팀버울프']};});
+  const reloadRun=new TacticalRealtimeSimulation().run(input);
+  for(const [index, first] of reloadRun.snapshots[0].units.entries()){
+    for(const snap of reloadRun.snapshots){const u=snap.units[index]; const shots=reloadRun.events.filter(e=>e.type==='shot'&&e.actor===u.id&&e.time<=snap.time).length;
+      assert.equal(u.ammo+u.reserveAmmo+shots,first.magazineSize+first.reserveAmmo);assert(u.ammo>=0&&u.ammo<=u.magazineSize);
+      if(u.reloadRemaining>0){count++;assert(!reloadRun.events.some(e=>e.type==='shot'&&e.actor===u.id&&e.time===snap.time));}
+    }
+  }
+  assert(count>0,'장전 상황이 검증 입력에서 발생하지 않음');
+});
+test('발사 원점 = 동일 틱의 회전된 실제 총구',()=>{
+  const engine=new TacticalRealtimeSimulation();
+  for(const e of base.events.filter(e=>e.type==='shot')){
+    const u=base.snapshots.find(s=>s.time===e.time).units.find(u=>u.id===e.actor);
+    assert(distance(muzzlePosition(u.callSign,u.position,u.facing),e.position)<1e-6);
+    assert(engine.hasLineOfSight(u.position,e.position,BREACHLINE_MAP));
+    assert(engine.hasLineOfSight(e.position,e.targetPosition,BREACHLINE_MAP));
+    assert.equal(e.blocked,false);
+  }
+});
+test('탄착은 발사 당시 기록된 지점에만 발생',()=>{
+  for(const impact of base.events.filter(e=>e.type==='impact')) assert(base.events.some(shot=>shot.type==='shot'&&shot.actor===impact.actor&&shot.target===impact.target&&shot.time<=impact.time&&distance(shot.targetPosition,impact.position)<1e-8));
+});
+test('관측 보고 시각·위치 보존과 아군 소리 오인 방지',()=>{
+  let shared=0;
+  for(const snap of base.snapshots)for(const unit of snap.units){
+    if(!unit.alive)continue;
+    const k=unit.knowledge;
+    if(k.lastKnownAt!==undefined){assert(k.lastKnownAt<=snap.time);assert(snap.time-k.lastKnownAt<=6.1);}
+    if(k.source?.startsWith('team-')){shared++;assert(k.reportedBy!==unit.id); assert(base.events.some(e=>e.type==='intel'&&e.actor===k.reportedBy&&e.time<=snap.time&&distance(e.position,k.lastKnownPosition)<1e-6));}
+  }
+  assert(shared>0,'팀 보고 사례 필요');
+});
+test('같은 콜사인도 별도 참가자·능력치·교전 기록',()=>{
+  const a=entry(OPERATORS[0],0), d=entry(OPERATORS[0],1,'수비');
+  assert.notEqual(realtimeUnitId(a,0),realtimeUnitId(d,1));
+  const result=new TacticalRealtimeSimulation().run({attackers:[a],defenders:[d],seed:3,maxSeconds:15});
+  assert.equal(new Set(result.snapshots[0].units.map(u=>u.id)).size,2);
+  for(const e of result.engagements)assert.notEqual(e.attackerId,e.defenderId);
+});
+test('서로 떨어진 공선 선분은 시야를 막지 않음',()=>{
+  const map={...BREACHLINE_MAP,covers:[],walls:[{id:'test',kind:'interior',from:{x:700,y:100},to:{x:800,y:100}}]};
+  assert(new TacticalRealtimeSimulation().hasLineOfSight({x:100,y:100},{x:200,y:100},map));
+});
+test('설계 경유점·수비 초기 위치는 모두 통행 가능',()=>{
+  const engine=new TacticalRealtimeSimulation();
+  for(const route of BREACHLINE_MAP.attackerRoutes)for(const point of route.points)assert(engine.canStand(point,BREACHLINE_MAP),route.id);
+  for(const setup of BREACHLINE_MAP.defenderSetups)assert(engine.canStand(setup.position,BREACHLINE_MAP),setup.id);
+});
+test('엄폐물 모서리 경로의 모든 선분 통행 가능',()=>{
+  const engine=new TacticalRealtimeSimulation(), nodes=engine.buildNavigationNodes(BREACHLINE_MAP);
+  for(const route of BREACHLINE_MAP.attackerRoutes){
+    const path=engine.findPath(route.points[0],route.points.at(-1),BREACHLINE_MAP,nodes);
+    assert(path.length>0,route.id);let prior=route.points[0];
+    for(const point of path){assert(engine.canTraverse(prior,point,BREACHLINE_MAP));prior=point;}
+  }
+});
+test('세 원화·총구 메타데이터와 정적 파일 존재',()=>{
+  for(const name of ['MAGPIE','COLLIER','해동']){const v=operatorVisual(name);assert(v);for(const f of [v.sprite,v.portrait])assert(fs.statSync(path.join(__dirname,'../artifacts/draft-order-player-generator/public/operators',f)).size>0);
+    const p=muzzlePosition(name,{x:0,y:0},Math.PI/2);assert(Math.abs(p.y-(v.muzzle[0]-v.pivot[0])*OPERATOR_SCALE)<1e-8);
+  }assert.equal(operatorVisual('REUSS'),undefined);
+});
+const report={generatedAt:new Date().toISOString(),passed:results.filter(r=>r.pass).length,total:results.length,tests:results,
+  round:base&&{duration:base.executionTime,shots:base.validation.shots,impacts:base.validation.impacts,minSeparation:base.validation.minimumTeamSeparation,winner:base.winner}};
+fs.writeFileSync(path.join(__dirname,'../validation/realtime-results.json'),JSON.stringify(report,null,2)+'\n');
+console.log(JSON.stringify(report.round));
+if(process.env.DRAFT_ORDER_DIAGNOSTICS==='1') console.log(JSON.stringify(base.snapshots.at(-1).units.map(u=>({callSign:u.callSign,alive:u.alive,position:u.position,routeStep:u.routeStep,goal:u.goal})),null,2));
+process.exitCode=report.passed===report.total?0:1;
