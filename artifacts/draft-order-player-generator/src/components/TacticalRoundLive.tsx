@@ -9,7 +9,7 @@ import { operatorVisual } from '../domain/operatorVisuals';
 import { TacticalBattlefield, portraitUrl, SIDE_COLOR } from './TacticalBattlefield';
 import './tacticalBroadcast.css';
 
-export interface TacticalRoundLiveProps { input: TacticalRealtimeSimulationInput; map?: TacticalMapDefinition }
+export interface TacticalRoundLiveProps { input: TacticalRealtimeSimulationInput; map?: TacticalMapDefinition; roundNumber?: number; directorSide?: OperatorSide; onComplete?: (result: TacticalRealtimeResult) => void }
 const ACTIONS = { approach: '진입 중', search: '정보 확인', hold: '각 유지', 'take-cover': '엄폐', reposition: '재배치', aim: '조준', fire: '사격', reload: '장전', dead: '전투 이탈', plant: '장치 설치', disable: '장치 무력화' };
 
 /** 남은 라운드 시간을 방송용 분·초로 표시합니다. */
@@ -19,7 +19,9 @@ function clock(seconds: number): string {
 }
 
 /** 틱 소비·선수 선택·카메라 상태를 분리해 화면 조작이 난수 순서를 바꾸지 않게 합니다. */
-export function TacticalRoundLive({ input, map = BREACHLINE_MAP }: TacticalRoundLiveProps): ReactElement {
+export function TacticalRoundLive({ input, map = BREACHLINE_MAP, roundNumber = 1, directorSide = '공격', onComplete }: TacticalRoundLiveProps): ReactElement {
+  const completeRef = useRef(onComplete);
+  completeRef.current = onComplete;
   const [tick, setTick] = useState<RealtimeTick | null>(null);
   const [events, setEvents] = useState<RealtimeEvent[]>([]);
   const [result, setResult] = useState<TacticalRealtimeResult | null>(null);
@@ -39,11 +41,14 @@ export function TacticalRoundLive({ input, map = BREACHLINE_MAP }: TacticalRound
   const operators = useMemo(() => new Map([...participants].map(([id, unit]) => [id, unit.operator])), [participants]);
 
   useEffect(() => {
+    let reported = false;
     const session = new TacticalRealtimeSimulation(map).createSession(input);
     sessionRef.current = session;
     orders.current = [];
     setEvents([]); setResult(null); setContact(false); setLastOrder('자율 작전 진행');
-    setSelectedId(realtimeUnitId(input.attackers[0], 0)); setAutoCameraId(realtimeUnitId(input.attackers[0], 0)); cameraSince.current = 0; setPaused(false);
+    const initialUnit = directorSide === '공격' ? input.attackers[0] : input.defenders[0];
+    const initialIndex = directorSide === '공격' ? 0 : input.attackers.length;
+    setSelectedId(realtimeUnitId(initialUnit, initialIndex)); setAutoCameraId(realtimeUnitId(input.attackers[0], 0)); cameraSince.current = 0; setPaused(false);
     /** 세션이 만든 틱만 반영하며 사건 버퍼와 카메라는 엔진에 되먹이지 않습니다. */
     const consume = (): void => {
       const next = session.step(orders.current.shift());
@@ -51,7 +56,11 @@ export function TacticalRoundLive({ input, map = BREACHLINE_MAP }: TacticalRound
         setTick(next);
         if (next.events.some(event => event.type === 'shot')) setContact(true);
         setEvents(previous => [...previous, ...next.events].slice(-240));
-      } else setResult(session.getResult());
+      } else {
+        const completed = session.getResult();
+        setResult(completed);
+        if (completed && !reported) { reported = true; completeRef.current?.(completed); }
+      }
     };
     consume();
     const timer = window.setInterval(() => {
@@ -59,7 +68,7 @@ export function TacticalRoundLive({ input, map = BREACHLINE_MAP }: TacticalRound
       if (!controls.current.paused) for (let index = 0; index < controls.current.speed && !session.isComplete; index += 1) consume();
     }, 100);
     return () => { window.clearInterval(timer); sessionRef.current = null; };
-  }, [input, map]);
+  }, [input, map, directorSide]);
 
   const units = tick?.snapshot.units ?? [];
   const time = tick?.time ?? 0;
@@ -91,7 +100,7 @@ export function TacticalRoundLive({ input, map = BREACHLINE_MAP }: TacticalRound
   /** 명령은 다음 예정 틱에 적용하며 클릭 자체가 경기 시간을 전진시키지 않습니다. */
   function issueOrder(mode: TacticalDirectorCommand['mode'], label: string, routeIndex?: number): void {
     if (sessionRef.current?.isComplete) return;
-    orders.current.push({ side: '공격', mode, label, routeIndex });
+    orders.current.push({ side: directorSide, mode, label, routeIndex });
     setLastOrder(`${label} · 다음 틱 전달`);
   }
   /** 선택은 참가자 ID에만 연결하고 확대 시 해당 선수의 실제 위치를 추적합니다. */
@@ -107,7 +116,7 @@ export function TacticalRoundLive({ input, map = BREACHLINE_MAP }: TacticalRound
   }
 
   return <section className="broadcast" aria-label="실시간 전술 FPS 라운드 중계" data-version="bomb-ai-20260910-v2">
-    <header className="broadcast-heading"><div><span className="broadcast-eyebrow">DRAFT ORDER / LIVE MATCH</span><h1>북부 연구동</h1></div><div className="broadcast-meta"><span>ROUND 01 · {phase}</span><b>{result ? 'FINAL' : paused ? 'PAUSED' : 'LIVE'}</b></div></header>
+    <header className="broadcast-heading"><div><span className="broadcast-eyebrow">DRAFT ORDER / LIVE MATCH</span><h1>북부 연구동</h1></div><div className="broadcast-meta"><span>ROUND {String(roundNumber).padStart(2, '0')} · {phase}</span><b>{result ? 'FINAL' : paused ? 'PAUSED' : 'LIVE'}</b></div></header>
     <div className="broadcast-scoreboard">
       {(['공격', '수비'] as OperatorSide[]).map((side, index) => <div key={side} className={`broadcast-team team-${index}`}>
         <small style={{color:SIDE_COLOR[side]}}>{side === '공격' ? 'ATK / 공격' : 'DEF / 수비'}</small>
@@ -160,12 +169,12 @@ export function TacticalRoundLive({ input, map = BREACHLINE_MAP }: TacticalRound
       </button>)}
     </div>)}</div>
     <div className="broadcast-bottom">
-      <section className="broadcast-orders" aria-label="감독 지시"><div className="broadcast-section-title"><b>감독 지시 / 공격팀</b><small>{lastOrder}</small></div>
-        <fieldset disabled={Boolean(result)}><button onClick={() => issueOrder('push','밀어붙여라')}>밀어붙여라</button><button onClick={() => issueOrder('hold','각을 잡아라')}>각을 잡아라</button><button onClick={() => issueOrder('retreat','물러나라')}>물러나라</button><button onClick={() => issueOrder('route','북쪽 진입',0)}>북쪽 진입</button><button onClick={() => issueOrder('route','서문 진입',1)}>서문 진입</button><button onClick={() => issueOrder('route','남쪽 진입',2)}>남쪽 진입</button></fieldset>
+      <section className="broadcast-orders" aria-label="감독 지시"><div className="broadcast-section-title"><b>감독 지시 / {directorSide}팀</b><small>{lastOrder}</small></div>
+        <fieldset disabled={Boolean(result)}><button onClick={() => issueOrder('push','밀어붙여라')}>밀어붙여라</button><button onClick={() => issueOrder('hold','각을 잡아라')}>각을 잡아라</button><button onClick={() => issueOrder('retreat','물러나라')}>물러나라</button>{directorSide === '공격' && <><button onClick={() => issueOrder('route','북쪽 진입',0)}>북쪽 진입</button><button onClick={() => issueOrder('route','서문 진입',1)}>서문 진입</button><button onClick={() => issueOrder('route','남쪽 진입',2)}>남쪽 진입</button></>}</fieldset>
       </section>
       <section className="broadcast-events" aria-label="현장 사건"><div className="broadcast-section-title"><b>현장 기록</b><small>경기 시각</small></div>{logs.map((event,index) => <p key={`${event.time}-${event.type}-${index}`} className={event.type === 'death' ? 'event-death' : ''}><time>{clock(event.time)}</time><span>{eventText(event)}</span></p>)}</section>
     </div>
     {result && <section className="broadcast-result" aria-label="라운드 결과"><b>{result.winner} {result.winner === '무승부' ? '' : '승리'}</b><span>{result.objective.reason && BOMB_RESULT_LABELS[result.objective.reason]} · {clock(result.executionTime)} · 공격 {units.filter(unit => unit.alive && unit.side === '공격').length}명 / 수비 {units.filter(unit => unit.alive && unit.side === '수비').length}명 생존</span></section>}
-    <p className="broadcast-build-note">폭탄전 단일 라운드 · 공격은 해체 장치를 설치·엄호하고 수비는 폭탄을 지키거나 장치를 무력화합니다. MAGPIE·COLLIER·해동은 준비된 정지 원화, 나머지는 임시 외형입니다. 총기 원화·수치는 고증 검증 전입니다.</p>
+    <p className="broadcast-build-note">폭탄전 · 공격은 해체 장치를 설치·엄호하고 수비는 폭탄을 지키거나 장치를 무력화합니다. MAGPIE·COLLIER·해동은 준비된 정지 원화, 나머지는 임시 외형입니다. 총기 원화·수치는 고증 검증 전입니다.</p>
   </section>;
 }
