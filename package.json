@@ -10,8 +10,9 @@
     "test:realtime": "node tests/realtime-regression.cjs",
     "test:bomb": "node tests/bomb-objective.cjs",
     "test:traffic": "node tests/navigation-traffic.cjs",
-    "test:tactical": "node tests/bomb-objective.cjs && node tests/navigation-traffic.cjs && node tests/realtime-regression.cjs && node tests/preparation-operation.cjs",
-    "test:preparation": "node tests/preparation-operation.cjs"
+    "test:tactical": "node tests/bomb-objective.cjs && node tests/navigation-traffic.cjs && node tests/realtime-regression.cjs && node tests/preparation-operation.cjs && node tests/tactical-match.cjs",
+    "test:preparation": "node tests/preparation-operation.cjs",
+    "test:match": "node tests/tactical-match.cjs"
   },
   "private": true,
   "dependencies": {
