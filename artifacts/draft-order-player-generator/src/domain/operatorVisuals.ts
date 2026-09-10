@@ -1,7 +1,8 @@
 import manifest from '../../public/operators/manifest.json';
 import type { TacticalPoint } from './tacticalMaps';
 
-export const OPERATOR_SCALE = 0.145;
+/** 3600×2400 월드에서 몸통 약 24단위, 총구와 충돌 반경이 같은 게임용 비율입니다. */
+export const OPERATOR_SCALE = 0.11;
 const VISUAL_KEYS: Record<string, keyof typeof manifest> = {
   MAGPIE: 'magpie', COLLIER: 'collier', 해동: 'haedong',
 };

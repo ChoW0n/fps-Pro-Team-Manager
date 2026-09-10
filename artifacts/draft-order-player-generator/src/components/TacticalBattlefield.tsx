@@ -52,7 +52,7 @@ function Soldier({ unit, operator, selected, onSelect }: {
     onClick={() => onSelect(unit.id)} onKeyDown={(event) => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); onSelect(unit.id); } }}>
     <title>{unit.callSign} · {unit.weaponName} · {unit.goal}{visual ? '' : ' · 임시 외형'}</title>
     <g transform={`translate(${unit.position.x} ${unit.position.y})`}>
-      <circle r="23" fill="transparent" stroke={selected ? '#FFC53D' : color} strokeWidth={selected ? 2.5 : 1.3} strokeDasharray={unit.side === '수비' ? '5 4' : undefined} />
+      <circle r="17" fill="transparent" stroke={selected ? '#FFC53D' : color} strokeWidth={selected ? 2.5 : 1.3} strokeDasharray={unit.side === '수비' ? '5 4' : undefined} />
       <g transform={`rotate(${unit.facing * 180 / Math.PI})`}>
         {visual ? <image href={ASSET_ROOT + visual.sprite} x={-visual.pivot[0] * OPERATOR_SCALE} y={-visual.pivot[1] * OPERATOR_SCALE}
           width={visual.width * OPERATOR_SCALE} height={visual.height * OPERATOR_SCALE} /> : <TemporaryOperator operator={operator} />}
@@ -60,27 +60,38 @@ function Soldier({ unit, operator, selected, onSelect }: {
       </g>
       {!unit.alive && <path d="M-7 -7 L7 7 M7 -7 L-7 7" stroke="#E5484D" strokeWidth="3" />}
       {unit.reloadRemaining > 0 && <text y="-29" textAnchor="middle" className="battle-label reload-label">장전 {unit.reloadRemaining.toFixed(1)}</text>}
-      <text y="37" textAnchor="middle" className="battle-label">{unit.callSign}</text>
+       <text y="30" textAnchor="middle" className="battle-label">{unit.callSign}</text>
     </g>
   </g>;
 }
 
-/** 충돌 데이터의 벽·엄폐 영역 안에만 시설 디테일을 그립니다. */
+function portalRect(portal: TacticalMapDefinition['portals'][number]): { x: number; y: number; width: number; height: number } {
+  return portal.axis === 'horizontal'
+    ? { x: portal.center.x - portal.width / 2, y: portal.center.y - 10, width: portal.width, height: 20 }
+    : { x: portal.center.x - 10, y: portal.center.y - portal.width / 2, width: 20, height: portal.width };
+}
+
+/** 충돌 데이터의 방·문·벽·엄폐 영역을 같은 지도 데이터로 그립니다. */
 const Interior = memo(function Interior({ map }: { map: TacticalMapDefinition }): ReactElement {
   return <g>
     <rect width={map.width} height={map.height} fill="#20292c" />
-    <rect x="50" y="140" width="175" height="710" rx="5" fill="#303a3c" />
-    {[230, 370, 510, 650, 790].map(y => <path key={y} d={`M65 ${y} h45 m-10 -7 l10 7 -10 7`} fill="none" stroke="#647275" strokeWidth="3" />)}
-    <rect {...map.building} fill="#586065" />
-    <rect {...map.entryHall} fill="#626665" />
-    <rect {...map.objectiveZone} fill="#4c5559" />
-    <path d="M313 142 H677 M313 859 H677 M716 144 H1222 M716 859 H1222" stroke="#87918f" strokeWidth="3" />
-    <path d="M332 415 H668 V604 H332 Z" fill="#555d60" />
-    <text x="345" y="155" className="battle-room">OFFICE / 01</text>
-    <text x="720" y="155" className="battle-room">SERVER / 02</text>
-    <text x="345" y="855" className="battle-room">SERVICE / 03</text>
-    <text x="940" y="675" className="battle-room">CONTROL / A</text>
-    <rect x={map.objectiveZone.x + 7} y={map.objectiveZone.y + 7} width={map.objectiveZone.width - 14} height={map.objectiveZone.height - 14} fill="none" stroke="#FFC53D" strokeWidth="2" strokeDasharray="12 12" opacity=".65" />
+    {map.rooms.map((room) => <g key={room.id}>
+      <rect {...room.rect} fill={room.kind === 'yard' ? '#303a3c' : room.kind === 'corridor' ? '#5d6669' : '#586065'} />
+      <text x={room.rect.x + 20} y={room.rect.y + 34} className="battle-room">{room.label}</text>
+    </g>)}
+    <rect {...map.building} fill="none" stroke="#87918f" strokeWidth="4" />
+    {map.sites.map((site) => <g key={site.id}>
+      <rect {...site.bounds} fill="none" stroke="#FFC53D" strokeWidth="3" strokeDasharray="18 14" opacity=".8" />
+      <text x={site.bounds.x + 16} y={site.bounds.y + 28} className="battle-room">{site.label}</text>
+    </g>)}
+    {map.portals.map((portal) => <g key={portal.id}>
+      <rect {...portalRect(portal)} fill="#c7b27a" opacity=".5" stroke="#f4d88a" strokeWidth="3" />
+      <text x={portal.center.x} y={portal.center.y - 16} textAnchor="middle" className="battle-room">{portal.label}</text>
+    </g>)}
+    {map.entrances.map((entrance) => <g key={entrance.id}>
+      <line x1={entrance.outside.x} y1={entrance.outside.y} x2={entrance.inside.x} y2={entrance.inside.y} stroke="#FFC53D" strokeWidth="4" strokeDasharray="14 10" />
+      <text x={entrance.outside.x} y={entrance.outside.y - 18} textAnchor="middle" className="battle-room">{entrance.label}</text>
+    </g>)}
     {map.walls.filter(wall => wall.kind !== 'door-gap').map(wall => <g key={wall.id}>
       <line x1={wall.from.x} y1={wall.from.y} x2={wall.to.x} y2={wall.to.y} stroke="#242c30" strokeWidth="18" />
       <line x1={wall.from.x} y1={wall.from.y} x2={wall.to.x} y2={wall.to.y} stroke="#a0aaa9" strokeWidth="9" />
@@ -92,7 +103,6 @@ const Interior = memo(function Interior({ map }: { map: TacticalMapDefinition })
       {Array.from({ length: Math.floor((cover.rect.width > cover.rect.height ? cover.rect.width : cover.rect.height) / 24) }, (_, n) => cover.rect.width > cover.rect.height
         ? <path key={n} d={`M${cover.rect.x + 12 + n * 24} ${cover.rect.y + 6} v${cover.rect.height - 12}`} stroke="#273237" strokeWidth="2" />
         : <path key={n} d={`M${cover.rect.x + 6} ${cover.rect.y + 12 + n * 24} h${cover.rect.width - 12}`} stroke="#273237" strokeWidth="3" />)}
-      {index === 3 && <g fill="#18262d" stroke="#99c6d1"><rect x="990" y="436" width="36" height="19" /><rect x="1080" y="436" width="36" height="19" /></g>}
     </g>)}
   </g>;
 });
