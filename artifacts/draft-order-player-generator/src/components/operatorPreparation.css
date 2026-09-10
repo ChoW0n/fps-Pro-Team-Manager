@@ -49,3 +49,10 @@
 .op-prep-error { color:#FF8589; background:#341C20; padding:12px; }
 @media(max-width:1100px){ .op-prep-layout { grid-template-columns:210px minmax(0,1fr); } .op-prep-plan { grid-column:1/-1; display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:18px; } .op-prep-plan h2 { grid-column:1/-1; } }
 @media(max-width:650px){ .op-prep-heading { display:block; } .op-prep-heading>span { display:none; } .op-prep-layout { display:block; } .op-prep-layout>section { margin-bottom:14px; padding:14px; } .op-prep-roster { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; } .op-prep-roster h2 { grid-column:1/-1; } .op-prep-slot { margin:0; } .op-prep-plan { display:block; } .op-prep-operator-grid img,.op-prep-placeholder { height:150px; } .operator-preparation footer { flex-wrap:wrap; } .operator-preparation footer p { width:100%; order:3; } }
+
+.match-progress,.match-between-rounds {display:flex;justify-content:space-between;align-items:center;gap:20px;flex-wrap:wrap;padding:20px;background:#161A1D;color:#D6DCE0;border:1px solid #262D31;margin:16px 0;}
+.match-progress h2 {margin:8px 0;font-size:20px;}
+.match-progress h2 b {color:#FFC53D;font-variant-numeric:tabular-nums;margin:0 12px;}
+.match-progress small,.match-progress p {color:#8A959B;font-size:12px;}
+.match-between-rounds button {padding:12px 18px;background:#2FD4C4;color:#0E1113;border:0;font-weight:700;cursor:pointer;}
+.match-between-rounds button:focus-visible {outline:3px solid #FFC53D;outline-offset:3px;}
