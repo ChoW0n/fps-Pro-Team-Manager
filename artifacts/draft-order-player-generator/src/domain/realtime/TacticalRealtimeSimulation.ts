@@ -34,20 +34,28 @@ export interface TacticalDirectorCommand {
   label: string;
 }
 export interface RealtimeVector extends TacticalPoint { }
-export type RealtimeAction = 'approach' | 'search' | 'hold' | 'take-cover' | 'reposition' | 'aim' | 'fire' | 'dead';
+export type RealtimeAction = 'approach' | 'search' | 'hold' | 'take-cover' | 'reposition' | 'aim' | 'fire' | 'reload' | 'dead';
 export interface RealtimeUnitState {
   id: string; teamName: string; side: OperatorSide; callSign: string;
   position: RealtimeVector; velocity: RealtimeVector; facing: number; hp: number;
-  ammo: number; cooldown: number; goal: string; action: RealtimeAction;
+  ammo: number; magazineSize: number; reserveAmmo: number; reloadRemaining: number;
+  weaponName: string; weaponProfileNote: string;
+  cooldown: number; goal: string; action: RealtimeAction;
   routeIndex: number; routeStep: number;
-  knowledge: { lastKnownPosition?: RealtimeVector; lastKnownAt?: number; confidence: number };
+  knowledge: {
+    lastKnownPosition?: RealtimeVector;
+    lastKnownAt?: number;
+    confidence: number;
+    source?: 'self-visual' | 'self-sound' | 'team-visual' | 'team-sound';
+    reportedBy?: string;
+  };
   alive: boolean;
 }
 export interface RealtimeSnapshot {
   time: number; units: Array<RealtimeUnitState>;
 }
 export interface RealtimeEvent {
-  time: number; type: 'move' | 'sound' | 'shot' | 'impact' | 'death' | 'action' | 'objective';
+  time: number; type: 'move' | 'sound' | 'shot' | 'impact' | 'death' | 'action' | 'objective' | 'intel' | 'reload';
   actor?: string; target?: string; message: string; position?: RealtimeVector;
   targetPosition?: RealtimeVector; goal?: string; hit?: boolean; blocked?: boolean; side?: OperatorSide;
 }
@@ -93,6 +101,56 @@ interface Bullet {
   hit: boolean;
 }
 interface SoundEvent { at: number; source: RealtimeVector; kind: 'footstep' | 'gunshot'; loudness: number; owner: string; }
+interface TeamReport {
+  reporterId: string;
+  side: OperatorSide;
+  kind: 'visual' | 'sound';
+  position: RealtimeVector;
+  at: number;
+  confidence: number;
+}
+interface RealtimeWeaponProfile {
+  magazineSize: number;
+  reserveAmmo: number;
+  reloadSeconds: number;
+  note: string;
+}
+interface NavigationPlan {
+  goalKey: string;
+  points: RealtimeVector[];
+  index: number;
+}
+
+const UNIT_RADIUS = 18;
+const TEAMMATE_CLEARANCE = UNIT_RADIUS * 2.2;
+
+/** 주무기 이름을 행동용 탄창 설정에 연결하며, 수치는 게임용 임시값임을 명시합니다. */
+const WEAPON_PROFILES: Record<string, RealtimeWeaponProfile> = {
+  'L119A2 카빈': { magazineSize: 30, reserveAmmo: 90, reloadSeconds: 2.2, note: '게임용 임시 설정 · 실측값 아님' },
+  MP5SD: { magazineSize: 30, reserveAmmo: 120, reloadSeconds: 2.0, note: '게임용 임시 설정 · 실측값 아님' },
+  HK416: { magazineSize: 30, reserveAmmo: 90, reloadSeconds: 2.1, note: '게임용 임시 설정 · 실측값 아님' },
+  '타보르 X95': { magazineSize: 30, reserveAmmo: 90, reloadSeconds: 2.1, note: '게임용 임시 설정 · 실측값 아님' },
+  'SIG MPX': { magazineSize: 30, reserveAmmo: 120, reloadSeconds: 1.9, note: '게임용 임시 설정 · 실측값 아님' },
+  'AS Val 소음소총': { magazineSize: 20, reserveAmmo: 60, reloadSeconds: 2.0, note: '게임용 임시 설정 · 실측값 아님' },
+  HK417: { magazineSize: 20, reserveAmmo: 60, reloadSeconds: 2.4, note: '게임용 임시 설정 · 실측값 아님' },
+  'PSG-1 정밀소총': { magazineSize: 10, reserveAmmo: 40, reloadSeconds: 2.8, note: '게임용 임시 설정 · 실측값 아님' },
+  'FN P90': { magazineSize: 50, reserveAmmo: 150, reloadSeconds: 2.3, note: '게임용 임시 설정 · 실측값 아님' },
+  'C14 팀버울프': { magazineSize: 5, reserveAmmo: 25, reloadSeconds: 2.7, note: '게임용 임시 설정 · 실측값 아님' },
+  'K1A 기관단총': { magazineSize: 30, reserveAmmo: 90, reloadSeconds: 2.0, note: '게임용 임시 설정 · 실측값 아님' },
+  '베레타 ARX160': { magazineSize: 30, reserveAmmo: 90, reloadSeconds: 2.2, note: '게임용 임시 설정 · 실측값 아님' },
+};
+const DEFAULT_WEAPON_PROFILE: RealtimeWeaponProfile = {
+  magazineSize: 30,
+  reserveAmmo: 90,
+  reloadSeconds: 2.3,
+  note: '게임용 임시 설정 · 실측값 아님',
+};
+
+/** 현재 오퍼레이터가 실제로 배정받은 첫 번째 주무기의 임시 게임 설정을 반환합니다. */
+function weaponProfileFor(operator: Operator): { name: string; profile: RealtimeWeaponProfile } {
+  const name = operator.firearms[0] ?? '기본 주무기';
+  return { name, profile: WEAPON_PROFILES[name] ?? DEFAULT_WEAPON_PROFILE };
+}
 
 /** 고정 시드 난수 생성기입니다. 시즌 재현과 관전 재생에 사용합니다. */
 class SeededRandom {
