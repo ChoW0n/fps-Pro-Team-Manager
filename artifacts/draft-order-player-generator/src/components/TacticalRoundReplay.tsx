@@ -113,10 +113,23 @@ function segmentsIntersect(
     && ((third > 0 && fourth < 0) || (third < 0 && fourth > 0));
 }
 
-/** 중앙 내벽과 문틈을 기준으로 시야 차단을 계산합니다. */
+/** 외벽·내벽·엄폐물을 모두 포함해 실제 탄선과 같은 시야 차단을 계산합니다. */
 function hasBlockedSight(from: TacticalPoint, to: TacticalPoint, map: TacticalMapDefinition): boolean {
-  const centralWalls = map.walls.filter((wall) => wall.kind === 'interior');
-  return centralWalls.some((wall) => segmentsIntersect(from, to, wall.from, wall.to));
+  return map.walls.some((wall) => wall.kind !== 'door-gap'
+    && segmentsIntersect(from, to, wall.from, wall.to))
+    || map.covers.some((cover) => (
+      [
+        { x: cover.rect.x, y: cover.rect.y },
+        { x: cover.rect.x + cover.rect.width, y: cover.rect.y },
+        { x: cover.rect.x + cover.rect.width, y: cover.rect.y + cover.rect.height },
+        { x: cover.rect.x, y: cover.rect.y + cover.rect.height },
+      ].some((point, index, points) => segmentsIntersect(
+        from,
+        to,
+        point,
+        points[(index + 1) % points.length],
+      ))
+    ));
 }
 
 /** 라운드 데이터에서 실제로 화면에 등장하는 양 팀을 정리합니다. */
@@ -124,6 +137,14 @@ function deriveRosters(result: TacticalRoundResult, operators: readonly Operator
   attackers: Operator[];
   defenders: Operator[];
 } {
+  const recordedUnits = result.realtime?.snapshots[0]?.units;
+  if (recordedUnits?.length) {
+    const recordedCallSigns = new Set(recordedUnits.map((unit) => unit.callSign));
+    return {
+      attackers: operators.filter((operator) => operator.side === '공격' && recordedCallSigns.has(operator.callSign)),
+      defenders: operators.filter((operator) => operator.side === '수비' && recordedCallSigns.has(operator.callSign)),
+    };
+  }
   const engaged = new Set(result.engagements.flatMap((engagement) => [
     engagement.attackerCallSign,
     engagement.defenderCallSign,
@@ -164,6 +185,26 @@ function buildReplayEvents(
   result: TacticalRoundResult,
   timing: ReplayTiming,
 ): ReplayEvent[] {
+  if (result.realtime) {
+    const sideById = new Map(result.realtime.snapshots[0]?.units.map((unit) => [unit.id, unit.side]));
+    return result.realtime.events
+      .filter((event) => ['action', 'sound', 'shot', 'impact', 'death'].includes(event.type))
+      .slice(0, 180)
+      .map((event, index): ReplayEvent => ({
+        id: `realtime-${index}-${event.type}`,
+        time: event.time / Math.max(0.1, result.realtime!.executionTime) * timing.duration,
+        kind: event.type === 'action' ? '판단' : event.type === 'sound' ? '소리' : '교전',
+        headline: event.type === 'shot'
+          ? '실제 발사'
+          : event.type === 'impact'
+            ? '실제 탄착'
+            : event.type === 'death' ? '실제 사망' : event.type === 'sound' ? '실제 소리' : '실제 판단',
+        detail: event.target
+          ? `${event.message} · ${event.targetPosition ? `표적 (${event.targetPosition.x.toFixed(0)}, ${event.targetPosition.y.toFixed(0)})` : '기록된 표적'}`
+          : event.message,
+        accent: sideById.get(event.actor ?? '') === '수비' ? 'defend' : sideById.get(event.actor ?? '') === '공격' ? 'attack' : 'gold',
+      }));
+  }
   const engagementTimes = timing.engagementStarts;
   const decisionEvents = result.decisionLogs.map((log, index): ReplayEvent => ({
     id: `decision-${log.sequence}`,
@@ -183,19 +224,6 @@ function buildReplayEvents(
     detail: `${engagement.winner} 우세 · 공격 ${engagement.attackersAlive} / 수비 ${engagement.defendersAlive}`,
     accent: engagement.winner === '공격' ? 'attack' : 'defend',
   }));
-  const soundEvents = result.engagements
-    .filter((_, index) => index > 0 && index % 3 === 1)
-    .slice(0, 2)
-    .map((engagement, index): ReplayEvent => ({
-      id: `sound-${engagement.sequence}`,
-      time: (engagementTimes[engagement.sequence - 1] ?? timing.breachEnd) + 0.7,
-      kind: '소리',
-      headline: '총성 추적',
-      detail: index % 2 === 0
-        ? '첫 발의 반향을 듣고 다음 각으로 이동합니다'
-        : '발사 위치가 바뀌어 수비선이 짧게 재배치됩니다',
-      accent: 'gold',
-    }));
   const sightEvent: ReplayEvent = {
     id: 'sight-information',
     time: timing.breachEnd,
@@ -206,7 +234,7 @@ function buildReplayEvents(
       : '문틈과 소리만으로 다음 각을 읽습니다',
     accent: 'gold',
   };
-  return [...decisionEvents, sightEvent, ...soundEvents, ...engagementEvents]
+  return [...decisionEvents, sightEvent, ...engagementEvents]
     .sort((first, second) => first.time - second.time || first.id.localeCompare(second.id))
     .map((event, index) => ({ ...event, id: `${event.id}-${index}` }));
 }
@@ -217,7 +245,10 @@ function createReplayTiming(result: TacticalRoundResult): ReplayTiming {
     REPLAY_DURATION_CAP,
     Math.max(30, 18 + result.engagements.length * 5.1 + result.decisionLogs.length * 0.58),
   );
-  const searchEnd = Math.min(duration * 0.2, Math.max(5, duration * 0.16));
+  const realtimeSearchDuration = result.realtime?.validation.searchPhase.duration;
+  const searchEnd = realtimeSearchDuration !== undefined
+    ? Math.min(duration * 0.28, Math.max(3, realtimeSearchDuration / Math.max(0.1, result.realtime!.executionTime) * duration))
+    : Math.min(duration * 0.2, Math.max(5, duration * 0.16));
   const breachEnd = Math.min(duration * 0.31, searchEnd + 5.5);
   const engagementWindow = Math.max(0, duration - breachEnd - 5);
   const realtimeDuration = result.realtime?.executionTime ?? 0;
@@ -555,6 +586,45 @@ function drawProjectileBurst(
   });
 }
 
+/** 실제 AI가 남긴 발사 이벤트만 현재 재생 시각에 맞춰 그립니다. */
+function drawRecordedShots(
+  state: DynamicRenderState,
+  result: TacticalRoundResult,
+  realtimeTime: number,
+  scale: number,
+): void {
+  const events = result.realtime?.events ?? [];
+  events.filter((event) => event.type === 'shot').forEach((shot) => {
+    if (!shot.position || !shot.targetPosition) return;
+    const flightDuration = Math.max(0.18, distanceBetween(shot.position, shot.targetPosition) / 900);
+    const elapsed = realtimeTime - shot.time;
+    if (elapsed < 0 || elapsed > flightDuration) return;
+    const progress = elapsed / flightDuration;
+    const head = mixPoint(shot.position, shot.targetPosition, progress);
+    const tail = mixPoint(shot.position, shot.targetPosition, Math.max(0, progress - 0.16));
+    const shooter = events.find((event) =>
+      event.type === 'action' && event.actor === shot.actor,
+    );
+    const actorSide = result.realtime?.snapshots[0]?.units.find((unit) => unit.id === shot.actor)?.side;
+    const color = actorSide === '수비' ? DEFENDER_COLOR : ATTACKER_COLOR;
+    drawLine(state.bulletTrail, tail, head, color, 2.1 / scale, 0.92);
+    state.bulletHeads.circle(head.x, head.y, 3 / scale).fill({ color: 0xfff5c9, alpha: 0.95 });
+    if (elapsed < 0.08) {
+      state.flash.circle(shot.position.x, shot.position.y, 15 / scale).fill({ color: 0xfff2c2, alpha: 0.45 });
+    }
+  });
+  events.filter((event) => event.type === 'impact' && event.position).forEach((impact) => {
+    const age = realtimeTime - impact.time;
+    if (age < 0 || age > 0.42) return;
+    state.impacts.circle(impact.position!.x, impact.position!.y, (8 + age * 20) / scale).stroke({
+      color: result.realtime?.snapshots[0]?.units.find((unit) => unit.id === impact.actor)?.side === '수비'
+        ? DEFENDER_COLOR : ATTACKER_COLOR,
+      width: 1.4 / scale,
+      alpha: 0.8 * (1 - age / 0.42),
+    });
+  });
+}
+
 /** 동적 오퍼레이터와 소리, 재사용 탄환 그래픽을 현재 프레임에 갱신합니다. */
 function renderDynamicLayer(
   state: DynamicRenderState,
@@ -574,10 +644,6 @@ function renderDynamicLayer(
   state.bulletHeads.clear();
   state.impacts.clear();
   const score = deriveScore(result, time, timing, attackers.length, defenders.length);
-  const activeEngagementIndex = timing.engagementStarts.findIndex((start, index) => (
-    time >= start && time < (timing.engagementStarts[index + 1] ?? timing.resultStart)
-  ));
-  const currentEngagement = activeEngagementIndex >= 0 ? result.engagements[activeEngagementIndex] : undefined;
   const infoHigh = result.informationAmount >= 0.35;
   const phase = getReplayPhase(time, timing);
   const positions = new Map<string, OperatorMotion>();
@@ -672,68 +738,12 @@ function renderDynamicLayer(
     }
   }
 
-  if (currentEngagement) {
-    const attacker = positions.get(currentEngagement.attackerCallSign);
-    const defender = positions.get(currentEngagement.defenderCallSign);
-    if (attacker && defender) {
-      const elapsed = Math.max(0, time - (timing.engagementStarts[activeEngagementIndex] ?? time));
-      const local = Math.max(0, Math.min(1, elapsed / 1.8));
-      const blockedByInterior = hasBlockedSight(attacker.position, defender.position, map);
-      const informationRoll = (
-        Math.sin((activeEngagementIndex + 1) * 24.17 + result.informationAmount * 13.9) + 1
-      ) / 2;
-      const hasWallshot = infoHigh && blockedByInterior && informationRoll < result.informationAmount;
-      const routeMid = hasWallshot
-        ? mixPoint(attacker.position, defender.position, 0.5)
-        : blockedByInterior
-          ? mixPoint(map.doorGap.from, map.doorGap.to, 0.5)
-          : mixPoint(attacker.position, defender.position, 0.5);
-      const muzzlePulse = Math.max(0, Math.sin(elapsed * 42));
-      state.flash.circle(attacker.position.x, attacker.position.y, map.width * 0.018 * muzzlePulse).fill({
-        color: 0xfff2c2,
-        alpha: 0.22 * muzzlePulse,
-      });
-      state.flash.circle(defender.position.x, defender.position.y, map.width * 0.026 * (1 + local)).fill({
-        color: 0xffe9b0,
-        alpha: local < 0.2 ? 0.45 : 0.12 * (1 - local),
-      });
-      drawProjectileBurst(
-        state.bulletTrail,
-        state.bulletHeads,
-        attacker.position,
-        routeMid,
-        defender.position,
-        elapsed,
-        ATTACKER_COLOR,
-        scale,
-      );
-      if (currentEngagement.winner === '수비') {
-        drawProjectileBurst(
-          state.bulletTrail,
-          state.bulletHeads,
-          defender.position,
-          routeMid,
-          attacker.position,
-          elapsed,
-          DEFENDER_COLOR,
-          scale,
-          0.32,
-        );
-      }
-      if (elapsed > 0.92 && elapsed < 1.72) state.impacts.circle(defender.position.x, defender.position.y, map.width * 0.012).stroke({
-        color: currentEngagement.winner === '공격' ? ATTACKER_COLOR : DEFENDER_COLOR,
-        width: 1.4 / scale,
-        alpha: 0.8 * (1 - Math.min(1, (elapsed - 0.92) / 0.8)),
-      });
-    }
-  }
+  drawRecordedShots(state, result, getRealtimeTime(result, timing, time), scale);
 
-  if (infoHigh && phase === '교전' && activeEngagementIndex >= 0 && activeEngagementIndex % 2 === 1) {
+  if (infoHigh && phase === '교전') {
     const start = map.breachEntryPoint;
     const door = mixPoint(map.doorGap.from, map.doorGap.to, 0.5);
-    const end = map.objectiveZone;
     drawLine(state.route, start, door, MAP_ACCENT, 1 / scale, 0.25);
-    drawLine(state.route, door, { x: end.x, y: end.y + end.height / 2 }, MAP_ACCENT, 1 / scale, 0.25);
   }
 }
 

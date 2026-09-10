@@ -11,6 +11,7 @@ import { formatChampionIntroduction } from './Champion';
 import { MatchResult } from './MatchResult';
 import { formatPlayerName } from './playerDisplay';
 import type { MatchTimeline } from './matchTimeline';
+import type { TacticalRealtimeResult } from './realtime/TacticalRealtimeSimulation';
 import {
   draftActionDisplayNames,
   engagementDisplayNames,
@@ -272,6 +273,27 @@ export function printMatchTimelineValidationToConsole(timeline: MatchTimeline): 
   if (!movementPassed) {
     console.error('이동 위반 목록', timeline.movementViolations);
   }
+  console.groupEnd();
+}
+
+/** 실시간 라운드가 결과뿐 아니라 시야·거리·판단 과정을 지켰는지 출력합니다. */
+export function printRealtimeProcessValidationToConsole(realtime: TacticalRealtimeResult): void {
+  const report = realtime.validation;
+  console.group('=== 실시간 전술 과정 검증 ===');
+  console.log(`벽 관통 발사: ${report.wallBangCount}건 (기준 0건)`);
+  console.log(`발사 ${report.shots}건 · 탄착 ${report.impacts}건`);
+  console.log(`팀 내 최소 거리: ${report.minimumTeamSeparation.toFixed(1)} · 평균 최근접 거리: ${report.averageNearestTeammateSeparation.toFixed(1)}`);
+  console.log(
+    `수색 단계: ${report.searchPhase.started ? '존재' : '없음'} `
+    + `· 지속 ${report.searchPhase.duration.toFixed(1)}초 `
+    + `· 수색 판단 ${report.searchPhase.scoutActions}회 `
+    + `· 수비 대응 발사 ${report.searchPhase.defenderResponses}건`,
+  );
+  report.actionTrace.slice(0, 120).forEach((entry) => {
+    console.log(`${entry.time.toFixed(1)}초 | ${entry.callSign} | ${entry.action} | ${entry.goal}`);
+  });
+  if (report.wallBangCount > 0) console.error('과정 검증 실패: 시야 차단을 무시한 발사가 있습니다.');
+  if (!report.searchPhase.started) console.error('과정 검증 실패: 실제 수색 판단이 없습니다.');
   console.groupEnd();
 }
 

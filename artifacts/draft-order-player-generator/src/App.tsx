@@ -209,7 +209,10 @@ function Home() {
     const tacticalRoundResult = result.tacticalRound ?? runRealtimeTacticalRound(homeTeam, awayTeam, draft);
     // 경기 완료 후에만 콘솔 검증 모듈을 불러와 초기 화면 번들을 가볍게 유지합니다.
     void import('./domain/consoleOutput')
-      .then(({ printMatchTimelineValidationToConsole }) => printMatchTimelineValidationToConsole(generatedTimeline))
+      .then(({ printMatchTimelineValidationToConsole, printRealtimeProcessValidationToConsole }) => {
+        printMatchTimelineValidationToConsole(generatedTimeline);
+        if (tacticalRoundResult.realtime) printRealtimeProcessValidationToConsole(tacticalRoundResult.realtime);
+      })
       .catch((error) => console.error('경기 타임라인 검증 모듈을 불러오지 못했습니다.', error));
     const eventIssues = validateMatchEvents(result, generatedEvents, generatedSnapshots);
     if (eventIssues.length > 0) {

@@ -26,19 +26,23 @@ export function createRealtimeUnitInputs(
   picks: Champion[],
   side: OperatorSide,
 ): RealtimeUnitInput[] {
+  const usedOperators = new Set<string>();
   return team.players.map((player, index) => {
     const pick = picks[index];
-    const preferred = player.operatorPool
+    const available = (operators: Operator[]) => operators.filter((operator) => !usedOperators.has(operator.callSign));
+    const preferred = available(player.operatorPool)
       .filter((operator) => operator.side === side && operator.role === player.role)
       .sort((left, right) => operatorFit(right, player, pick) - operatorFit(left, player, pick))[0];
-    const sameSide = player.operatorPool
+    const sameSide = available(player.operatorPool)
       .filter((operator) => operator.side === side)
       .sort((left, right) => operatorFit(right, player, pick) - operatorFit(left, player, pick))[0];
-    const roleFallback = OPERATORS
+    const roleFallback = available(OPERATORS)
       .filter((operator) => operator.side === side && operator.role === player.role)
       .sort((left, right) => operatorFit(right, player, pick) - operatorFit(left, player, pick))[0];
     const operator = preferred ?? sameSide ?? roleFallback
+      ?? available(OPERATORS).find((candidate) => candidate.side === side)
       ?? OPERATORS.find((candidate) => candidate.side === side)!;
+    usedOperators.add(operator.callSign);
     return {
       player,
       operator,
