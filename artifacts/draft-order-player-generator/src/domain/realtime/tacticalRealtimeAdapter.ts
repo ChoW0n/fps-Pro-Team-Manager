@@ -16,6 +16,7 @@ import type { BanPickResult } from '../BanPick';
 import { Team } from '../Team';
 import {
   runTacticalRealtimeSimulation,
+  realtimeUnitId,
   type RealtimeUnitInput,
   type TacticalRealtimeResult,
 } from './TacticalRealtimeSimulation';
@@ -73,7 +74,7 @@ export function createTacticalRoundResultFromRealtime(
 ): TacticalRoundResult {
   const units = [...attackers, ...defenders];
   const unitById = new Map(units.map((unit, index) => [
-    `${unit.teamName}:${unit.player.nickname}:${unit.operator.callSign}:${index}`,
+    realtimeUnitId(unit, index),
     unit,
   ]));
   const snapshotAt = (time: number) => realtime.snapshots.reduce(
@@ -171,7 +172,7 @@ function scoreSide(
   events.forEach((event) => {
     const actor = event.actor?.split(':').slice(0, 3).join(':');
     const target = event.target?.split(':').slice(0, 3).join(':');
-    if (actor && ownIds.has(actor)) score += event.type === 'impact' ? 18 : event.type === 'shot' ? 3 : 1;
+    if (actor && ownIds.has(actor)) score += event.type === 'impact' ? (event.hit ? 18 : 0) : event.type === 'shot' ? 3 : 1;
     if (target && enemyIds.has(target) && event.type === 'death') score += 42;
   });
   return Math.round(score);

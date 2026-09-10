@@ -1,0 +1,20 @@
+{
+  "sourceBase": "b9c332cdca65f8ee6868999114c422a6828a80e3",
+  "typecheck": {
+    "scope": "artifacts/draft-order-player-generator",
+    "exitCode": 0
+  },
+  "viteBuild": {
+    "base": "/draft-order-player-generator/",
+    "exitCode": 0
+  },
+  "regression": {
+    "passed": 15,
+    "total": 15
+  },
+  "browserOriginal": "preparation, draft, watch, director command, timeout completion observed",
+  "browserModified": "not performed: local URL blocked; remote source transfer unavailable",
+  "replitModified": false,
+  "publicDeploymentModified": false,
+  "lowSpecUserPcTested": false
+}
