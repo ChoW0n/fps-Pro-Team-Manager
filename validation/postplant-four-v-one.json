@@ -5,14 +5,14 @@
       "seed": 11,
       "winner": "공격",
       "reason": "defenders-eliminated",
-      "seconds": 37.6,
-      "attackerDeaths": 1
+      "seconds": 35,
+      "attackerDeaths": 2
     },
     {
       "seed": 41,
       "winner": "공격",
       "reason": "defenders-eliminated",
-      "seconds": 37.6,
+      "seconds": 36,
       "attackerDeaths": 1
     },
     {
@@ -26,7 +26,7 @@
       "seed": 149,
       "winner": "공격",
       "reason": "defenders-eliminated",
-      "seconds": 36,
+      "seconds": 35.8,
       "attackerDeaths": 1
     }
   ]
