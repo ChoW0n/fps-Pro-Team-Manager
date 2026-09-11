@@ -1,0 +1,47 @@
+{
+  "magpie": {
+    "width": 442,
+    "height": 239,
+    "pivot": [
+      154,
+      118
+    ],
+    "muzzle": [
+      425,
+      115
+    ],
+    "sourceFacing": "right",
+    "portrait": "magpie-portrait.webp",
+    "sprite": "magpie-topdown.webp"
+  },
+  "collier": {
+    "width": 457,
+    "height": 241,
+    "pivot": [
+      174,
+      119
+    ],
+    "muzzle": [
+      449,
+      116
+    ],
+    "sourceFacing": "right",
+    "portrait": "collier-portrait.webp",
+    "sprite": "collier-topdown.webp"
+  },
+  "haedong": {
+    "width": 468,
+    "height": 244,
+    "pivot": [
+      175,
+      119
+    ],
+    "muzzle": [
+      439,
+      118
+    ],
+    "sourceFacing": "right",
+    "portrait": "haedong-portrait.webp",
+    "sprite": "haedong-topdown.webp"
+  }
+}

@@ -1,0 +1,23 @@
+{
+  "kind": "Actual Canvas renderer in local Skia; not browser or iPhone performance validation",
+  "seed": 41,
+  "time": 4.4,
+  "rows": [
+    {
+      "name": "desktop",
+      "width": 1280,
+      "height": 720,
+      "medianMs": 47.91,
+      "p95Ms": 51.23,
+      "file": "broadcast-canvas-desktop.png"
+    },
+    {
+      "name": "phone",
+      "width": 390,
+      "height": 844,
+      "medianMs": 48.28,
+      "p95Ms": 50.41,
+      "file": "broadcast-canvas-phone.png"
+    }
+  ]
+}

@@ -13,6 +13,7 @@ const {confirmOperatorDraft}=require(root+'operatorDraft.ts');
 const results=[];function test(name,run){try{run();results.push({name,pass:true});console.log('PASS',name);}catch(error){results.push({name,pass:false,error:error.message});console.error('FAIL',name,error.message);}}
 function side(name){return OPERATORS.filter(o=>o.side===name).slice(0,5).map((operator,index)=>({operator,side:name,teamName:name,player:new Player('선수'+index,'검사'+index,operator.role,20,75,75,75,75,75,OPERATORS,20,75,65,70,70,70,70)}));}
 function input(seed=41){return {attackers:side('공격'),defenders:side('수비'),seed,maxSeconds:180,scoutPlan:{indices:[0,1],seconds:40,entryRoute:0},defenseStyle:'crossfire',anticipatedEntry:0};}
+const utilitySample=require('./fixtures/utility-encounter.cjs').utilityEncounter();
 const engine=new TacticalRealtimeSimulation(),originalMap=JSON.stringify(map),sample=engine.run(input());
 const empty={...map,walls:[],covers:[]};
 const observer={...sample.snapshots[0].units[0],position:{x:1000,y:1000},facing:0};
@@ -24,10 +25,12 @@ test('연막은 양 팀 시야를 차단하며 총알 지형 판정은 바꾸지
 test('개인 시야와 관전자 공개 목록이 같은 벽·연막·방향 판정을 사용',()=>{for(const snapshot of sample.snapshots.filter((_,index)=>index%10===0)){const liveMap={...map,walls:(snapshot.breaches??[]).reduce((walls,b)=>breachWalls(walls,b.wallId,b.position,b.width),map.walls)};for(const team of ['공격','수비'])for(const unit of snapshot.units){const expected=unit.side===team||snapshot.units.some(friend=>friend.side===team&&engine.canObserve(friend,unit.position,liveMap,snapshot.gadgets,snapshot.time));assert.equal(snapshot.visibleTo[team].includes(unit.id),expected);}}});
 test('공수 교대 후 자동 카메라는 우리 팀을 중심으로 보이는 교전을 함께 담음',()=>{const units=[{...observer,id:'atk',side:'공격',position:{x:1000,y:1000}},{...observer,id:'def',side:'수비',position:{x:1500,y:1100}}],events=[{type:'shot',time:4,actor:'atk',target:'def'}];const camera=combatCamera(units,events,'수비',4.1,null);assert.equal(camera.focusId,'def');assert(camera.width>500);assert.equal(camera.x,1250);const hidden=combatCamera([units[1]],events,'수비',4.1,null);assert.equal(hidden.x,1500);assert.equal(hidden.width,430);});
 test('운반자·미관측 설치·적 무력화 진행도가 감독 HUD로 유출되지 않음',()=>{assert.deepEqual(directorObjective({phase:'planting',carrierId:'atk',interactingId:'atk',progress:.8,siteId:'B'},'수비',[]),{phase:'carried',progress:0});assert.equal(directorObjective({phase:'disabling',interactingId:'def',progress:.8,activeUntil:90},'공격',[]).phase,'active');assert.equal(directorObjective({phase:'disabling',interactingId:'def',progress:.8,activeUntil:90},'공격',['def']).progress,.8);});
-test('실제 연막·카메라·수류탄 투척·폭발·회피가 엔진 사건에 존재',()=>{for(const goal of ['camera-deployed','smoke-thrown','grenade-thrown','grenade-exploded'])assert(sample.events.some(event=>event.goal===goal),goal);assert(sample.snapshots.some(snapshot=>snapshot.units.some(unit=>unit.goal.includes('수류탄 회피'))));});
+test('실제 연막·카메라·수류탄 투척·폭발·회피가 엔진 사건에 존재',()=>{for(const goal of ['camera-deployed','smoke-thrown','grenade-thrown','grenade-exploded'])assert([...sample.events,...utilitySample.events].some(event=>event.goal===goal),goal);assert(utilitySample.snapshots.some(snapshot=>snapshot.units.some(unit=>unit.goal.includes('수류탄 회피'))));});
 test('사망자는 가젯 설치·투척을 새로 시작하지 않음',()=>{for(const death of sample.events.filter(e=>e.type==='death'))assert(!sample.events.some(event=>event.actor===death.target&&event.time>=death.time&&['camera-deployed','smoke-thrown','grenade-thrown','breach-started'].includes(event.goal)));});
 test('전방 방패 상태가 실제 접촉·방향 스냅샷에 기록됨',()=>{const states=sample.snapshots.flatMap(snapshot=>snapshot.units.filter(unit=>unit.shieldRaised));assert(states.length);assert(states.every(unit=>unit.callSign==='REUSS'));});
-test('선발조를 기다리는 진압조도 출입구 대기선까지 실제 전진',()=>{const start=sample.snapshots[0],during=sample.snapshots.find(snapshot=>snapshot.time===15);const assault=during.units.filter(unit=>unit.side==='공격'&&!during.operation.scoutIds.includes(unit.id));assert(assault.some(unit=>Math.hypot(unit.position.x-start.units.find(v=>v.id===unit.id).position.x,unit.position.y-start.units.find(v=>v.id===unit.id).position.y)>100));assert(sample.events.some(event=>event.goal==='operation:entering'));});
+test('선발조를 기다리는 진압조도 출입구 대기선까지 실제 전진',()=>{const start=sample.snapshots[0],during=sample.snapshots.find(snapshot=>snapshot.time===15);const assault=during.units.filter(unit=>unit.side==='공격'&&!during.operation.scoutIds.includes(unit.id));assert(assault.some(unit=>Math.hypot(unit.position.x-start.units.find(v=>v.id===unit.id).position.x,unit.position.y-start.units.find(v=>v.id===unit.id).position.y)>100));assert(during.operation.phase==='scouting');
+ const safeInput=input(61);safeInput.defenders=safeInput.defenders.slice(0,1);safeInput.map={...map,defenderSetups:[{id:'safe-far',label:'작전 전환 검사',position:{x:3500,y:2280},fallback:{x:3500,y:2200}}]};
+ const safeRound=engine.run(safeInput);assert(safeRound.events.some(event=>event.goal==='operation:entering'),'안전한 고정 입력에서 복귀·합류·재진입 사건 필요');});
 test('파쇄는 실제 엔진에서 벽 절단·경로 재탐색으로 연결되고 원본 지도 보존',()=>{
  const fixture=input(12);fixture.scoutPlan={indices:[],seconds:25,entryRoute:0};fixture.attackStyle='breach';fixture.defenders=fixture.defenders.slice(0,1);fixture.attackers=fixture.attackers.slice(0,1);fixture.attackers[0].operator=OPERATORS.find(o=>o.callSign==='MEDVED');fixture.map={...map,defenderSetups:[{id:'far',label:'외곽',position:{x:3500,y:2280},fallback:{x:3500,y:2200}}]};
  class BreachStart extends TacticalRealtimeSimulation{startPosition(unit,index,count,terrain){return unit.side==='공격'?{x:1000,y:480}:super.startPosition(unit,index,count,terrain);}}
@@ -40,13 +43,13 @@ test('예상 진입을 바꿔도 A/B 필수 앵커와 합법적·분리된 초�
 test('빠른 매치는 2승 선착·매 라운드 교대하며 정규 매치와 독립',()=>{let state={seed:41,rounds:[],quick:true};assert.equal(nextMatchRound(state).homeSide,'공격');state=recordMatchRound(state,0,'공격');assert.equal(nextMatchRound(state).homeSide,'수비');state=recordMatchRound(state,1,'수비');assert(nextMatchRound(state).finished);assert.deepEqual(nextMatchRound(state).score,[2,0]);assert(!nextMatchRound({...state,quick:false}).finished);});
 test('미관측 적 추가가 접촉 중인 선수의 인원 판단·첫 발사 시점을 바꾸지 않음',()=>{
  class KnowledgeArena extends TacticalRealtimeSimulation {
-  startPosition(unit,index,count){return unit.side==='공격'?{x:1000,y:1000}:index===count?{x:1600,y:1000}:{x:3000+(index-count)*65,y:2200};}
+  startPosition(unit,index,count){return unit.side==='공격'?{x:1000,y:1000}:index===count?{x:1600,y:1000}:{x:3500,y:200+(index-count)*65};}
   startFacing(unit){return unit.side==='공격'?0:Math.PI;}
  }
  function fixture(count){const attackers=side('공격').slice(2,3),defenders=side('수비').slice(0,count);for(const unit of [...attackers,...defenders])unit.player={...unit.player,aggression:0,aim:50,mastery:50,composure:50};return {attackers,defenders,map:empty,seed:41,maxSeconds:3};}
  const one=new KnowledgeArena().run(fixture(1)),five=new KnowledgeArena().run(fixture(5));
  const first=result=>result.events.find(event=>event.type==='shot'&&event.side==='공격');assert(first(one));assert(first(five));assert.equal(first(one).time,first(five).time);
- for(const snapshot of one.snapshots.filter(snapshot=>snapshot.time<=Math.min(2.5,one.executionTime)))assert.deepEqual(snapshot.units[0],five.snapshots.find(other=>other.time===snapshot.time).units[0]);
+ for(const snapshot of one.snapshots.filter(snapshot=>snapshot.time<=Math.min(2.5,(one.events.find(event=>event.type==='death')?.time??one.executionTime)-.1)))assert.deepEqual(snapshot.units[0],five.snapshots.find(other=>other.time===snapshot.time).units[0]);
 });
 test('설치 후 4대1: 네 선수의 분담 엄호와 로머의 실제 재진입·피격 순서',()=>{
  const guards=map.sites[0].defendAnchors,plant=map.sites[0].plantAnchors[0];

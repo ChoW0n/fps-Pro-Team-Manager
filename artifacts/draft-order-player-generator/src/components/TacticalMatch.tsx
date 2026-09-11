@@ -16,14 +16,14 @@ export function TacticalMatch({ homeTeam, awayTeam, onBack, quick = true }: { ho
   const completed = Boolean(active && match.rounds.length > active.round.attempt);
 
   return <section aria-label="전술 FPS 매치" className="tactical-match" data-version="combat-overhaul-20260910">
-    <header className="match-progress">
+    {!active && <header className="match-progress">
       <div><small>BREACHLINE / {next.finished ? '경기 종료' : round.overtime ? '연장전' : '정규 라운드'}</small>
         <h2>{homeTeam.name} <b>{next.score[0]} : {next.score[1]}</b> {awayTeam.name}</h2>
         <p>{quick?'빠른 매치 · 2승 선착 · 매 라운드 공수 교대':'정규 매치 · 7승 선착 · 6라운드 후 교대 · 6:6 연장 8승 선착'}</p></div>
       <span>ROUND {String(round.round).padStart(2, '0')} · 내 팀 {round.homeSide}</span>
-    </header>
+    </header>}
     {active ? <>
-      <TacticalRoundLive input={active.input} roundNumber={active.round.round} directorSide={active.round.homeSide}
+      <TacticalRoundLive score={next.score} input={active.input} roundNumber={active.round.round} directorSide={active.round.homeSide}
         onComplete={result => {
           if(match.rounds.length!==active.round.attempt)return;
           setHistory(previous=>[...previous,observeRound(result,active.round.homeSide==='공격'?'수비':'공격')]);

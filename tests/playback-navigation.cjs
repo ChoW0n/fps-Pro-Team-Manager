@@ -5,7 +5,7 @@ require.extensions['.ts'] = (module, file) => module._compile(ts.transpileModule
 }).outputText, file);
 const root = '../artifacts/draft-order-player-generator/src/domain/';
 const { startRoundPlayback } = require(root + 'realtime/roundPlayback.ts');
-const { cameraViewport } = require(root + 'realtime/spectatorView.ts');
+const { cameraViewport, combatCamera } = require(root + 'realtime/spectatorView.ts');
 const { TacticalRealtimeSimulation } = require(root + 'realtime/TacticalRealtimeSimulation.ts');
 const { OPERATORS } = require(root + 'Operator.ts'), { Player } = require(root + 'Player.ts');
 const { BREACHLINE_MAP: map } = require(root + 'tacticalMaps.ts');
@@ -54,6 +54,13 @@ test('전체 전황은 지도 네 모서리를 포함하고 확대는 지도 경
     assert(view.x >= 0 && view.y >= 0 && view.x + view.width <= map.width && view.y + view.height <= map.height);
   }
 });
+test('아군 전멸 뒤에도 마지막 사망자 또는 최근 실제 사건을 관전',()=>{
+  const fallen=expected.snapshots[0].units.filter(unit=>unit.side==='공격').slice(0,2).map((unit,index)=>({...unit,alive:false,position:{x:900+index*80,y:700}}));
+  const last=fallen[1],view=combatCamera(fallen,[],'공격',20,last.id,false);
+  assert.equal(view.focusId,last.id);assert.equal(view.x,last.position.x);assert.equal(view.y,last.position.y);
+  const eventView=combatCamera([], [{time:18,type:'objective',message:'설치',position:{x:2100,y:1300},seenBy:['공격']}], '공격',20,null,false);
+  assert.equal(eventView.focusId,null);assert.equal(eventView.x,2100);assert.equal(eventView.y,1300);
+});
 test('동료에게 막힌 이동 시도는 위치와 몸 방향을 바꾸지 않음', () => {
   const unit = { ...expected.snapshots[0].units[0], position: { x: 1000, y: 1000 }, facing: 1.2 };
   const blocker = { ...unit, id: 'blocker', position: { x: 1028, y: 1000 }, velocity: { x: 5, y: 0 } };
@@ -62,13 +69,14 @@ test('동료에게 막힌 이동 시도는 위치와 몸 방향을 바꾸지 않
   assert.deepEqual(unit.position, { x: 1000, y: 1000 }); assert.equal(unit.facing, 1.2);
 });
 test('실제 수류탄 회피는 착지 후 시작하며 위험이 남아 있는 동안 임무를 유지', () => {
+  const utilityResult = require('./fixtures/utility-encounter.cjs').utilityEncounter();
   let checked = 0;
-  for (let i = 0; i < expected.snapshots.length - 1; i++) {
-    const snapshot = expected.snapshots[i];
+  for (let i = 0; i < utilityResult.snapshots.length - 1; i++) {
+    const snapshot = utilityResult.snapshots[i];
     for (const unit of snapshot.units.filter(unit => unit.goal.includes('수류탄 회피'))) {
       const grenade = snapshot.gadgets.find(gadget => gadget.kind === 'grenade' && snapshot.time >= gadget.landedAt);
       assert(grenade, '공중의 수류탄이 도착할 비공개 위치를 미리 사용하지 않습니다');
-      const next = expected.snapshots[i + 1], nextUnit = next.units.find(other => other.id === unit.id);
+      const next = utilityResult.snapshots[i + 1], nextUnit = next.units.find(other => other.id === unit.id);
       if (nextUnit.alive && next.gadgets.some(gadget => gadget.id === grenade.id)) {
         assert(nextUnit.goal.includes('수류탄') || nextUnit.action === 'reload', nextUnit.goal); checked++;
       }

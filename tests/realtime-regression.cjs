@@ -10,11 +10,12 @@ require.extensions['.ts'] = (module, filename) => {
   module._compile(output.outputText, filename);
 };
 const root = '../artifacts/draft-order-player-generator/src/';
-const { TacticalRealtimeSimulation, realtimeUnitId, UNIT_RADIUS } = require(root + 'domain/realtime/TacticalRealtimeSimulation.ts');
+const { TacticalRealtimeSimulation, realtimeUnitId, UNIT_RADIUS, updateIdentifiedOperators } = require(root + 'domain/realtime/TacticalRealtimeSimulation.ts');
 const { Player } = require(root + 'domain/Player.ts');
 const { OPERATORS } = require(root + 'domain/Operator.ts');
 const { BREACHLINE_MAP } = require(root + 'domain/tacticalMaps.ts');
 const { muzzlePosition, operatorVisual, OPERATOR_SCALE } = require(root + 'domain/operatorVisuals.ts');
+const { angleDifference, turnTowards, TURN_SPEED, FOCUS_RANGE, PERIPHERAL_RANGE } = require(root + 'domain/realtime/perception.ts');
 const results = [];
 // 고정 선수 입력을 만들어 생성기 난수와 엔진 난수를 분리합니다.
 function entry(operator, index, side = operator.side) {
@@ -159,9 +160,30 @@ test('개인 시야는 뒤쪽·범위 밖·벽 뒤의 실시간 좌표를 받지
   const observer={position:{x:1500,y:1200},facing:0};
   assert(engine.canSee(observer,{x:1800,y:1200},map));
   assert(!engine.canSee(observer,{x:1200,y:1200},map));
-  assert(!engine.canSee(observer,{x:2900,y:1200},map));
+  assert(!engine.canSee(observer,{x:4000,y:1200},map));
   map.walls=[{id:'wall',kind:'interior',from:{x:1650,y:900},to:{x:1650,y:1500}}];
   assert(!engine.canSee(observer,{x:1800,y:1200},map));
+});
+test('정면·주변 시야 거리와 회전 속도는 후방 순간 회전을 만들지 않음',()=>{
+  const engine=new TacticalRealtimeSimulation(),map={...BREACHLINE_MAP,walls:[],covers:[]},observer={position:{x:100,y:100},facing:0};
+  assert(engine.canSee(observer,{x:100+FOCUS_RANGE,y:100},map));
+  assert(!engine.canSee(observer,{x:100+FOCUS_RANGE+.01,y:100},map));
+  const peripheralAngle=Math.PI*.45;
+  assert(engine.canSee(observer,{x:100+Math.cos(peripheralAngle)*PERIPHERAL_RANGE,y:100+Math.sin(peripheralAngle)*PERIPHERAL_RANGE},map));
+  assert(!engine.canSee(observer,{x:100+Math.cos(peripheralAngle)*(PERIPHERAL_RANGE+1),y:100+Math.sin(peripheralAngle)*(PERIPHERAL_RANGE+1)},map));
+  const turned=turnTowards(Math.PI-.02,-Math.PI+.02,.1);
+  assert(Math.abs(angleDifference(turned,Math.PI-.02))<=TURN_SPEED*.1+1e-9);
+  for(let index=1;index<base.snapshots.length;index++)for(const unit of base.snapshots[index].units){
+    const prior=base.snapshots[index-1].units.find(candidate=>candidate.id===unit.id);if(!prior?.alive||!unit.alive)continue;
+    assert(Math.abs(angleDifference(unit.facing,prior.facing))<=TURN_SPEED*.1+1e-7,`${unit.callSign} ${base.snapshots[index].time}`);
+  }
+});
+test('범용 가젯은 신원을 누설하지 않고 직접 목격·고유 브리칭만 식별',()=>{
+  const ours={...base.snapshots[0].units[0],id:'ours',side:'공격',callSign:'MAGPIE'},enemy={...base.snapshots[0].units[5],id:'enemy',side:'수비',callSign:'REUSS'},known=new Set();
+  const generic=['camera','smoke','grenade'].map(kind=>({id:kind,kind,side:'수비',owner:'enemy',position:{x:0,y:0},activeAt:0,until:5,radius:10}));
+  updateIdentifiedOperators('공격',known,[ours,enemy],['ours'],generic,[],()=>true);assert.deepEqual([...known],[]);
+  updateIdentifiedOperators('공격',known,[ours,enemy],['ours'],[],[{time:1,type:'utility',actor:'enemy',message:'파쇄',goal:'wall-breached',seenBy:['공격']}],()=>true);assert.deepEqual([...known],['REUSS']);
+  const direct=new Set();updateIdentifiedOperators('공격',direct,[ours,enemy],['ours','enemy'],[],[],()=>false);assert.deepEqual([...direct],['REUSS']);
 });
 test('실제 틱의 설치와 무력화는 정지·생존·장전 종료 상태에서만 진행',()=>{
   const input=fixture(41,180);

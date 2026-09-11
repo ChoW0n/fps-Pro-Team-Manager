@@ -15,37 +15,17 @@
         "MARCHAND",
         "BRANDT"
       ],
-      "winner": "공격",
-      "reason": "defenders-eliminated",
-      "seconds": 92.4,
-      "shots": 45,
+      "winner": "수비",
+      "reason": "attackers-eliminated",
+      "seconds": 38.8,
+      "shots": 27,
       "minimumTeamSeparation": 26.43543928785166
     },
     {
       "entry": 0,
       "round": 2,
       "seed": 51,
-      "defense": "anchor",
-      "anticipatedEntry": 0,
-      "observedEntry": 3,
-      "lineup": [
-        "HALLORAN",
-        "MARCHAND",
-        "BRANDT",
-        "REUSS",
-        "SAVELLI"
-      ],
-      "winner": "공격",
-      "reason": "bombs-defused",
-      "seconds": 94.7,
-      "shots": 41,
-      "minimumTeamSeparation": 26.43543928785166
-    },
-    {
-      "entry": 0,
-      "round": 3,
-      "seed": 61,
-      "defense": "roam",
+      "defense": "crossfire",
       "anticipatedEntry": 0,
       "observedEntry": 0,
       "lineup": [
@@ -55,10 +35,30 @@
         "REUSS",
         "SAVELLI"
       ],
-      "winner": "공격",
-      "reason": "defenders-eliminated",
-      "seconds": 63.6,
-      "shots": 30,
+      "winner": "수비",
+      "reason": "attackers-eliminated",
+      "seconds": 51.9,
+      "shots": 36,
+      "minimumTeamSeparation": 26.43543928785166
+    },
+    {
+      "entry": 0,
+      "round": 3,
+      "seed": 61,
+      "defense": "crossfire",
+      "anticipatedEntry": 0,
+      "observedEntry": 0,
+      "lineup": [
+        "HALLORAN",
+        "MARCHAND",
+        "BRANDT",
+        "REUSS",
+        "SAVELLI"
+      ],
+      "winner": "수비",
+      "reason": "time-expired",
+      "seconds": 180,
+      "shots": 29,
       "minimumTeamSeparation": 26.43543928785166
     },
     {
@@ -75,37 +75,17 @@
         "MARCHAND",
         "BRANDT"
       ],
-      "winner": "수비",
-      "reason": "attackers-eliminated",
-      "seconds": 35.8,
-      "shots": 25,
-      "minimumTeamSeparation": 26.667415845290936
+      "winner": "공격",
+      "reason": "defenders-eliminated",
+      "seconds": 80,
+      "shots": 45,
+      "minimumTeamSeparation": 26.65148742171089
     },
     {
       "entry": 1,
       "round": 2,
       "seed": 51,
-      "defense": "crossfire",
-      "anticipatedEntry": 1,
-      "observedEntry": 3,
-      "lineup": [
-        "HALLORAN",
-        "MARCHAND",
-        "BRANDT",
-        "REUSS",
-        "SAVELLI"
-      ],
-      "winner": "공격",
-      "reason": "bombs-defused",
-      "seconds": 95.8,
-      "shots": 33,
-      "minimumTeamSeparation": 27.689125450218945
-    },
-    {
-      "entry": 1,
-      "round": 3,
-      "seed": 61,
-      "defense": "roam",
+      "defense": "anchor",
       "anticipatedEntry": 1,
       "observedEntry": 1,
       "lineup": [
@@ -116,10 +96,30 @@
         "SAVELLI"
       ],
       "winner": "수비",
-      "reason": "attackers-eliminated",
-      "seconds": 32.2,
-      "shots": 21,
-      "minimumTeamSeparation": 27.689125450218945
+      "reason": "device-disabled",
+      "seconds": 93.3,
+      "shots": 46,
+      "minimumTeamSeparation": 27.061697830494985
+    },
+    {
+      "entry": 1,
+      "round": 3,
+      "seed": 61,
+      "defense": "crossfire",
+      "anticipatedEntry": 1,
+      "observedEntry": 1,
+      "lineup": [
+        "HALLORAN",
+        "MARCHAND",
+        "BRANDT",
+        "REUSS",
+        "SAVELLI"
+      ],
+      "winner": "수비",
+      "reason": "device-disabled",
+      "seconds": 91.1,
+      "shots": 41,
+      "minimumTeamSeparation": 26.70119185643663
     },
     {
       "entry": 2,
@@ -136,9 +136,9 @@
         "BRANDT"
       ],
       "winner": "수비",
-      "reason": "device-disabled",
-      "seconds": 71.4,
-      "shots": 28,
+      "reason": "attackers-eliminated",
+      "seconds": 33.8,
+      "shots": 23,
       "minimumTeamSeparation": 27.53227687733066
     },
     {
@@ -155,17 +155,17 @@
         "REUSS",
         "SAVELLI"
       ],
-      "winner": "공격",
-      "reason": "defenders-eliminated",
-      "seconds": 51.2,
-      "shots": 36,
-      "minimumTeamSeparation": 26.610000000000127
+      "winner": "수비",
+      "reason": "attackers-eliminated",
+      "seconds": 35.4,
+      "shots": 29,
+      "minimumTeamSeparation": 26.98649159989001
     },
     {
       "entry": 2,
       "round": 3,
       "seed": 61,
-      "defense": "roam",
+      "defense": "crossfire",
       "anticipatedEntry": 2,
       "observedEntry": 2,
       "lineup": [
@@ -175,11 +175,11 @@
         "REUSS",
         "SAVELLI"
       ],
-      "winner": "공격",
-      "reason": "defenders-eliminated",
-      "seconds": 26.3,
-      "shots": 36,
-      "minimumTeamSeparation": 26.44894654563359
+      "winner": "수비",
+      "reason": "device-disabled",
+      "seconds": 101.2,
+      "shots": 38,
+      "minimumTeamSeparation": 26.47253315753118
     },
     {
       "entry": 3,
@@ -187,7 +187,7 @@
       "seed": 41,
       "defense": "roam",
       "anticipatedEntry": null,
-      "observedEntry": 3,
+      "observedEntry": null,
       "lineup": [
         "SAVELLI",
         "성곽",
@@ -197,8 +197,8 @@
       ],
       "winner": "수비",
       "reason": "device-disabled",
-      "seconds": 70.4,
-      "shots": 50,
+      "seconds": 77.6,
+      "shots": 41,
       "minimumTeamSeparation": 26.861484126938933
     },
     {
@@ -206,7 +206,7 @@
       "round": 2,
       "seed": 51,
       "defense": "crossfire",
-      "anticipatedEntry": 3,
+      "anticipatedEntry": null,
       "observedEntry": 3,
       "lineup": [
         "HALLORAN",
@@ -215,17 +215,17 @@
         "REUSS",
         "SAVELLI"
       ],
-      "winner": "수비",
-      "reason": "device-disabled",
-      "seconds": 63.1,
-      "shots": 28,
-      "minimumTeamSeparation": 29.13066460737723
+      "winner": "공격",
+      "reason": "bombs-defused",
+      "seconds": 72,
+      "shots": 46,
+      "minimumTeamSeparation": 26.861484126938933
     },
     {
       "entry": 3,
       "round": 3,
       "seed": 61,
-      "defense": "crossfire",
+      "defense": "roam",
       "anticipatedEntry": 3,
       "observedEntry": 3,
       "lineup": [
@@ -237,69 +237,69 @@
       ],
       "winner": "수비",
       "reason": "device-disabled",
-      "seconds": 60.9,
+      "seconds": 72.7,
+      "shots": 46,
+      "minimumTeamSeparation": 26.884623607964606
+    },
+    {
+      "entry": 4,
+      "round": 1,
+      "seed": 41,
+      "defense": "roam",
+      "anticipatedEntry": null,
+      "observedEntry": 4,
+      "lineup": [
+        "SAVELLI",
+        "성곽",
+        "HALLORAN",
+        "MARCHAND",
+        "BRANDT"
+      ],
+      "winner": "수비",
+      "reason": "attackers-eliminated",
+      "seconds": 55.2,
+      "shots": 44,
+      "minimumTeamSeparation": 26.414123916862984
+    },
+    {
+      "entry": 4,
+      "round": 2,
+      "seed": 51,
+      "defense": "crossfire",
+      "anticipatedEntry": 4,
+      "observedEntry": 4,
+      "lineup": [
+        "HALLORAN",
+        "MARCHAND",
+        "BRANDT",
+        "REUSS",
+        "SAVELLI"
+      ],
+      "winner": "수비",
+      "reason": "attackers-eliminated",
+      "seconds": 67,
+      "shots": 47,
+      "minimumTeamSeparation": 26.610000000000014
+    },
+    {
+      "entry": 4,
+      "round": 3,
+      "seed": 61,
+      "defense": "crossfire",
+      "anticipatedEntry": 4,
+      "observedEntry": 4,
+      "lineup": [
+        "HALLORAN",
+        "MARCHAND",
+        "BRANDT",
+        "REUSS",
+        "SAVELLI"
+      ],
+      "winner": "수비",
+      "reason": "attackers-eliminated",
+      "seconds": 41.5,
       "shots": 35,
-      "minimumTeamSeparation": 26.861484126938933
-    },
-    {
-      "entry": 4,
-      "round": 1,
-      "seed": 41,
-      "defense": "roam",
-      "anticipatedEntry": null,
-      "observedEntry": 4,
-      "lineup": [
-        "SAVELLI",
-        "성곽",
-        "HALLORAN",
-        "MARCHAND",
-        "BRANDT"
-      ],
-      "winner": "수비",
-      "reason": "attackers-eliminated",
-      "seconds": 54.4,
-      "shots": 28,
-      "minimumTeamSeparation": 26.73197142474098
-    },
-    {
-      "entry": 4,
-      "round": 2,
-      "seed": 51,
-      "defense": "crossfire",
-      "anticipatedEntry": 4,
-      "observedEntry": 4,
-      "lineup": [
-        "HALLORAN",
-        "MARCHAND",
-        "BRANDT",
-        "REUSS",
-        "SAVELLI"
-      ],
-      "winner": "공격",
-      "reason": "defenders-eliminated",
-      "seconds": 88.5,
-      "shots": 45,
-      "minimumTeamSeparation": 26.469371654618335
-    },
-    {
-      "entry": 4,
-      "round": 3,
-      "seed": 61,
-      "defense": "roam",
-      "anticipatedEntry": 4,
-      "observedEntry": 4,
-      "lineup": [
-        "HALLORAN",
-        "MARCHAND",
-        "BRANDT",
-        "REUSS",
-        "SAVELLI"
-      ],
-      "winner": "수비",
-      "reason": "attackers-eliminated",
-      "seconds": 32,
-      "shots": 34,
-      "minimumTeamSeparation": 26.419269388430475
+      "minimumTeamSeparation": 26.610000000000014
     }
   ]
 }

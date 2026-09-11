@@ -165,7 +165,7 @@ export function TacticalBattlefield({ map:baseMap, units, operators, events, tim
   return <svg className={miniature ? 'battle-mini-map' : 'battlefield'} viewBox={viewBox ?? `0 0 ${map.width} ${map.height}`}
     aria-label={miniature ? '전체 전황 전략 보기' : '인물과 총기가 표시되는 실시간 경기'}>
     <Interior map={map} detail={!miniature && Boolean(viewBox && Number(viewBox.split(' ')[2]) < map.width / 2)} />
-    {visionUnits&&<><defs><mask id={maskId}><rect width={map.width} height={map.height} fill="white"/>{sight!.map(unit=><g key={unit.id}><polygon points={unit.points} fill="black"/><circle cx={unit.position.x} cy={unit.position.y} r="60" fill="black"/></g>)}</mask></defs><rect width={map.width} height={map.height} fill="#03080D" opacity=".86" mask={`url(#${maskId})`} pointerEvents="none"/></>}
+    {visionUnits&&<><defs><mask id={maskId}><rect width={map.width} height={map.height} fill="white"/>{sight!.map(unit=><g key={unit.id}><polygon points={unit.points} fill="black"/></g>)}</mask></defs><rect width={map.width} height={map.height} fill="#03080D" opacity=".86" mask={`url(#${maskId})`} pointerEvents="none"/></>}
     {objective?.devicePosition && <g transform={`translate(${objective.devicePosition.x} ${objective.devicePosition.y})`} aria-label="실제 해체 장치 위치">
       <rect x="-12" y="-9" width="24" height="18" rx="2" fill="#242d31" stroke="#FFC53D" strokeWidth="2" />
       <rect x="-7" y="-5" width="10" height="7" fill={objective.activeUntil ? '#2FD4C4' : '#8A959B'} />

@@ -20,6 +20,7 @@ export interface TacticalWall {
   from: TacticalPoint;
   to: TacticalPoint;
   kind: 'outer' | 'interior' | 'door-gap';
+  breachable?: boolean;
 }
 
 export interface TacticalCover {
@@ -55,6 +56,7 @@ export interface TacticalPortal {
   center: TacticalPoint;
   width: number;
   axis: 'horizontal' | 'vertical';
+  traversal?: 'window' | 'vault' | 'crawl';
   fromRoom: string;
   toRoom: string;
 }
@@ -113,7 +115,7 @@ const p = (x: number, y: number): TacticalPoint => ({ x, y });
 const rect = (x: number, y: number, width: number, height: number): TacticalRect => ({ x, y, width, height });
 /** 시각과 충돌이 공유할 벽 선분을 정의합니다. */
 const wall = (id: string, from: TacticalPoint, to: TacticalPoint, kind: TacticalWall['kind'] = 'interior'): TacticalWall =>
-  ({ id, from, to, kind });
+  ({ id, from, to, kind, breachable: kind === 'interior' && !id.includes('boundary-control') });
 
 /** 약 3600×2400 월드의 단층 연구시설. 방·문·벽 좌표는 같은 데이터에서 렌더링과 충돌에 사용합니다. */
 export const BREACHLINE_MAP: TacticalMapDefinition = {
@@ -148,9 +150,10 @@ export const BREACHLINE_MAP: TacticalMapDefinition = {
     { id: 'east-courtyard', label: '동쪽 중정', rect: rect(3200, 900, 320, 720), kind: 'yard' },
   ],
   portals: [
-    { id: 'portal-north-window', label: '북측 창고 창문', center: p(900, 300), width: 120, axis: 'horizontal', fromRoom: 'north-approach', toRoom: 'admin-lobby' },
+    { id: 'portal-maintenance-hatch', traversal: 'crawl', label: '유지보수 낮은 통로', center: p(700,2100), width: 70, axis: 'horizontal', fromRoom: 'south-approach', toRoom: 'maintenance' },
+    { id: 'portal-north-window', traversal: 'window', label: '북측 창고 창문', center: p(900, 300), width: 120, axis: 'horizontal', fromRoom: 'north-approach', toRoom: 'admin-lobby' },
     { id: 'portal-west-gate', label: '서문 게이트', center: p(400, 1040), width: 80, axis: 'vertical', fromRoom: 'west-gate', toRoom: 'central-atrium' },
-    { id: 'portal-south-dock', label: '남쪽 적재문', center: p(2360, 2100), width: 90, axis: 'horizontal', fromRoom: 'south-approach', toRoom: 'loading-bay' },
+    { id: 'portal-south-dock', traversal: 'vault', label: '남쪽 적재문', center: p(2360, 2100), width: 90, axis: 'horizontal', fromRoom: 'south-approach', toRoom: 'loading-bay' },
     { id: 'portal-east-service', label: '동쪽 서비스문', center: p(3200, 1600), width: 80, axis: 'vertical', fromRoom: 'east-courtyard', toRoom: 'loading-bay' },
     { id: 'portal-lobby-atrium', label: '로비 중앙문', center: p(860, 1000), width: 80, axis: 'horizontal', fromRoom: 'admin-lobby', toRoom: 'central-atrium' },
     { id: 'portal-office-atrium', label: '사무실 복도문', center: p(1480, 1000), width: 80, axis: 'horizontal', fromRoom: 'office-north', toRoom: 'central-atrium' },

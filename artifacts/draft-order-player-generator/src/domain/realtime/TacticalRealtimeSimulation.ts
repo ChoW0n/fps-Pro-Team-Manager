@@ -1,3 +1,5 @@
+import { playerTrait } from '../playerTraits';
+import { angleDifference, sightRange, turnTowards } from './perception';
 /**
  * 전술 FPS의 실시간 판정을 담당합니다. 결과를 미리 계산하는 라운드 공식과
  * 분리되어 있으며, 모든 이동·소리·탄환은 10Hz 틱 순서로 처리됩니다.
@@ -52,7 +54,7 @@ export interface RealtimeVector extends TacticalPoint { }
 export type RealtimeAction = 'approach' | 'search' | 'hold' | 'take-cover' | 'reposition' | 'aim' | 'fire' | 'reload' | 'plant' | 'disable' | 'utility' | 'dead';
 export interface RealtimeUnitState {
   id: string; teamName: string; side: OperatorSide; callSign: string;
-  position: RealtimeVector; velocity: RealtimeVector; facing: number; hp: number;
+  position: RealtimeVector; velocity: RealtimeVector; facing: number; lookDirection?: number; locomotion?: 'walk' | 'sprint' | 'crouch' | 'crawl' | 'vault'; traversal?: { portalId: string; kind: 'window' | 'vault' | 'crawl'; until: number }; hp: number;
   ammo: number; magazineSize: number; reserveAmmo: number; reloadRemaining: number;
   weaponName: string; weaponProfileNote: string;
   shieldRaised?: boolean; utilityUsed?: boolean;
@@ -68,10 +70,10 @@ export interface RealtimeUnitState {
   };
   alive: boolean;
 }
-export interface RealtimeGadget { id:string; kind:'smoke'|'grenade'|'camera'; side:OperatorSide; owner:string; position:TacticalPoint; from?:TacticalPoint; thrownAt?:number; landedAt?:number; activeAt:number; until:number; radius:number; }
+export interface RealtimeGadget { id:string; kind:'smoke'|'grenade'|'camera'; side:OperatorSide; owner:string; position:TacticalPoint; from?:TacticalPoint; thrownAt?:number; landedAt?:number; activeAt:number; until:number; radius:number; revealsOwner?:boolean; }
 export interface RealtimeBreach {wallId:string;position:TacticalPoint;width:number}
 export interface RealtimeSnapshot {
-  time: number; units: Array<RealtimeUnitState>; objective?: BombState; operation?: ScoutState; visibleTo?: Record<OperatorSide,string[]>; gadgets?:RealtimeGadget[]; breaches?:RealtimeBreach[];
+  time: number; openedPortals?: string[]; units: Array<RealtimeUnitState>; objective?: BombState; operation?: ScoutState; visibleTo?: Record<OperatorSide,string[]>; identifiedTo?: Record<OperatorSide,string[]>; gadgets?:RealtimeGadget[]; breaches?:RealtimeBreach[];
 }
 export interface RealtimeEvent {
   time: number; type: 'move' | 'sound' | 'shot' | 'impact' | 'death' | 'action' | 'objective' | 'intel' | 'reload' | 'utility';
@@ -82,6 +84,13 @@ export interface RealtimeTick {
   time: number;
   snapshot: RealtimeSnapshot;
   events: RealtimeEvent[];
+}
+/** 직접 목격과 고유 장비 사건만 상대 신원으로 확정하며 범용 투척물은 단서로만 남깁니다. */
+export function updateIdentifiedOperators(side:OperatorSide, known:Set<string>, units:readonly RealtimeUnitState[], visibleIds:readonly string[], gadgets:readonly RealtimeGadget[], newEvents:readonly RealtimeEvent[], canSeeGadget:(position:TacticalPoint)=>boolean):void {
+  const byId=new Map(units.map(unit=>[unit.id,unit]));
+  for(const id of visibleIds){const target=byId.get(id);if(target&&target.side!==side)known.add(target.callSign);}
+  for(const gadget of gadgets){if(!gadget.revealsOwner||gadget.side===side||!canSeeGadget(gadget.position))continue;const owner=byId.get(gadget.owner);if(owner)known.add(owner.callSign);}
+  for(const event of newEvents.filter(event=>event.goal==='wall-breached'&&event.seenBy?.includes(side))){const owner=event.actor&&byId.get(event.actor);if(owner&&owner.side!==side)known.add(owner.callSign);}
 }
 export interface RealtimeEngagement {
   attackerCallSign: string; defenderCallSign: string; attackerId: string; defenderId: string; firstShotAt: number;
@@ -276,7 +285,7 @@ export class TacticalRealtimeSimulation {
         const options=map.defenderSetups.map((setup,index)=>({setup,index})).filter(({setup})=>occupied.every(point=>distance(point,setup.position)>50));
         options.sort((a,b)=>distance(a.setup.position,entry)-distance(b.setup.position,entry));
         const choice=options[input.defenseStyle==='anchor'?Math.min(2,options.length-1):0];
-        if(choice){unit.routeIndex=choice.index;unit.position={...choice.setup.position};occupied.push(unit.position);unit.facing=Math.atan2(entry.y-unit.position.y,entry.x-unit.position.x);}
+        if(choice){unit.routeIndex=choice.index;unit.position={...choice.setup.position};occupied.push(unit.position);unit.lookDirection=Math.atan2(entry.y-unit.position.y,entry.x-unit.position.x);}
       }
     }
     const rally = new Map(units.filter(unit=>unit.side==='공격').map(unit=>{
@@ -300,6 +309,8 @@ export class TacticalRealtimeSimulation {
     const searchUntil = new Map<string, number>();
     const searchOrigin = new Map<string, RealtimeVector>();
     const retreatGoals = new Map<string, RealtimeVector>();
+    const initiative = new Map<string, { goal: RealtimeVector; until: number }>();
+    const initiativeRest = new Map<string, number>();
     const grenadeEscapes = new Map<string, { gadgetId: string; goal: RealtimeVector }>();
     const retreatStarted=new Map<string,number>(),retreatRestUntil=new Map<string,number>();
     const directorOrders = new Map<OperatorSide, TacticalDirectorCommand>();
@@ -307,6 +318,7 @@ export class TacticalRealtimeSimulation {
     const blockedUntil = new Map<string, number>();
     const pathCache = new Map<string, NavigationPlan>();
     const portalReservations = new Map<string, PortalReservation>();
+    const openedPortals = new Set<string>();
     let navigationNodes = this.buildNavigationNodes(map);
     const scoutDestinations = new Map<string,RealtimeVector>();
     for(const unit of units.filter(unit=>operation.snapshot().scoutIds.includes(unit.id))) {
@@ -318,6 +330,7 @@ export class TacticalRealtimeSimulation {
       if(!candidates.length) throw new Error('선발조의 유효한 관측 위치를 찾을 수 없습니다.');
       scoutDestinations.set(unit.id,{...candidates[0]});
     }
+    const identified = new Map<OperatorSide, Set<string>>([['공격',new Set()],['수비',new Set()]]);
     const teamReports = new Map<OperatorSide, TeamReport[]>([
       ['공격', []],
       ['수비', []],
@@ -481,7 +494,9 @@ export class TacticalRealtimeSimulation {
         unit.velocity = { x: 0, y: 0 };
         unit.recoil=Math.max(0,(unit.recoil??0)-weaponHandling(unit.weaponName).recovery*.1);
         if (!unit.alive) continue;
+        unit.facing = turnTowards(unit.facing, unit.lookDirection ?? unit.facing, .1);
         const me = stat.get(unit.id)!; const enemies = living(unit.side === '공격' ? '수비' : '공격');
+        const trait = playerTrait(me.player);
         const visible = enemies.filter((enemy) => this.canObserve(unit,enemy.position,map,gadgets,now));
         const seen = visible.sort((a, b) => distance(unit.position, a.position) - distance(unit.position, b.position))[0];
         const hearing = sounds.filter((sound) => byId.get(sound.owner)?.side !== unit.side && this.heard(unit, sound, map, now));
@@ -542,7 +557,7 @@ export class TacticalRealtimeSimulation {
           }
         }
         const lastKnownPosition = unit.knowledge.lastKnownPosition;
-        if (!seen && lastKnownPosition) unit.facing = Math.atan2(lastKnownPosition.y - unit.position.y, lastKnownPosition.x - unit.position.x);
+        if (!seen && lastKnownPosition) unit.lookDirection = Math.atan2(lastKnownPosition.y - unit.position.y, lastKnownPosition.x - unit.position.x);
         const reachedLastKnown = Boolean(
           !seen
           && lastKnownPosition
@@ -620,16 +635,17 @@ export class TacticalRealtimeSimulation {
           || (outnumbered && unit.hp <= 65 && (seen || hasUnresolvedLead))
           || (isClutch && unit.hp <= 55 && (seen || hasUnresolvedLead)),
         );
+        if (!unit.traversal) unit.locomotion = seen || trait === 'methodical' && hasUnresolvedLead ? 'crouch' : 'walk';
         const weapon = weaponProfileFor(me.operator);
         if(!seen&&!lastKnownPosition&&unit.action==='hold') {
           const point=defenderSetup?.fallback??map.portals[unit.routeIndex%map.portals.length].center;
-          unit.facing=Math.atan2(point.y-unit.position.y,point.x-unit.position.x)+Math.sin(now*.7+unit.formationIndex)*.55;
+          unit.lookDirection=Math.atan2(point.y-unit.position.y,point.x-unit.position.x)+Math.sin(now*.7+unit.formationIndex)*.55;
         }
         unit.shieldRaised=unit.callSign==='REUSS'&&Boolean(seen)&&(unit.cooldown>0||losingPosition);
         if(pendingBreach.has(unit.id)){unit.action='utility';unit.goal='파쇄 장약 설치 · 엄호 필요';continue;}
         const camera=gadgets.find(gadget=>gadget.kind==='camera'&&gadget.side!==unit.side&&distance(gadget.position,unit.position)<90&&this.canObserve(unit,gadget.position,map,gadgets,now));
         if(camera){gadgets.splice(gadgets.indexOf(camera),1);unit.action='utility';unit.cooldown=.7;log({time:now,type:'utility',actor:unit.id,position:{...camera.position},message:'발견한 관측 카메라 제거',goal:'camera-destroyed',side:unit.side});continue;}
-        if(!unit.utilityUsed&&unit.reloadRemaining<=0&&now>2) {
+        if(!unit.utilityUsed&&unit.reloadRemaining<=0&&now>.2) {
           if(unit.side==='수비'&&!seen&&now<18&&(me.operator.role==='BLOCKING'||me.operator.role==='DEFENSIVE_SETUP')) {
             gadgets.push({id:unit.id+':camera',kind:'camera',side:unit.side,owner:unit.id,position:{...unit.position},activeAt:now+1,until:actionSeconds+50,radius:480});
             unit.utilityUsed=true;unit.action='utility';unit.goal='관측 카메라 설치 · 거점 접근 감시';
@@ -651,7 +667,7 @@ export class TacticalRealtimeSimulation {
             }
           }
           if(unit.side==='공격'&&(unit.callSign==='MEDVED'||input.attackStyle==='breach'&&me.operator.role==='ENTRY')&&!seen) {
-            const wall=map.walls.find(wall=>wall.kind==='interior'&&distance(wall.from,wall.to)>180&&pointToSegmentDistance(unit.position,wall.from,wall.to)<70
+            const wall=map.walls.find(wall=>wall.breachable === true && distance(wall.from,wall.to)>180&&pointToSegmentDistance(unit.position,wall.from,wall.to)<70
               && distance(unit.position,wall.from)>65&&distance(unit.position,wall.to)>65);
             if(wall){const dx=wall.to.x-wall.from.x,dy=wall.to.y-wall.from.y,t=clamp(((unit.position.x-wall.from.x)*dx+(unit.position.y-wall.from.y)*dy)/(dx*dx+dy*dy),.1,.9);
               const position={x:wall.from.x+dx*t,y:wall.from.y+dy*t};pendingBreach.set(unit.id,{wallId:wall.id,position,ready:now+2});unit.utilityUsed=true;unit.action='utility';
@@ -676,7 +692,7 @@ export class TacticalRealtimeSimulation {
             yieldUntil,
             blockedUntil,
             log,
-            portalReservations,
+            portalReservations, openedPortals,
           );
           if (unit.reloadRemaining <= 0) {
             const loaded = Math.min(unit.magazineSize, unit.reserveAmmo);
@@ -738,7 +754,7 @@ export class TacticalRealtimeSimulation {
           unit.goal = '확인한 수류탄 회피 · 이후 원래 임무 복귀';
           unit.decision = unit.goal;
           this.move(unit, escapePlan.goal, me, map, now, units, navigationNodes, pathCache,
-            yieldUntil, blockedUntil, log, portalReservations);
+            yieldUntil, blockedUntil, log, portalReservations, openedPortals);
           if (distance(unit.position, escapePlan.goal) <= 24) {
             unit.action = 'hold';
             unit.goal = '수류탄 폭발까지 안전 지점 유지';
@@ -758,7 +774,7 @@ export class TacticalRealtimeSimulation {
         if(guarding&&!seen&&!lastKnownPosition) {
           const exits=[...map.portals].filter(portal=>distance(portal.center,guardPoint)<600).sort((a,b)=>distance(a.center,guardPoint)-distance(b.center,guardPoint));
           const exit=exits[unit.formationIndex%Math.min(3,exits.length)]?.center;
-          if(exit)unit.facing=Math.atan2(exit.y-unit.position.y,exit.x-unit.position.x)+Math.sin(now*.45+unit.formationIndex)*.25;
+          if(exit)unit.lookDirection=Math.atan2(exit.y-unit.position.y,exit.x-unit.position.x)+Math.sin(now*.45+unit.formationIndex)*.25;
           unit.goal='설치 후 담당 출입구 엄호 · 동료와 교차 사선';unit.decision=unit.goal;
         }
         const objectiveTask = activeDevice ? unit.id === taskActorId
@@ -776,7 +792,7 @@ export class TacticalRealtimeSimulation {
         }
         // 낮은 공격성도 일정 시간 이상 시야를 유지하면 결정을 끝내야 합니다.
         const aimTimedOut = Boolean(seen && visualContactDuration >= 1.2);
-        if (target) unit.facing = Math.atan2(target.position.y - unit.position.y, target.position.x - unit.position.x);
+        if (target) unit.lookDirection = Math.atan2(target.position.y - unit.position.y, target.position.x - unit.position.x);
         const muzzle = muzzlePosition(unit.callSign, unit.position, unit.facing);
         const muzzleClear = this.hasLineOfSight(unit.position, muzzle, map)
           && (!target || this.hasLineOfSight(muzzle, target.position, map));
@@ -791,9 +807,21 @@ export class TacticalRealtimeSimulation {
         const breakContact=Boolean(!mustCommit && (retreatRestUntil.get(unit.id) ?? 0) <= now
           && seen && (returning && range > 180 || range > handling.comfortableDistance && visualContactDuration > 2.5));
         const friendlyLine=Boolean(target&&living(unit.side).some(friend=>friend.id!==unit.id&&distance(muzzle,friend.position)<distance(muzzle,target.position)&&pointToSegmentDistance(friend.position,muzzle,target.position)<UNIT_RADIUS));
-        const canFire = !friendlyLine&&unit.cooldown <= 0 && unit.ammo > 0 && muzzleClear&&visualContactDuration>=acquisition&&settled>=.15;
+        const canImproviseNow = !objectiveTask && !activeDevice && !openingSearch && !anchorDuty && !losingPosition;
+        if (trait === 'self-assured' && canImproviseNow && seen && range > 180
+          && (initiativeRest.get(unit.id) ?? 0) <= now
+          && events.some(event => event.type === 'impact' && event.hit && event.target === seen.id && now - event.time < 2 && event.seenBy?.includes(unit.side))) {
+          initiative.set(unit.id, { goal: { ...seen.position }, until: now + 2 });
+          initiativeRest.set(unit.id, now + 12);
+          log({ time: now, type: 'action', actor: unit.id, side: unit.side, position: { ...unit.position }, goal: 'trait:initiative', message: '준비된 순서를 벗어나 직접 확인한 피격 상대 압박' });
+        }
+        const initiativePlan = initiative.get(unit.id);
+        const personalAdvance = Boolean(canImproviseNow && initiativePlan && initiativePlan.until > now && distance(unit.position, initiativePlan.goal) > 180);
+        if (!personalAdvance) initiative.delete(unit.id);
+        const aimed = Boolean(target && Math.abs(angleDifference(Math.atan2(target.position.y-unit.position.y, target.position.x-unit.position.x), unit.facing)) < .035);
+        const canFire = unit.locomotion !== 'sprint' && !unit.traversal && aimed && !friendlyLine&&unit.cooldown <= 0 && unit.ammo > 0 && muzzleClear&&visualContactDuration>=acquisition&&settled>=.15;
         const continuingRetreat = !mustCommit && retreatGoals.has(unit.id) && retreatStarted.has(unit.id);
-        const shouldFire = Boolean(seen && canFire && !losingPosition && !breakContact && !continuingRetreat
+        const shouldFire = Boolean(seen && canFire && !losingPosition && !breakContact && !continuingRetreat && !personalAdvance
           && (aggression > 0.25 || isClutch || aimTimedOut));
         const outOfAmmo = unit.ammo <= 0;
         const directorOrder = directorOrders.get(unit.side);
@@ -853,12 +881,12 @@ export class TacticalRealtimeSimulation {
         if (unit.cooldown > 0) unit.cooldown = Math.max(0, unit.cooldown - 0.1);
         if (shouldFire && target) {
           // 총몸은 실제 조준 대상을 향해 회전하고, 이동 방향과 별도로 표시됩니다.
-          unit.facing = Math.atan2(target.position.y - unit.position.y, target.position.x - unit.position.x);
+          unit.lookDirection = Math.atan2(target.position.y - unit.position.y, target.position.x - unit.position.x);
           const engagement = this.engagement(engagements, unit, target, now);
           unit.action = 'fire';
           engagement.shots += 1; unit.ammo -= 1; unit.burst=(unit.burst??0)+1;
           unit.cooldown=shotInterval(handling,range,control,unit.burst);
-          unit.spread=shotCone(handling,control,unit.recoil??0,settled,exposure);
+          unit.spread=shotCone(handling,control,unit.recoil??0,settled,exposure) * (unit.locomotion === 'crouch' ? .85 : unit.locomotion === 'crawl' ? .75 : 1);
           const offset=(random.next()+random.next()-1)*unit.spread;
           const bearing=Math.atan2(target.position.y-muzzle.y,target.position.x-muzzle.x)+offset;
           const reach=distance(muzzle,target.position);
@@ -876,7 +904,7 @@ export class TacticalRealtimeSimulation {
             message: `${unit.callSign} ${unit.decision}`, position: { ...muzzle },
             targetPosition, travelSeconds: flight, hit, blocked: !muzzleClear, side: unit.side,
           });
-        } else if (!seen && unit.action !== 'hold' && unit.action !== 'aim' || seen && shouldReposition) {
+        } else if (!seen && unit.action !== 'hold' && unit.action !== 'aim' || seen && shouldReposition || personalAdvance || unit.traversal) {
           // 공격자는 돌입점으로 전진하고, 수비자는 소리·마지막 위치·열세 판단에 따라 움직입니다.
           const routeGoal = this.attackerDestination(unit, map);
           const route=map.attackerRoutes[unit.routeIndex % map.attackerRoutes.length];
@@ -891,7 +919,7 @@ export class TacticalRealtimeSimulation {
           const searchPoint = map.searchPoints[unit.routeIndex % map.searchPoints.length];
           if (shouldReposition && !retreatGoals.has(unit.id)) {retreatGoals.set(unit.id,this.retreatDestination(unit,map));retreatStarted.set(unit.id,now);}
           if (!shouldReposition) { retreatGoals.delete(unit.id); retreatStarted.delete(unit.id); }
-          const destination = shouldReposition
+          let destination = shouldReposition
             ? returning&&operationGoal?operationGoal:forcedRetreat ? rally.get(unit.id) ?? retreatGoals.get(unit.id)! : retreatGoals.get(unit.id)!
             : operationGoal ?? missionDestination ?? seen?.position
               ?? (isSearching && searchOrigin.get(unit.id)
@@ -905,6 +933,17 @@ export class TacticalRealtimeSimulation {
                     : unit.side === '공격'
                       ? this.supportDestination(unit, attackerGoal, units, map)
                       : roamer ? (now%16<8 ? defenderSetup?.fallback : map.defenderSetups[(unit.formationIndex+6)%map.defenderSetups.length].position)??objectiveCenter : defenderSetup?.position ?? objectiveCenter));
+          // 성향은 실제 관측과 자기 임무 범위 안에서만 별도 선택을 만듭니다.
+          const canImprovise = !objectiveTask && !activeDevice && !openingSearch && !anchorDuty && !shouldReposition;
+          if (personalAdvance) destination = initiative.get(unit.id)!.goal;
+          if (trait === 'supportive' && canImprovise && !seen) {
+            const friend = living(unit.side).find(friend => friend.id !== unit.id && friend.knowledge.source === 'self-visual'
+              && now - (friend.knowledge.lastKnownAt ?? -100) < 1 && distance(unit.position, friend.position) < 350);
+            if (friend) destination = this.supportDestination(unit, friend.position, units, map);
+          }
+          if (!unit.traversal && !seen && !hasUnresolvedLead && !shouldReposition && trait !== 'methodical'
+            && distance(unit.position, destination) > 180) unit.locomotion = 'sprint';
+          if (unit.traversal && pathCache.has(unit.id)) destination = pathCache.get(unit.id)!.goal;
           if(roamer&&!seen)unit.goal='로머 순환 · 실제 관측 보고에 대응';
           if(operationGoal) unit.goal = isOpeningScout ? '선발조 수색 · 지정 방향 확인' : operationState.phase==='scouting' ? '진압조 전진 대기선 · 선발조 엄호' : '실제 복귀 · 진압조와 합류';
           this.move(
@@ -919,10 +958,10 @@ export class TacticalRealtimeSimulation {
             yieldUntil,
             blockedUntil,
             log,
-            portalReservations,
+            portalReservations, openedPortals,
           );
         }
-        if (unit.cooldown <= 0 && unit.action === 'approach') sounds.push({ at: now, source: { ...unit.position }, kind: 'footstep', loudness: 0.25, owner: unit.id });
+        if (unit.cooldown <= 0 && unit.action === 'approach') sounds.push({ at: now, source: { ...unit.position }, kind: 'footstep', loudness: unit.locomotion === 'sprint' ? .7 : unit.locomotion === 'crouch' || unit.locomotion === 'crawl' ? .1 : .25, owner: unit.id });
       }
       for (const e of sounds) if (e.at === now) log({ time: now, type: 'sound', actor: e.owner, message: e.kind === 'gunshot' ? '총성' : '발소리', position: e.source });
       const objectiveEvents = objective.step(now, units.map(unit => ({
@@ -933,7 +972,11 @@ export class TacticalRealtimeSimulation {
       for (const event of objectiveEvents) log({ ...event, type: 'objective', goal: event.kind });
       const bombState = objective.snapshot();
       const visibleTo = Object.fromEntries((['공격','수비'] as OperatorSide[]).map(side=>[side,units.filter(target=>target.side===side||units.some(observer=>observer.alive&&observer.side===side&&this.canObserve(observer,target.position,map,gadgets,now))).map(unit=>unit.id)])) as Record<OperatorSide,string[]>;
-      const snapshot = { time: now, objective: bombState, operation: operationState, visibleTo, gadgets:gadgets.map(gadget=>({...gadget,position:{...gadget.position}})), breaches:[...breaches], units: units.map((u) => ({ ...u, position: { ...u.position }, velocity: { ...u.velocity }, knowledge: { ...u.knowledge } })) };
+      for (const side of ['공격','수비'] as OperatorSide[]) {
+        updateIdentifiedOperators(side,identified.get(side)!,units,visibleTo[side],gadgets,events.slice(eventCursor),position=>units.some(observer=>observer.alive&&observer.side===side&&this.canObserve(observer,position,map,gadgets,now)));
+      }
+      const identifiedTo=Object.fromEntries((['공격','수비'] as OperatorSide[]).map(side=>[side,[...identified.get(side)!]])) as Record<OperatorSide,string[]>;
+      const snapshot = { time: now, openedPortals: [...openedPortals], objective: bombState, operation: operationState, visibleTo, identifiedTo, gadgets:gadgets.map(gadget=>({...gadget,position:{...gadget.position}})), breaches:[...breaches], units: units.map((u) => ({ ...u, position: { ...u.position }, velocity: { ...u.velocity }, knowledge: { ...u.knowledge } })) };
       snapshots.push(snapshot);
       const command = yield { time: now, snapshot, events: events.slice(eventCursor) };
       eventCursor = events.length;
@@ -1047,9 +1090,9 @@ export class TacticalRealtimeSimulation {
   /** 개인 시야의 범위·방향·몸 노출을 함께 판정합니다. */
   private canSee(unit: RealtimeUnitState, point: TacticalPoint, map: TacticalMapDefinition): boolean {
     const range = distance(unit.position, point);
-    if (range > 1200 || this.targetExposure(unit.position,point,map)<.34) return false;
     const angle = Math.atan2(point.y - unit.position.y, point.x - unit.position.x) - unit.facing;
-    return range < 60 || Math.cos(angle) >= Math.cos(Math.PI * 0.4);
+    const limit = sightRange(angle);
+    return limit > 0 && range <= limit && this.targetExposure(unit.position, point, map) >= .34;
   }
 
   /** 몸 너비의 세 점을 검사해 문틈의 단일 픽셀로 전체 몸을 인식하지 않습니다. */
@@ -1217,6 +1260,7 @@ export class TacticalRealtimeSimulation {
     blockedUntil: Map<string, number>,
     log: (event: RealtimeEvent) => void,
     reservations: Map<string, PortalReservation> = new Map(),
+    openedPortals: Set<string> = new Set(),
   ): void {
     if (!unit.alive) return;
     const goalKey = `${Math.round(goal.x)}:${Math.round(goal.y)}`;
@@ -1269,11 +1313,29 @@ export class TacticalRealtimeSimulation {
       }
       if (!current) reservations.set(key, { ownerId: unit.id, approach: Math.sign(offset) || 1, expires: now + 6 });
     }
+    // 창문·낮은 틀·기어가는 통로는 예약된 문 통과와 같은 실제 이동 경로에서 수행합니다.
+    const traversalPortal = map.portals.find(portal => portal.traversal && distance(unit.position, portal.center) < 65
+      && pointToSegmentDistance(portal.center, unit.position, waypoint) < portal.width / 2);
+    if (traversalPortal) {
+      const kind = traversalPortal.traversal!;
+      if (unit.traversal?.portalId !== traversalPortal.id) {
+        unit.traversal = { portalId: traversalPortal.id, kind, until: now + (kind === 'window' ? .7 : .3) };
+        log({ time: now, type: 'action', actor: unit.id, side: unit.side, position: { ...unit.position },
+          goal: 'traversal:' + kind, message: kind === 'window' ? '창문 파괴 후 진입' : kind === 'crawl' ? '낮은 통로 포복 진입' : '낮은 틀 넘기' });
+      }
+      if (kind === 'window' && !openedPortals.has(traversalPortal.id)) {
+        if (now < unit.traversal.until) { unit.action = 'utility'; unit.velocity = { x: 0, y: 0 }; return; }
+        openedPortals.add(traversalPortal.id);
+        log({ time: now, type: 'utility', actor: unit.id, side: unit.side, position: { ...traversalPortal.center }, goal: 'window-broken', message: '창문 파괴' });
+      }
+      unit.locomotion = kind === 'crawl' ? 'crawl' : 'vault';
+    } else if (unit.traversal) { unit.traversal = undefined; unit.locomotion = 'walk'; }
     const dx = waypoint.x - unit.position.x;
     const dy = waypoint.y - unit.position.y;
     const length = Math.hypot(dx, dy) || 1;
     const defensive = unit.side === '수비';
-    const speed = (defensive ? 42 : 52) + me.operator.stats.entry / 5 + me.player.teamSynergy / 20;
+    const gait = unit.locomotion === 'sprint' ? 1.65 : unit.locomotion === 'crouch' ? .72 : unit.locomotion === 'crawl' ? .42 : unit.locomotion === 'vault' ? .6 : 1;
+    const speed = ((defensive ? 42 : 52) + me.operator.stats.entry / 5 + me.player.teamSynergy / 20) * gait;
     const step = Math.min(speed / 10, length);
     const next = {
       x: unit.position.x + dx / length * step,
@@ -1324,7 +1386,7 @@ export class TacticalRealtimeSimulation {
     unit.velocity = { x: next.x - unit.position.x, y: next.y - unit.position.y };
     unit.position = next;
     // 통행에 실패한 시도만으로 몸을 좌우로 돌리지 않습니다.
-    unit.facing = Math.atan2(dy, dx);
+    unit.lookDirection = Math.atan2(dy, dx);
   }
   /** 마지막 위치를 확인한 유닛이 주변을 훑도록, 기억한 지점 주변의 탐색 지점을 만듭니다. */
   private searchDestination(center: TacticalPoint, unit: RealtimeUnitState, _now: number, map: TacticalMapDefinition): RealtimeVector {

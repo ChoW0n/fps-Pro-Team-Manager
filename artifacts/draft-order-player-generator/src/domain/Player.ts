@@ -3,6 +3,7 @@
  * position과 MOBA 능력치 getter는 기존 화면·시뮬레이터의 임시 호환 경로입니다.
  */
 
+import type { PlayerTrait } from './playerTraits';
 import type { Champion } from './Champion';
 import type { Operator } from './Operator';
 import type { SoloRankRecord } from './soloRank';
@@ -15,6 +16,7 @@ export type Position = 'TOP' | 'JUNGLE' | 'MID' | 'ADC' | 'SUPPORT';
 
 export class Player {
   public nickname: string;
+  public behaviorTrait?: PlayerTrait;
   public realName: string;
   public readonly role: Role;
   public age: number;

@@ -5,29 +5,29 @@
       "seed": 11,
       "winner": "공격",
       "reason": "defenders-eliminated",
-      "seconds": 35,
+      "seconds": 40.1,
       "attackerDeaths": 2
     },
     {
       "seed": 41,
       "winner": "공격",
       "reason": "defenders-eliminated",
-      "seconds": 36,
-      "attackerDeaths": 1
+      "seconds": 38.9,
+      "attackerDeaths": 2
     },
     {
       "seed": 81,
       "winner": "공격",
       "reason": "defenders-eliminated",
-      "seconds": 22.4,
-      "attackerDeaths": 0
+      "seconds": 40.1,
+      "attackerDeaths": 2
     },
     {
       "seed": 149,
       "winner": "공격",
       "reason": "defenders-eliminated",
-      "seconds": 35.8,
-      "attackerDeaths": 1
+      "seconds": 39.8,
+      "attackerDeaths": 2
     }
   ]
 }

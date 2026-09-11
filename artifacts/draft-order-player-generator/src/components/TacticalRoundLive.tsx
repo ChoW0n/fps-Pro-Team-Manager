@@ -1,176 +1,68 @@
-/** 기존 경기 경로에서 같은 10Hz 세션의 실제 사건과 인물 리소스를 중계합니다. */
 import { useEffect, useMemo, useRef, useState, type ReactElement } from 'react';
 import type { OperatorSide } from '../domain/Operator';
-import { OPERATOR_ROLE_LABELS } from '../domain/Operator';
 import { TacticalRealtimeSimulation, realtimeUnitId, type RealtimeEvent, type RealtimeTick, type TacticalRealtimeSimulationInput, type TacticalRealtimeResult } from '../domain/realtime/TacticalRealtimeSimulation';
 import { startRoundPlayback } from '../domain/realtime/roundPlayback';
-import { cameraViewport, combatCamera, directorObjective } from '../domain/realtime/spectatorView';
-import { breachWalls } from '../domain/realtime/breachGeometry';
 import { BOMB_RESULT_LABELS } from '../domain/realtime/BombObjective';
 import { BREACHLINE_MAP, type TacticalMapDefinition } from '../domain/tacticalMaps';
-import { operatorVisual } from '../domain/operatorVisuals';
-import { TacticalBattlefield, OperatorArt, SIDE_COLOR } from './TacticalBattlefield';
-import './tacticalBroadcast.css';
+import { BroadcastCanvas } from './BroadcastCanvas';
+import { OperatorEmblem } from './OperatorEmblem';
+import { OperatorArt } from './TacticalBattlefield';
+import './matchBroadcast.css';
 
-export interface TacticalRoundLiveProps { input: TacticalRealtimeSimulationInput; map?: TacticalMapDefinition; roundNumber?: number; directorSide?: OperatorSide; onComplete?: (result: TacticalRealtimeResult) => void }
-const ACTIONS = { approach: '진입 중', search: '정보 확인', hold: '각 유지', 'take-cover': '엄폐', reposition: '재배치', aim: '조준', fire: '사격', reload: '장전', utility:'가젯 사용', dead: '전투 이탈', plant: '장치 설치', disable: '장치 무력화' };
+export interface TacticalRoundLiveProps { input:TacticalRealtimeSimulationInput; map?:TacticalMapDefinition; roundNumber?:number; directorSide?:OperatorSide; score?:[number,number]; onComplete?:(result:TacticalRealtimeResult)=>void }
+/** 방송 시간은 실제 경기 시각에서 계산합니다. */
+function clock(seconds:number):string { const n=Math.max(0,Math.ceil(seconds));return `${Math.floor(n/60)}:${String(n%60).padStart(2,'0')}`; }
 
-/** 남은 라운드 시간을 방송용 분·초로 표시합니다. */
-function clock(seconds: number): string {
-  const value = Math.max(0, Math.ceil(seconds));
-  return `${String(Math.floor(value / 60)).padStart(2, '0')}:${String(value % 60).padStart(2, '0')}`;
-}
-
-/** 틱 소비·선수 선택·카메라 상태를 분리해 화면 조작이 난수 순서를 바꾸지 않게 합니다. */
-export function TacticalRoundLive({ input, map = BREACHLINE_MAP, roundNumber = 1, directorSide = '공격', onComplete }: TacticalRoundLiveProps): ReactElement {
-  const completeRef = useRef(onComplete);
-  completeRef.current = onComplete;
-  const [tick, setTick] = useState<RealtimeTick | null>(null);
-  const [events, setEvents] = useState<RealtimeEvent[]>([]);
-  const [result, setResult] = useState<TacticalRealtimeResult | null>(null);
-  const [selectedId, setSelectedId] = useState<string | null>(null);
-  const [cameraMode, setCameraMode] = useState<'full' | 'follow' | 'broadcast'>('broadcast');
-  const [paused, setPaused] = useState(false);
-  const [speed, setSpeed] = useState(2);
-  const [contact, setContact] = useState(false);
-  const controls = useRef({ paused: false, speed: 2 });
-  const sessionRef = useRef<ReturnType<TacticalRealtimeSimulation['createSession']> | null>(null);
-  controls.current = { paused, speed };
-  const participants = useMemo(() => new Map([...input.attackers, ...input.defenders].map((unit, index) => [realtimeUnitId(unit, index), unit])), [input]);
-  const operators = useMemo(() => new Map([...participants].map(([id, unit]) => [id, unit.operator])), [participants]);
-
-  useEffect(() => {
-    const session = new TacticalRealtimeSimulation(map).createSession(input);
-    sessionRef.current = session;
-    setEvents([]); setResult(null); setContact(false);
-    cameraHold.current = { id: null, until: 0 };
-    const initialUnit = directorSide === '공격' ? input.attackers[0] : input.defenders[0];
-    const initialIndex = directorSide === '공격' ? 0 : input.attackers.length;
-    setSelectedId(realtimeUnitId(initialUnit, initialIndex)); setPaused(false);
-    controls.current.paused = false;
-    const stop = startRoundPlayback(session, () => controls.current, next => {
-      setTick(next);
-      if (next.events.some(event => event.type === 'shot' && event.seenBy?.includes(directorSide))) setContact(true);
-      setEvents(previous => [...previous, ...next.events].slice(-240));
-    }, completed => {
-      setResult(completed);
-      completeRef.current?.(completed);
-    });
-    return () => { stop(); sessionRef.current = null; };
-  }, [input, map, directorSide]);
-
-  const allUnits = tick?.snapshot.units ?? [];
-  const visibleIds=tick?.snapshot.visibleTo?.[directorSide]??allUnits.filter(unit=>unit.side===directorSide).map(unit=>unit.id);
-  const units=useMemo(()=>allUnits.filter(unit=>unit.side===directorSide||visibleIds.includes(unit.id)),[allUnits,visibleIds,directorSide]);
-  const visionUnits=useMemo(()=>allUnits.filter(unit=>unit.side===directorSide&&unit.alive),[allUnits,directorSide]);
-  const knownEvents=events.filter(event=>event.seenBy?.includes(directorSide));
-  const time = tick?.time ?? 0;
-  const selected = units.find(unit => unit.id === selectedId);
-  const source = selectedId ? participants.get(selectedId) : undefined;
-  const cameraHold=useRef<{id:string|null;until:number}>({id:null,until:0});
-  const preferred=time<cameraHold.current.until&&units.some(unit=>unit.id===cameraHold.current.id&&unit.alive)?cameraHold.current.id:undefined;
-  const framing=combatCamera(units,knownEvents,directorSide,time,selectedId,cameraMode==='follow',preferred);
-  if(framing.focusId!==cameraHold.current.id||time>=cameraHold.current.until)cameraHold.current={id:framing.focusId,until:time+2.5};
-  const cameraUnit=units.find(unit=>unit.id===framing.focusId);
-  const desiredCamera = cameraViewport(map, framing, cameraMode === 'full');
-  const targetCamera=useRef(desiredCamera);targetCamera.current=desiredCamera;
-  const [camera,setCamera]=useState(desiredCamera);
-  const cameraCurrent=useRef(desiredCamera);
+/** 감독은 하나의 경기 중계를 보며 선수 선택·관전 속도만 바꿉니다. */
+export function TacticalRoundLive({input,map=BREACHLINE_MAP,roundNumber=1,directorSide='공격',score=[0,0],onComplete}:TacticalRoundLiveProps):ReactElement {
+  const complete=useRef(onComplete);complete.current=onComplete;
+  const [tick,setTick]=useState<RealtimeTick|null>(null),[events,setEvents]=useState<RealtimeEvent[]>([]),[result,setResult]=useState<TacticalRealtimeResult|null>(null);
+  const [selectedId,setSelectedId]=useState<string|null>(null),[mode,setMode]=useState<'broadcast'|'follow'|'full'>('broadcast');
+  const [paused,setPaused]=useState(false),[speed,setSpeed]=useState(2),[error,setError]=useState('');
+  const workerRef=useRef<Worker|null>(null),controls=useRef({paused,speed});controls.current={paused,speed};
+  const participants=useMemo(()=>new Map([...input.attackers,...input.defenders].map((unit,index)=>[realtimeUnitId(unit,index),unit])),[input]);
   useEffect(()=>{
-    let frame=0,previous=0;
-    /** 화면 이동만 완만하게 보간하며 경기 시각이나 선수 위치는 변경하지 않습니다. */
-    const animate=(stamp:number):void=>{
-      if(stamp-previous>=32){previous=stamp;const current=cameraCurrent.current,target=targetCamera.current;
-        const amount=window.matchMedia('(prefers-reduced-motion: reduce)').matches?1:.22;const next={x:current.x+(target.x-current.x)*amount,y:current.y+(target.y-current.y)*amount,width:current.width+(target.width-current.width)*amount,height:current.height+(target.height-current.height)*amount};
-        if(Math.abs(next.x-current.x)+Math.abs(next.y-current.y)+Math.abs(next.width-current.width)>.15){cameraCurrent.current=next;setCamera(next);}}
-      frame=requestAnimationFrame(animate);
-    };frame=requestAnimationFrame(animate);return()=>cancelAnimationFrame(frame);
-  },[]);
-  const {x,y,width,height}=camera;
-  const zoom=map.width/width;
-  const viewMap=useMemo(()=>({...map,walls:(tick?.snapshot.breaches??[]).reduce((walls,breach)=>breachWalls(walls,breach.wallId,breach.position,breach.width),map.walls)}),[map,tick?.snapshot.breaches]);
-  const perception=useMemo(()=>new TacticalRealtimeSimulation(map),[map]);
-  const observedPoint=(position:{x:number;y:number}):boolean=>visionUnits.some(unit=>perception.canObserve(unit,position,viewMap,tick?.snapshot.gadgets,time));
-  const objective = directorObjective(tick?.snapshot.objective,directorSide,visibleIds,Boolean(tick?.snapshot.objective?.devicePosition&&observedPoint(tick.snapshot.objective.devicePosition)));
-  const gadgets=useMemo(()=>(tick?.snapshot.gadgets??[]).filter(gadget=>gadget.side===directorSide||observedPoint(gadget.position)),[tick,directorSide]);
-  const activeDevice = objective?.phase === 'active' || objective?.phase === 'disabling';
-  const objectiveLabel = objective?.phase === 'planting' ? '해체 장치 설치 중' : objective?.phase === 'disabling' ? '수비팀 장치 무력화 중' : activeDevice ? '장치 가동 · 공격팀 엄호' : objective?.phase === 'dropped' ? '해체 장치 유실 · 회수 필요' : '공격팀 설치 / 수비팀 폭탄 방어';
-  const operation=directorSide==='공격'?tick?.snapshot.operation:undefined;
-  const operationLabels={scouting:'선발조 수색',returning:'선발조 복귀',regrouping:'진압조 합류',entering:'진입'};
-  const phase = result ? '라운드 종료' : activeDevice ? '설치 후 교전' : objective?.phase === 'planting' ? '설치' : operation&&operation.phase!=='entering' ? operationLabels[operation.phase] : contact ? '교전' : '진입';
-  const secondsLeft = Math.max(0, (activeDevice ? objective!.activeUntil! : input.maxSeconds ?? 180) - time);
-  const logs = knownEvents.filter(event => ['death', 'reload', 'objective', 'utility'].includes(event.type)).slice(-5).reverse();
+    let stopped=false,reported=false,fallbackStop:(()=>void)|undefined;
+    const first=[...participants].find(([,unit])=>unit.side===directorSide);
+    setSelectedId(first?.[0]??null);setTick(null);setEvents([]);setResult(null);setError('');setPaused(false);controls.current.paused=false;
+    /** 실시간 틱과 최종 통지를 분리해 라운드 점수를 한 번만 기록합니다. */
+    const receiveTick=(next:RealtimeTick):void=>{if(stopped)return;setTick(next);setEvents(previous=>[...previous,...next.events].slice(-240));};
+    const receiveResult=(value:TacticalRealtimeResult):void=>{if(stopped||reported)return;reported=true;setResult(value);complete.current?.(value);};
+    if(typeof Worker!=='undefined'){
+      const worker=new Worker(new URL('../domain/realtime/tactical.worker.ts',import.meta.url),{type:'module'});workerRef.current=worker;
+      worker.onmessage=event=>{if(event.data.type==='tick')receiveTick(event.data.tick);else if(event.data.type==='complete')receiveResult(event.data.result);else if(event.data.type==='error')setError('경기를 계속할 수 없습니다. 작전실에서 다시 시작해 주세요.');};
+      worker.onerror=()=>setError('경기 계산을 불러오지 못했습니다. 새로고침 후 다시 시작해 주세요.');
+      worker.postMessage({type:'start',input,map,controls:controls.current});
+    }else fallbackStop=startRoundPlayback(new TacticalRealtimeSimulation(map).createSession(input),()=>controls.current,receiveTick,receiveResult);
+    return()=>{stopped=true;fallbackStop?.();workerRef.current?.terminate();workerRef.current=null;};
+  },[input,map,directorSide,participants]);
+  useEffect(()=>{workerRef.current?.postMessage({type:'controls',controls:{paused,speed}});},[paused,speed]);
+  const units=tick?.snapshot.units??[],time=tick?.time??0,own=units.filter(unit=>unit.side===directorSide);
+  const selected=own.find(unit=>unit.id===selectedId),source=selectedId?participants.get(selectedId):undefined;
+  const known=events.filter(event=>event.seenBy?.includes(directorSide));
+  const kills=known.filter(event=>event.type==='death'&&time-event.time<6).slice(-4);
+  const objective=tick?.snapshot.objective,active=objective?.phase==='active'||objective?.phase==='disabling';
+  const left=(active?objective?.activeUntil:input.maxSeconds??180)??180;
+  const outcome=result?.objective.reason?BOMB_RESULT_LABELS[result.objective.reason]:'';
+  /** 실제 참가자 이름을 사용하며 확인하지 못한 공격자의 신원은 숨깁니다. */
+  const playerName=(id?:string):string=>participants.get(id??'')?.player.nickname??'미확인';
+  /** 현재 시야 또는 관측한 발사 사건으로 확인한 공격자만 킬 피드에 표시합니다. */
+  const killerName=(event:RealtimeEvent):string=>participants.get(event.actor??'')?.side===directorSide||tick?.snapshot.visibleTo?.[directorSide].includes(event.actor??'')||known.some(shot=>shot.type==='shot'&&shot.actor===event.actor&&Math.abs(event.time-shot.time)<.5)?playerName(event.actor):'미확인';
+  /** 번호나 인물 카드를 고르면 해당 선수 시야로 관전합니다. */
+  function select(id:string):void{if(participants.get(id)?.side!==directorSide)return;setSelectedId(id);setMode('follow');}
+  return <section className="match-broadcast" aria-label="DRAFT ORDER 경기 중계" data-version="personal-broadcast-20260911">
+    <BroadcastCanvas tick={tick} events={events} map={map} side={directorSide} selectedId={selectedId} mode={mode} speed={speed} paused={paused} onSelect={select}/>
+    <header className="cast-scorebar">
+      {(['공격','수비'] as OperatorSide[]).map(side=><div key={side} className={`cast-team ${side==='공격'?'is-attack':'is-defense'}`}><span><small>{side==='공격'?'ATK':'DEF'}{side===directorSide?' / OUR TEAM':''}</small><strong>{(side==='공격'?input.attackers:input.defenders)[0]?.teamName}</strong></span><b>{score[side===directorSide?0:1]}</b><div className="cast-life" aria-label={side===directorSide?'우리 팀 생존 상태':'상대 생존 상태 미확인'}>{[0,1,2,3,4].map(index=><i key={index} className={side===directorSide?(own[index]?.alive?'is-alive':'is-out'):'is-unknown'}/>)}</div></div>)}
+      <div className={`cast-clock ${active?'is-active':''}`}><small>ROUND {String(roundNumber).padStart(2,'0')}</small><b>{clock(left-time)}</b><span>{active?'장치 가동':paused?'PAUSED':'LIVE'}</span></div>
+    </header>
 
-  /** 선택은 참가자 ID에만 연결하고 확대 시 해당 선수의 실제 위치를 추적합니다. */
-  function selectUnit(id: string): void { if(participants.get(id)?.side!==directorSide)return;setSelectedId(id); setCameraMode('follow'); }
-  /** 이름 표시에도 참가자 ID를 사용해 양 팀의 동일 콜사인을 구분합니다. */
-  function name(id?: string): string { return id === 'director' ? '감독' : participants.get(id ?? '')?.operator.callSign ?? '현장'; }
-  /** 사건에 기록된 종류만 읽어 짧은 방송 로그를 만듭니다. */
-  function eventText(event: RealtimeEvent): string {
-    if (event.type === 'shot') return `${name(event.actor)} → ${name(event.target)} 사격`;
-    if (event.type === 'death') return `${name(event.target)} 전투 이탈`;
-    if (event.type === 'intel') return `${name(event.actor)} · ${event.message}`;
-    return event.message;
-  }
-
-  return <section className="broadcast" aria-label="실시간 전술 FPS 라운드 중계" data-version="combat-overhaul-20260910">
-    <header className="broadcast-heading"><div><span className="broadcast-eyebrow">DRAFT ORDER / LIVE MATCH</span><h1>북부 연구동</h1></div><div className="broadcast-meta"><span>ROUND {String(roundNumber).padStart(2, '0')} · {phase}</span><b>{result ? 'FINAL' : paused ? 'PAUSED' : 'LIVE'}</b></div></header>
-    <div className="broadcast-scoreboard">
-      {(['공격', '수비'] as OperatorSide[]).map((side, index) => <div key={side} className={`broadcast-team team-${index}`}>
-        <small style={{color:SIDE_COLOR[side]}}>{side === '공격' ? 'ATK / 공격' : 'DEF / 수비'}</small>
-        <strong>{(side === '공격' ? input.attackers : input.defenders)[0]?.teamName}</strong>
-        <span className="broadcast-alive" style={{color:SIDE_COLOR[side]}}>{side===directorSide?allUnits.filter(unit=>unit.side===side&&unit.alive).length:result?result.survivors.filter(unit=>unit.side===side).length:'?'}<small> {side===directorSide?'ALIVE':'미확인'}</small></span>
-      </div>)}
-      <div className="broadcast-clock"><b>{clock(secondsLeft)}</b><span>{result ? `${result.winner} ${result.winner === '무승부' ? '' : '승리'}` : activeDevice ? '폭탄 해체까지' : '설치 제한 시간'}</span></div>
-    </div>
-    <div className={`broadcast-objective ${activeDevice ? 'is-active' : ''}`} role="status" aria-live="polite">
-      <strong>{objective?.siteId ?? (directorSide==='공격'?input.targetSite:'A/B')} <span>SITE</span></strong>
-      <div><b>{result && objective?.reason ? BOMB_RESULT_LABELS[objective.reason] : objectiveLabel}</b>
-        <small>{objective?.carrierId ? `운반자 ${participants.get(objective.carrierId)?.operator.callSign ?? '확인 중'}` : activeDevice ? '수비는 작동 중인 장치를 무력화해야 합니다' : 'A/B 중 한 곳에 설치하여 엄호하세요'}</small>
-      </div>
-      {(objective?.phase === 'planting' || objective?.phase === 'disabling') && <progress aria-label={objectiveLabel} max="1" value={objective.progress} />}
-      <span className="broadcast-objective-rule">설치 7초 · 무력화 7초 · 작동 45초</span>
-    </div>
-    <div className="broadcast-layout">
-      <div className="broadcast-stage">
-        <div className="broadcast-toolbar"><div className="broadcast-camera" aria-label="카메라 선택">
-          <button aria-pressed={cameraMode === 'broadcast'} onClick={() => setCameraMode('broadcast')}>자동 중계</button>
-          <button aria-pressed={cameraMode === 'full'} onClick={() => setCameraMode('full')}>전체 전황</button>
-          <button aria-pressed={cameraMode === 'follow'} onClick={() => setCameraMode('follow')}>선수 확대</button>
-        </div><div className="broadcast-playback">
-          <button disabled={Boolean(result)} onClick={() => setPaused(value => !value)}>{paused ? '재생' : '일시정지'}</button>
-          <select aria-label="중계 속도" value={speed} onChange={event => setSpeed(Number(event.target.value))}><option value="1">1×</option><option value="2">2×</option><option value="4">4×</option></select>
-        </div></div>
-        <div className="broadcast-map-frame">
-          <TacticalBattlefield map={map} units={units} operators={operators} events={knownEvents} time={time} visionUnits={visionUnits} gadgets={gadgets} breaches={tick?.snapshot.breaches} objective={objective} selectedId={selectedId} onSelect={selectUnit} viewBox={`${x} ${y} ${width} ${height}`} />
-          <div className="broadcast-camera-caption"><b>{cameraMode === 'full' ? '전술 전체 보기' : `${cameraUnit?.callSign ?? '현장'} / ${zoom.toFixed(1)}×`}</b><span>{cameraUnit ? ACTIONS[cameraUnit.action] : phase}</span></div>
-          {cameraMode !== 'full' && <div className="broadcast-minimap"><span>전체 전황</span><TacticalBattlefield map={map} units={units} operators={operators} events={[]} time={time} visionUnits={visionUnits} gadgets={gadgets} breaches={tick?.snapshot.breaches} selectedId={cameraUnit?.id ?? null} onSelect={selectUnit} miniature /></div>}
-        </div>
-        <div className="broadcast-map-footer"><span>{operation ? `${operationLabels[operation.phase]} · 선발조 ${operation.scoutIds.length}명　` : ''}● 공격　◌ 수비　<span style={{color:'#FFC53D'}}>A / B</span> 폭탄 사이트</span><span>선수 또는 카드를 선택해 확대</span></div>
-      </div>
-      <aside className="broadcast-sidebar">
-        <section className="broadcast-selected" aria-label="선택 선수 정보">
-          <div className="broadcast-portrait">{selected&&<OperatorArt callSign={selected.callSign}/>}<span>{source?.operator.unit.country} / {selected?.side}</span></div>
-          <div className="broadcast-player-copy"><small>PLAYER / {source?.player.realName}</small><h2>{source?.player.nickname}</h2><strong>{selected?.callSign} <small>{source && OPERATOR_ROLE_LABELS[source.operator.role]}</small></strong>
-            <p className="broadcast-weapon">{selected?.weaponName}</p>
-            <div className="broadcast-vitals"><b>{selected ? Math.ceil(selected.hp) : 100}<small> HP</small></b><b>{selected?.ammo}<small> / {selected?.magazineSize}</small></b></div>
-            <progress aria-label="선택 선수 체력" max="100" value={selected?.hp ?? 100} />
-            <p>{selected && ACTIONS[selected.action]}{selected && selected.reloadRemaining > 0 ? ` · ${selected.reloadRemaining.toFixed(1)}초` : ` · 예비 ${selected?.reserveAmmo ?? 0}발`}</p><p className="broadcast-goal">{selected?.decision??selected?.goal}</p>
-          </div>
-        </section>
-      </aside>
-    </div>
-    <div className="broadcast-rosters">{([directorSide] as OperatorSide[]).map(side => <div key={side} className="broadcast-roster" aria-label={`${side} 출전자`}>
-      {units.filter(unit => unit.side === side).map(unit => <button key={unit.id} className={`broadcast-player-card ${unit.alive ? '' : 'is-out'}`} aria-pressed={unit.id === selectedId} onClick={() => selectUnit(unit.id)} data-player-id={unit.id} style={{borderTopColor:SIDE_COLOR[side]}}>
-        <OperatorArt callSign={unit.callSign}/><span>{participants.get(unit.id)?.player.nickname}</span><strong>{unit.callSign}</strong><small>{unit.weaponName}</small><b>{unit.alive ? `${Math.ceil(unit.hp)} HP · ${unit.ammo}/${unit.magazineSize}` : 'OUT'}</b>
-        {!operatorVisual(unit.callSign) && <em>임시 외형</em>}
-      </button>)}
-    </div>)}</div>
-    <div className="broadcast-bottom">
-      <section className="broadcast-orders" aria-label="감독 관전"><div className="broadcast-section-title"><b>선수 판단 / 우리 팀 시야</b></div><p className="decision-caption">{selected?.decision??selected?.goal??'작전 준비 중'}</p><small>경기 전 준비한 작전을 선수들이 수행합니다.</small></section>
-      <section className="broadcast-events" aria-label="현장 사건"><div className="broadcast-section-title"><b>현장 기록</b><small>경기 시각</small></div>{logs.map((event,index) => <p key={`${event.time}-${event.type}-${index}`} className={event.type === 'death' ? 'event-death' : ''}><time>{clock(event.time)}</time><span>{eventText(event)}</span></p>)}</section>
-    </div>
-    {result && <section className="broadcast-result" aria-label="라운드 결과"><b>{result.winner} {result.winner === '무승부' ? '' : '승리'}</b><span>{result.objective.reason && BOMB_RESULT_LABELS[result.objective.reason]} · {clock(result.executionTime)} · 공격 {result.survivors.filter(unit=>unit.side==='공격').length}명 / 수비 {result.survivors.filter(unit=>unit.side==='수비').length}명 생존</span></section>}
-    <p className="broadcast-build-note">폭탄전 · 공격은 해체 장치를 설치·엄호하고 수비는 폭탄을 지키거나 장치를 무력화합니다. 12명 고유 장비 원화 · 반동과 탄퍼짐은 선수 기량이 제어하는 게임 모델입니다.</p>
+    <div className="cast-intel" aria-label="확인한 상대 오퍼레이터"><small>ENEMY INTEL</small><div>{[0,1,2,3,4].map(index=>{const callSign=tick?.snapshot.identifiedTo?.[directorSide]?.[index];return <span key={index} className={callSign?'is-identified':''}><OperatorEmblem callSign={callSign} unknown={!callSign}/><b>{callSign??'미확인'}</b></span>;})}</div></div>
+    <div className="cast-killfeed" aria-label="킬 피드">{kills.map((event,index)=><div key={`${event.time}-${index}`}><b>{killerName(event)}</b><svg viewBox="0 0 40 16" width="32" height="14" aria-label="처치"><path d="M2 6h7l4-3h15v3h10v2H26l-3 6h-4l1-6h-7l-3 3H2Z" fill="currentColor"/></svg><strong>{playerName(event.target)}</strong></div>)}</div>
+    {active&&<div className="cast-objective"><span className="cast-device-icon">▣</span><strong>{objective?.siteId} · 해체 장치 가동</strong><progress max="45" value={Math.max(0,left-time)}/></div>}
+    {(result||error)&&<div className="cast-outcome" role="status"><small>{error?'MATCH INTERRUPTED':'ROUND COMPLETE'}</small><h2>{error||`${result!.winner===directorSide?'라운드 승리':'라운드 패배'}`}</h2><p>{outcome}</p></div>}
+    <div className="cast-player" aria-label="관전 선수"><div className="cast-portrait">{selected&&<OperatorArt callSign={selected.callSign}/>}</div><div><small>{source?.operator.unit.country} / {selected?.callSign}</small><strong>{source?.player.nickname??'입장 중'}</strong><span>{selected?.weaponName}</span><div className="cast-vitals"><b>{selected?Math.ceil(selected.hp):'—'}<small> HP</small></b><b>{selected?.ammo??'—'}<small> / {selected?.reserveAmmo??'—'}</small></b></div><progress max="100" value={selected?.hp??100}/>{selected?.reloadRemaining? <span className="cast-reload">장전 <progress max="3" value={3-selected.reloadRemaining}/></span>:null}</div></div>
+    <nav className="cast-controls" aria-label="중계 조작"><button aria-pressed={mode==='broadcast'} onClick={()=>setMode('broadcast')}>자동 중계</button><button aria-pressed={mode==='full'} onClick={()=>setMode(mode==='full'?'broadcast':'full')}>전술 보기</button><button disabled={Boolean(result)} onClick={()=>setPaused(value=>!value)}>{paused?'▶':'Ⅱ'}</button><select aria-label="중계 속도" value={speed} onChange={event=>setSpeed(Number(event.target.value))}><option value="1">1×</option><option value="2">2×</option><option value="4">4×</option></select></nav>
+    <nav className="cast-lineup" aria-label="우리 팀 선수 선택">{own.map((unit,index)=><button key={unit.id} className={unit.alive?'':'is-out'} aria-pressed={selectedId===unit.id} onClick={()=>select(unit.id)}><OperatorEmblem callSign={unit.callSign}/><small>{index+1}</small><strong>{playerName(unit.id)}</strong><span>{unit.callSign}</span><progress max="100" value={unit.hp}/></button>)}</nav>
   </section>;
 }
