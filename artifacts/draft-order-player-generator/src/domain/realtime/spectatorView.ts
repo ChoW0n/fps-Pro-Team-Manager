@@ -15,6 +15,18 @@ export function combatCamera(units: readonly RealtimeUnitState[], events: readon
   const a=focus?.position??{x:1800,y:1200},b=other?.position??a;
   return {x:(a.x+b.x)/2,y:(a.y+b.y)/2,width:Math.max(430,Math.abs(a.x-b.x)*1.45+210,Math.abs(a.y-b.y)*1.65+210),focusId:focus?.id??null};
 }
+/** 전체 지도는 실제 종횡비를 보존하고 교전 확대는 지도 경계 안에 맞춥니다. */
+export function cameraViewport(map: Pick<TacticalMapDefinition, 'width' | 'height'>, framing: { x: number; y: number; width: number }, full: boolean) {
+  if (full) return { x: 0, y: 0, width: map.width, height: map.height };
+  const width = Math.min(map.width, map.height * 1.65, framing.width);
+  const height = width / 1.65;
+  return {
+    x: Math.max(0, Math.min(map.width - width, framing.x - width / 2)),
+    y: Math.max(0, Math.min(map.height - height, framing.y - height / 2)),
+    width, height,
+  };
+}
+
 /** 시야 마스크의 광선은 벽·엄폐물 앞에서 끝납니다. 관측 범위는 AI와 같은 전방 144도입니다. */
 export function visionPolygon(unit: RealtimeUnitState, map: TacticalMapDefinition, smokes:readonly RealtimeGadget[]=[]): string {
   const segments=map.walls.filter(wall=>wall.kind!=='door-gap').map(wall=>[wall.from,wall.to]);
