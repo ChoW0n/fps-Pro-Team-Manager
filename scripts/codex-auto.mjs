@@ -44,13 +44,13 @@ export function selectModel(models, level) {
 
 export function verifyRuntime(runtime, selected) {
   if (runtime.model !== selected.model || runtime.modelProvider !== 'openai') throw new Error('요청 모델과 Codex 런타임 모델이 일치하지 않습니다. 실행 중단.');
-  if (!Object.hasOwn(runtime, 'serviceTier') || ![null, 'default'].includes(runtime.serviceTier)) throw new Error('표준 속도 등급을 확인하지 못했습니다. 추가 크레딧 가속을 피하기 위해 실행 중단.');
+  if (runtime.serviceTier !== 'default') throw new Error('표준 속도 등급을 확인하지 못했습니다. 추가 크레딧 가속을 피하기 위해 실행 중단.');
   if (runtime.reasoningEffort !== selected.effort) throw new Error('요청한 추론 강도와 런타임 설정이 다릅니다. 실행 중단.');
-  if (!runtime.thread?.id) throw new Error('유효한 Codex 작업 ID가 없습니다.');
+  if (typeof runtime.thread?.id !== 'string' || !runtime.thread.id.trim()) throw new Error('유효한 Codex 작업 ID가 없습니다.');
 }
 
 // JSON-RPC 줄 단위 통신. 모델 출력 문장은 모델 확인 근거로 사용하지 않습니다.
-export function connect(command = 'codex', args = ['app-server', ...Object.entries(POLICY).flatMap(([k, v]) => ['-c', `${k}=${JSON.stringify(v)}`])]) {
+export function connect(command = process.env.CODEX_BIN || 'codex', args = ['app-server', ...Object.entries(POLICY).flatMap(([k, v]) => ['-c', `${k}=${JSON.stringify(v)}`])]) {
   const env = { ...process.env, DRAFT_ORDER_ROUTED: '1' };
   delete env.OPENAI_API_KEY; delete env.CODEX_API_KEY;
   const child = spawn(command, args, { stdio: ['pipe', 'pipe', 'pipe'], env });
@@ -77,7 +77,11 @@ export function connect(command = 'codex', args = ['app-server', ...Object.entri
     }
     if (pending.has(msg.id)) {
       const p = pending.get(msg.id); pending.delete(msg.id); clearTimeout(p.timer);
-      msg.error ? p.reject(new Error(`Codex 요청 실패: ${p.method} (${msg.error.code ?? 'unknown'})`)) : p.resolve(msg.result);
+      if (msg.error) {
+        // 원문 오류에는 토큰·URL이 섞일 수 있어 진단에 필요한 상태 코드만 남깁니다.
+        const httpStatus = Number(msg.error.message?.match(/\b(401|403|429|5\d\d)\b/)?.[1]) || null;
+        p.reject(Object.assign(new Error(`CODEX_RPC_FAILED: ${p.method} (${msg.error.code ?? 'unknown'}${httpStatus ? `, HTTP ${httpStatus}` : ''})`), { method: p.method, rpcCode: msg.error.code, httpStatus }));
+      } else p.resolve(msg.result);
     } else for (const listen of listeners) listen(msg);
   });
   return {
@@ -97,10 +101,13 @@ export function connect(command = 'codex', args = ['app-server', ...Object.entri
 }
 
 export async function prepare(client) {
-  await client.request('initialize', { clientInfo: { name: 'draft_order_auto', version: '1.0.0' } });
+  await client.request('initialize', { clientInfo: { name: 'draft_order_auto', version: '1.1.0' }, capabilities: { experimentalApi: true } });
   client.notify('initialized');
   const { account } = await client.request('account/read', { refreshToken: false });
   if (account?.type !== 'chatgpt') throw new Error('CHATGPT_LOGIN_REQUIRED: 같은 실행 환경에서 ChatGPT 계정으로 Codex에 로그인해야 합니다. API 키 과금으로 우회하지 않습니다.');
+  // account/read와 model/list는 로컬 상태만으로 성공할 수 있습니다. 서버 인증도 확인합니다.
+  const limits = await client.request('account/rateLimits/read');
+  if (!limits?.rateLimits) throw new Error('CHATGPT_AUTH_UNVERIFIED: 서버의 계정 응답을 확인하지 못했습니다.');
   const models = [], cursors = new Set();
   let cursor;
   do {
@@ -117,7 +124,7 @@ export async function runTask(client, models, task, { level = classify(task), cw
   if (!task.trim()) throw new Error('빈 작업은 실행하지 않습니다.');
   const selected = selectModel(models, level);
   const runtime = await client.request('thread/start', {
-    model: selected.model, modelProvider: 'openai', serviceTier: 'default', cwd,
+    model: selected.model, modelProvider: 'openai', allowProviderModelFallback: false, serviceTier: 'default', cwd,
     approvalPolicy: 'never', sandbox: readOnly ? 'read-only' : 'workspace-write',
     config: { ...POLICY, model_reasoning_effort: selected.effort, 'sandbox_workspace_write.network_access': false },
     developerInstructions: 'DRAFT_ORDER_ROUTED=1인 하위 작업입니다. codex-auto를 재귀 호출하지 마세요. 저장소 지침과 사용자 목표를 지키세요. 모델 표시는 실행기가 담당하므로 반복하지 마세요. 추가 크레딧 속도 가속, 새 서비스 결제, 외부 공개, 권한 확대는 금지합니다.',
@@ -126,11 +133,18 @@ export async function runTask(client, models, task, { level = classify(task), cw
   const label = `Codex/${runtime.model}/${level}`;
   announce(label);
   const started = Date.now();
-  let unsubscribe, timer, activeTurnId;
+  let unsubscribe, timer, activeTurnId, runtimeError;
   const done = new Promise((resolve, reject) => {
     unsubscribe = client.subscribe(msg => {
       if (msg.method === 'connection/failed') return reject(msg.error);
       if (msg.params?.threadId !== runtime.thread.id) return;
+      try {
+        if (msg.method === 'model/rerouted') throw new Error('실행 중 모델 재라우팅이 발생했습니다. 전환 증거로 인정하지 않습니다.');
+        if (msg.method === 'thread/settings/updated') {
+          const settings = msg.params.threadSettings;
+          verifyRuntime({ ...settings, reasoningEffort: settings.effort, thread: runtime.thread }, selected);
+        }
+      } catch (error) { runtimeError = error; reject(error); return; }
       if (msg.method === 'turn/completed') {
         const turn = msg.params.turn;
         if (turn.status !== 'completed') return reject(new Error(`Codex 작업 미완료: ${turn.status}`));
@@ -144,18 +158,23 @@ export async function runTask(client, models, task, { level = classify(task), cw
   try {
     const { turn: initial } = await client.request('turn/start', {
       threadId: runtime.thread.id, input: [{ type: 'text', text: task }],
-      model: selected.model, effort: selected.effort, serviceTier: 'default',
+      model: selected.model, effort: selected.effort, serviceTier: 'default', serviceTierForTurn: 'default',
     });
     activeTurnId = initial.id;
+    if (typeof activeTurnId !== 'string' || !activeTurnId.trim()) throw new Error('유효한 Codex 턴 ID가 없습니다.');
     if (['failed', 'interrupted'].includes(initial.status)) throw new Error(`Codex 작업 미완료: ${initial.status}`);
     const turn = initial.status === 'completed' ? initial : await done;
+    if (runtimeError) throw runtimeError;
+    if (turn.id !== activeTurnId) throw new Error('시작한 턴과 완료된 턴 ID가 다릅니다.');
     if (turn.status !== 'completed') throw new Error('Codex 작업이 완료되지 않았습니다.');
     // 일부 버전의 완료 알림에는 items가 없으므로 저장된 턴을 확인합니다.
     const { thread } = await client.request('thread/read', { threadId: runtime.thread.id, includeTurns: true });
+    if (runtimeError) throw runtimeError;
+    if (thread.id !== runtime.thread.id || thread.model !== selected.model || thread.modelProvider !== 'openai' || thread.reasoningEffort !== selected.effort) throw new Error('저장된 스레드의 ID·모델·추론 설정이 일치하지 않습니다.');
     const recorded = thread.turns?.find(t => t.id === turn.id);
     if (!recorded || recorded.status !== 'completed') throw new Error('완료된 턴 기록을 확인하지 못했습니다.');
     const text = (recorded.items ?? []).filter(i => i.type === 'agentMessage').map(i => i.text).join('\n');
-    return { text, model: runtime.model, effort: runtime.reasoningEffort, serviceTier: runtime.serviceTier, level, threadId: runtime.thread.id, turnId: turn.id, elapsedMs: Date.now() - started, evidence: 'codex-client-runtime' };
+    return { text, model: runtime.model, effort: runtime.reasoningEffort, serviceTier: runtime.serviceTier, status: recorded.status, level, threadId: runtime.thread.id, turnId: turn.id, elapsedMs: Date.now() - started, evidence: 'codex-client-runtime', metadataScope: 'thread-settings-and-turn-completion' };
   } catch (error) {
     if (activeTurnId) await client.request('turn/interrupt', { threadId: runtime.thread.id, turnId: activeTurnId }).catch(() => {});
     throw error;
@@ -178,13 +197,17 @@ export async function main(argv = process.argv.slice(2)) {
     else words.push(key);
   }
   if (options.level && !['FAST', 'NORMAL', 'DEEP'].includes(options.level)) throw new Error('잘못된 작업 강도입니다.');
+  if (options.check && options.verify) throw new Error('--check와 --verify는 함께 사용하지 않습니다.');
   const goal = options.file ? readFileSync(resolve(options.file), 'utf8') : words.join(' ');
   if (!options.check && !options.verify && !goal.trim()) throw new Error('작업 목표가 없습니다.');
   if (options.audit) appendFileSync(resolve(options.audit), '', { mode: 0o600 });
   const client = connect();
   try {
     const models = await prepare(client);
-    if (options.check) { console.log(JSON.stringify({ authenticated: true, models: models.map(m => m.model), generationExecuted: false })); return; }
+    if (options.check) {
+      const routes = ['FAST', 'NORMAL', 'DEEP'].map(level => selectModel(models, level));
+      console.log(JSON.stringify({ authenticated: true, serverAccountVerified: true, models: models.map(m => m.model), routes, generationExecuted: false, modelSwitchVerified: false })); return;
+    }
     const tasks = options.verify ? [
       ['버튼 라벨 확인. 도구 사용이나 파일 변경 없이 정확히 OK_FAST만 답하세요.', 'OK_FAST'],
       ['목록 필터 기능 확인. 도구 사용이나 파일 변경 없이 정확히 OK_NORMAL만 답하세요.', 'OK_NORMAL'],
@@ -198,7 +221,7 @@ export async function main(argv = process.argv.slice(2)) {
         announce: line => { if (line !== previous) console.log(line); previous = line; },
       });
       const { text, ...evidence } = result;
-      if (options.audit) appendFileSync(resolve(options.audit), JSON.stringify({ at: new Date().toISOString(), ...evidence }) + '\n', { mode: 0o600 });
+      if (options.audit) appendFileSync(resolve(options.audit), JSON.stringify({ at: new Date().toISOString(), ...evidence, responseVerified: expected ? text.trim() === expected : null }) + '\n', { mode: 0o600 });
       if (expected && text.trim() !== expected) throw new Error(`${result.level} 응답 검증 실패. 자동 전환 완료로 판정하지 않습니다.`);
       results.push(evidence);
       console.log(text);
@@ -208,6 +231,9 @@ export async function main(argv = process.argv.slice(2)) {
       console.log(JSON.stringify({ runtimeVerified: true, modelSwitchVerified: switched, results }));
       if (!switched) throw new Error('모든 작업이 같은 모델이므로 모델 전환 검증은 미통과입니다.');
     }
+  } catch (error) {
+    if (options.audit) appendFileSync(resolve(options.audit), JSON.stringify({ at: new Date().toISOString(), status: 'failed', modelSwitchVerified: false, method: error.method ?? null, rpcCode: error.rpcCode ?? null, httpStatus: error.httpStatus ?? null }) + '\n', { mode: 0o600 });
+    throw error;
   } finally { client.close(); }
 }
 
