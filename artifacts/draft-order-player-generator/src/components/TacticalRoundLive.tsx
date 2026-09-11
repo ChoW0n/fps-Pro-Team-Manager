@@ -3,7 +3,8 @@ import { useEffect, useMemo, useRef, useState, type ReactElement } from 'react';
 import type { OperatorSide } from '../domain/Operator';
 import { OPERATOR_ROLE_LABELS } from '../domain/Operator';
 import { TacticalRealtimeSimulation, realtimeUnitId, type RealtimeEvent, type RealtimeTick, type TacticalRealtimeSimulationInput, type TacticalRealtimeResult } from '../domain/realtime/TacticalRealtimeSimulation';
-import { combatCamera, directorObjective } from '../domain/realtime/spectatorView';
+import { startRoundPlayback } from '../domain/realtime/roundPlayback';
+import { cameraViewport, combatCamera, directorObjective } from '../domain/realtime/spectatorView';
 import { breachWalls } from '../domain/realtime/breachGeometry';
 import { BOMB_RESULT_LABELS } from '../domain/realtime/BombObjective';
 import { BREACHLINE_MAP, type TacticalMapDefinition } from '../domain/tacticalMaps';
@@ -39,32 +40,23 @@ export function TacticalRoundLive({ input, map = BREACHLINE_MAP, roundNumber = 1
   const operators = useMemo(() => new Map([...participants].map(([id, unit]) => [id, unit.operator])), [participants]);
 
   useEffect(() => {
-    let reported = false;
     const session = new TacticalRealtimeSimulation(map).createSession(input);
     sessionRef.current = session;
     setEvents([]); setResult(null); setContact(false);
+    cameraHold.current = { id: null, until: 0 };
     const initialUnit = directorSide === '공격' ? input.attackers[0] : input.defenders[0];
     const initialIndex = directorSide === '공격' ? 0 : input.attackers.length;
     setSelectedId(realtimeUnitId(initialUnit, initialIndex)); setPaused(false);
-    /** 세션이 만든 틱만 반영하며 사건 버퍼와 카메라는 엔진에 되먹이지 않습니다. */
-    const consume = (): void => {
-      const next = session.step();
-      if (next) {
-        setTick(next);
-        if (next.events.some(event => event.type === 'shot'&&event.seenBy?.includes(directorSide))) setContact(true);
-        setEvents(previous => [...previous, ...next.events].slice(-240));
-      } else {
-        const completed = session.getResult();
-        setResult(completed);
-        if (completed && !reported) { reported = true; completeRef.current?.(completed); }
-      }
-    };
-    consume();
-    const timer = window.setInterval(() => {
-      if (session.isComplete) { window.clearInterval(timer); return; }
-      if (!controls.current.paused) for (let index = 0; index < controls.current.speed && !session.isComplete; index += 1) consume();
-    }, 100);
-    return () => { window.clearInterval(timer); sessionRef.current = null; };
+    controls.current.paused = false;
+    const stop = startRoundPlayback(session, () => controls.current, next => {
+      setTick(next);
+      if (next.events.some(event => event.type === 'shot' && event.seenBy?.includes(directorSide))) setContact(true);
+      setEvents(previous => [...previous, ...next.events].slice(-240));
+    }, completed => {
+      setResult(completed);
+      completeRef.current?.(completed);
+    });
+    return () => { stop(); sessionRef.current = null; };
   }, [input, map, directorSide]);
 
   const allUnits = tick?.snapshot.units ?? [];
@@ -80,9 +72,7 @@ export function TacticalRoundLive({ input, map = BREACHLINE_MAP, roundNumber = 1
   const framing=combatCamera(units,knownEvents,directorSide,time,selectedId,cameraMode==='follow',preferred);
   if(framing.focusId!==cameraHold.current.id||time>=cameraHold.current.until)cameraHold.current={id:framing.focusId,until:time+2.5};
   const cameraUnit=units.find(unit=>unit.id===framing.focusId);
-  const desiredWidth=cameraMode==='full'?map.width:Math.min(map.width,framing.width);
-  const desiredHeight=desiredWidth/1.65;
-  const desiredCamera={x:Math.max(0,Math.min(map.width-desiredWidth,framing.x-desiredWidth/2)),y:Math.max(0,Math.min(map.height-desiredHeight,framing.y-desiredHeight/2)),width:desiredWidth,height:desiredHeight};
+  const desiredCamera = cameraViewport(map, framing, cameraMode === 'full');
   const targetCamera=useRef(desiredCamera);targetCamera.current=desiredCamera;
   const [camera,setCamera]=useState(desiredCamera);
   const cameraCurrent=useRef(desiredCamera);
