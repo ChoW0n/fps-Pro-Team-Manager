@@ -1,0 +1,234 @@
+{
+  "scenario": "scout",
+  "map": {
+    "id": "breachline-02",
+    "width": 3600,
+    "height": 2400
+  },
+  "rows": [
+    {
+      "seed": 3,
+      "ms": 549,
+      "duration": 81,
+      "winner": "수비",
+      "reason": "attackers-eliminated",
+      "plantedAt": null,
+      "operationTransitions": [
+        {
+          "time": 40,
+          "phase": "operation:returning"
+        },
+        {
+          "time": 48.4,
+          "phase": "operation:regrouping"
+        },
+        {
+          "time": 48.5,
+          "phase": "operation:entering"
+        }
+      ],
+      "firstShot": 4.2,
+      "shots": 38,
+      "reversals": 5,
+      "movingButStationaryTicks": 7,
+      "loopWindows": 0,
+      "blockedEvents": 59
+    },
+    {
+      "seed": 11,
+      "ms": 546,
+      "duration": 115.2,
+      "winner": "공격",
+      "reason": "defenders-eliminated",
+      "plantedAt": 98.9,
+      "operationTransitions": [
+        {
+          "time": 40,
+          "phase": "operation:returning"
+        },
+        {
+          "time": 48.4,
+          "phase": "operation:regrouping"
+        },
+        {
+          "time": 48.5,
+          "phase": "operation:entering"
+        }
+      ],
+      "firstShot": 4.2,
+      "shots": 44,
+      "reversals": 9,
+      "movingButStationaryTicks": 14,
+      "loopWindows": 0,
+      "blockedEvents": 64
+    },
+    {
+      "seed": 23,
+      "ms": 527,
+      "duration": 85.3,
+      "winner": "수비",
+      "reason": "device-disabled",
+      "plantedAt": 64.8,
+      "operationTransitions": [
+        {
+          "time": 12.4,
+          "phase": "operation:returning"
+        },
+        {
+          "time": 12.5,
+          "phase": "operation:regrouping"
+        },
+        {
+          "time": 12.6,
+          "phase": "operation:entering"
+        }
+      ],
+      "firstShot": 4.2,
+      "shots": 45,
+      "reversals": 8,
+      "movingButStationaryTicks": 11,
+      "loopWindows": 0,
+      "blockedEvents": 58
+    },
+    {
+      "seed": 41,
+      "ms": 493,
+      "duration": 108.4,
+      "winner": "공격",
+      "reason": "defenders-eliminated",
+      "plantedAt": 94.5,
+      "operationTransitions": [
+        {
+          "time": 40,
+          "phase": "operation:returning"
+        },
+        {
+          "time": 48,
+          "phase": "operation:regrouping"
+        },
+        {
+          "time": 48.1,
+          "phase": "operation:entering"
+        }
+      ],
+      "firstShot": 4.2,
+      "shots": 48,
+      "reversals": 6,
+      "movingButStationaryTicks": 10,
+      "loopWindows": 0,
+      "blockedEvents": 62
+    },
+    {
+      "seed": 51,
+      "ms": 494,
+      "duration": 139.5,
+      "winner": "공격",
+      "reason": "bombs-defused",
+      "plantedAt": 94.5,
+      "operationTransitions": [
+        {
+          "time": 40,
+          "phase": "operation:returning"
+        },
+        {
+          "time": 48,
+          "phase": "operation:regrouping"
+        },
+        {
+          "time": 48.1,
+          "phase": "operation:entering"
+        }
+      ],
+      "firstShot": 4.2,
+      "shots": 42,
+      "reversals": 4,
+      "movingButStationaryTicks": 5,
+      "loopWindows": 0,
+      "blockedEvents": 62
+    },
+    {
+      "seed": 81,
+      "ms": 452,
+      "duration": 112.3,
+      "winner": "공격",
+      "reason": "defenders-eliminated",
+      "plantedAt": 100,
+      "operationTransitions": [
+        {
+          "time": 40,
+          "phase": "operation:returning"
+        },
+        {
+          "time": 48.4,
+          "phase": "operation:regrouping"
+        },
+        {
+          "time": 48.5,
+          "phase": "operation:entering"
+        }
+      ],
+      "firstShot": 4.2,
+      "shots": 40,
+      "reversals": 9,
+      "movingButStationaryTicks": 6,
+      "loopWindows": 2,
+      "blockedEvents": 64
+    },
+    {
+      "seed": 107,
+      "ms": 494,
+      "duration": 117.8,
+      "winner": "공격",
+      "reason": "defenders-eliminated",
+      "plantedAt": 94.5,
+      "operationTransitions": [
+        {
+          "time": 40,
+          "phase": "operation:returning"
+        },
+        {
+          "time": 48,
+          "phase": "operation:regrouping"
+        },
+        {
+          "time": 48.1,
+          "phase": "operation:entering"
+        }
+      ],
+      "firstShot": 4.2,
+      "shots": 55,
+      "reversals": 12,
+      "movingButStationaryTicks": 9,
+      "loopWindows": 2,
+      "blockedEvents": 62
+    },
+    {
+      "seed": 149,
+      "ms": 429,
+      "duration": 82.3,
+      "winner": "공격",
+      "reason": "defenders-eliminated",
+      "plantedAt": 65,
+      "operationTransitions": [
+        {
+          "time": 12.4,
+          "phase": "operation:returning"
+        },
+        {
+          "time": 12.5,
+          "phase": "operation:regrouping"
+        },
+        {
+          "time": 12.6,
+          "phase": "operation:entering"
+        }
+      ],
+      "firstShot": 4.2,
+      "shots": 50,
+      "reversals": 9,
+      "movingButStationaryTicks": 7,
+      "loopWindows": 0,
+      "blockedEvents": 41
+    }
+  ]
+}
