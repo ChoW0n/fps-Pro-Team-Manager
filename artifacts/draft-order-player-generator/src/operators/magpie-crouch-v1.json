@@ -1,0 +1,190 @@
+{
+  "action": "crouch",
+  "source": {
+    "file": "crouch-v1-keyed.png",
+    "size": [
+      1254,
+      1254
+    ],
+    "sha256": "5469ad77da1a3ff0b7abbe40f39d907c09174e86e82e6734e9bd1d4a6f403d8b",
+    "frames": [
+      {
+        "bounds": [
+          31,
+          81,
+          629,
+          457
+        ],
+        "subjectSize": [
+          598,
+          376
+        ],
+        "pivot": [
+          279,
+          280
+        ],
+        "muzzle": [
+          626,
+          284
+        ]
+      },
+      {
+        "bounds": [
+          699,
+          103,
+          1239,
+          464
+        ],
+        "subjectSize": [
+          540,
+          361
+        ],
+        "pivot": [
+          899,
+          283
+        ],
+        "muzzle": [
+          1236,
+          286
+        ]
+      },
+      {
+        "bounds": [
+          31,
+          722,
+          629,
+          1058
+        ],
+        "subjectSize": [
+          598,
+          336
+        ],
+        "pivot": [
+          278,
+          894
+        ],
+        "muzzle": [
+          626,
+          900
+        ]
+      },
+      {
+        "bounds": [
+          699,
+          720,
+          1238,
+          1101
+        ],
+        "subjectSize": [
+          539,
+          381
+        ],
+        "pivot": [
+          899,
+          894
+        ],
+        "muzzle": [
+          1235,
+          902
+        ]
+      }
+    ]
+  },
+  "processing": {
+    "ratio": 0.832520325203252,
+    "upscaled": false,
+    "geometryEdited": false,
+    "bytes": 182400
+  },
+  "frames": [
+    {
+      "sprite": "magpie-crouch-v1.webp",
+      "width": 512,
+      "height": 352,
+      "sheetWidth": 1024,
+      "sheetHeight": 704,
+      "region": [
+        0,
+        0,
+        512,
+        352
+      ],
+      "pivot": [
+        213.125,
+        172.332
+      ],
+      "muzzle": [
+        502.01,
+        175.662
+      ],
+      "scale": 0.08402474165341813
+    },
+    {
+      "sprite": "magpie-crouch-v1.webp",
+      "width": 512,
+      "height": 352,
+      "sheetWidth": 1024,
+      "sheetHeight": 704,
+      "region": [
+        512,
+        0,
+        512,
+        352
+      ],
+      "pivot": [
+        213.125,
+        172.332
+      ],
+      "muzzle": [
+        493.685,
+        174.829
+      ],
+      "scale": 0.08402474165341813
+    },
+    {
+      "sprite": "magpie-crouch-v1.webp",
+      "width": 512,
+      "height": 352,
+      "sheetWidth": 1024,
+      "sheetHeight": 704,
+      "region": [
+        0,
+        352,
+        512,
+        352
+      ],
+      "pivot": [
+        213.125,
+        172.332
+      ],
+      "muzzle": [
+        502.842,
+        177.327
+      ],
+      "scale": 0.08402474165341813
+    },
+    {
+      "sprite": "magpie-crouch-v1.webp",
+      "width": 512,
+      "height": 352,
+      "sheetWidth": 1024,
+      "sheetHeight": 704,
+      "region": [
+        512,
+        352,
+        512,
+        352
+      ],
+      "pivot": [
+        213.125,
+        172.332
+      ],
+      "muzzle": [
+        492.852,
+        178.992
+      ],
+      "scale": 0.08402474165341813
+    }
+  ],
+  "review": "One action per sheet. Pixel checks do not replace grip, anatomy or motion review."
+}

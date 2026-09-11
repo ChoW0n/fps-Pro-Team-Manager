@@ -1,0 +1,190 @@
+{
+  "action": "crouch",
+  "source": {
+    "file": "crouch-v1-keyed.png",
+    "size": [
+      1254,
+      1254
+    ],
+    "sha256": "167b3a72dde933ba941a33577cc6974fc616cefb386a940f24059f4135a847a2",
+    "frames": [
+      {
+        "bounds": [
+          20,
+          110,
+          637,
+          442
+        ],
+        "subjectSize": [
+          617,
+          332
+        ],
+        "pivot": [
+          269,
+          281
+        ],
+        "muzzle": [
+          634,
+          276
+        ]
+      },
+      {
+        "bounds": [
+          698,
+          114,
+          1243,
+          461
+        ],
+        "subjectSize": [
+          545,
+          347
+        ],
+        "pivot": [
+          893,
+          282
+        ],
+        "muzzle": [
+          1240,
+          276
+        ]
+      },
+      {
+        "bounds": [
+          17,
+          717,
+          637,
+          1051
+        ],
+        "subjectSize": [
+          620,
+          334
+        ],
+        "pivot": [
+          270,
+          885
+        ],
+        "muzzle": [
+          634,
+          883
+        ]
+      },
+      {
+        "bounds": [
+          696,
+          719,
+          1243,
+          1082
+        ],
+        "subjectSize": [
+          547,
+          363
+        ],
+        "pivot": [
+          893,
+          885
+        ],
+        "muzzle": [
+          1240,
+          884
+        ]
+      }
+    ]
+  },
+  "processing": {
+    "ratio": 0.8037676609105181,
+    "upscaled": false,
+    "geometryEdited": false,
+    "bytes": 147518
+  },
+  "frames": [
+    {
+      "sprite": "medved-crouch-v1.webp",
+      "width": 512,
+      "height": 309,
+      "sheetWidth": 1024,
+      "sheetHeight": 618,
+      "region": [
+        0,
+        0,
+        512,
+        309
+      ],
+      "pivot": [
+        209.783,
+        143.874
+      ],
+      "muzzle": [
+        503.159,
+        139.856
+      ],
+      "scale": 0.08970292907523511
+    },
+    {
+      "sprite": "medved-crouch-v1.webp",
+      "width": 512,
+      "height": 309,
+      "sheetWidth": 1024,
+      "sheetHeight": 618,
+      "region": [
+        512,
+        0,
+        512,
+        309
+      ],
+      "pivot": [
+        209.783,
+        143.874
+      ],
+      "muzzle": [
+        488.691,
+        139.052
+      ],
+      "scale": 0.08970292907523511
+    },
+    {
+      "sprite": "medved-crouch-v1.webp",
+      "width": 512,
+      "height": 309,
+      "sheetWidth": 1024,
+      "sheetHeight": 618,
+      "region": [
+        0,
+        309,
+        512,
+        309
+      ],
+      "pivot": [
+        209.783,
+        143.874
+      ],
+      "muzzle": [
+        502.355,
+        142.267
+      ],
+      "scale": 0.08970292907523511
+    },
+    {
+      "sprite": "medved-crouch-v1.webp",
+      "width": 512,
+      "height": 309,
+      "sheetWidth": 1024,
+      "sheetHeight": 618,
+      "region": [
+        512,
+        309,
+        512,
+        309
+      ],
+      "pivot": [
+        209.783,
+        143.874
+      ],
+      "muzzle": [
+        488.691,
+        143.071
+      ],
+      "scale": 0.08970292907523511
+    }
+  ],
+  "review": "One action per sheet. Pixel checks do not replace grip, anatomy or motion review."
+}

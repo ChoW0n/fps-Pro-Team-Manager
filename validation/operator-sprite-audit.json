@@ -307,6 +307,7 @@
   "walks": [
     {
       "callSign": "MAGPIE",
+      "action": "walk",
       "sprite": "magpie-walk-v1.webp",
       "frames": 4,
       "sourceSizes": [
@@ -330,7 +331,33 @@
       "bytes": 186634
     },
     {
+      "callSign": "MAGPIE",
+      "action": "crouch",
+      "sprite": "magpie-crouch-v1.webp",
+      "frames": 4,
+      "sourceSizes": [
+        [
+          598,
+          376
+        ],
+        [
+          540,
+          361
+        ],
+        [
+          598,
+          336
+        ],
+        [
+          539,
+          381
+        ]
+      ],
+      "bytes": 182400
+    },
+    {
       "callSign": "COLLIER",
+      "action": "walk",
       "sprite": "collier-walk-v1.webp",
       "frames": 4,
       "sourceSizes": [
@@ -354,7 +381,33 @@
       "bytes": 162482
     },
     {
+      "callSign": "COLLIER",
+      "action": "crouch",
+      "sprite": "collier-crouch-v1.webp",
+      "frames": 4,
+      "sourceSizes": [
+        [
+          565,
+          362
+        ],
+        [
+          558,
+          362
+        ],
+        [
+          578,
+          363
+        ],
+        [
+          555,
+          366
+        ]
+      ],
+      "bytes": 170360
+    },
+    {
       "callSign": "해동",
+      "action": "walk",
       "sprite": "haedong-walk-v1.webp",
       "frames": 4,
       "sourceSizes": [
@@ -378,7 +431,33 @@
       "bytes": 182730
     },
     {
+      "callSign": "해동",
+      "action": "crouch",
+      "sprite": "haedong-crouch-v1.webp",
+      "frames": 4,
+      "sourceSizes": [
+        [
+          575,
+          356
+        ],
+        [
+          561,
+          356
+        ],
+        [
+          574,
+          331
+        ],
+        [
+          562,
+          358
+        ]
+      ],
+      "bytes": 171448
+    },
+    {
       "callSign": "ARBEL",
+      "action": "walk",
       "sprite": "arbel-walk-v1.webp",
       "frames": 4,
       "sourceSizes": [
@@ -402,7 +481,33 @@
       "bytes": 181392
     },
     {
+      "callSign": "ARBEL",
+      "action": "crouch",
+      "sprite": "arbel-crouch-v1.webp",
+      "frames": 4,
+      "sourceSizes": [
+        [
+          527,
+          355
+        ],
+        [
+          523,
+          377
+        ],
+        [
+          532,
+          335
+        ],
+        [
+          526,
+          360
+        ]
+      ],
+      "bytes": 197198
+    },
+    {
       "callSign": "AUBERT",
+      "action": "walk",
       "sprite": "aubert-walk-v1.webp",
       "frames": 4,
       "sourceSizes": [
@@ -426,7 +531,33 @@
       "bytes": 181772
     },
     {
+      "callSign": "AUBERT",
+      "action": "crouch",
+      "sprite": "aubert-crouch-v1.webp",
+      "frames": 4,
+      "sourceSizes": [
+        [
+          546,
+          355
+        ],
+        [
+          527,
+          363
+        ],
+        [
+          532,
+          342
+        ],
+        [
+          529,
+          360
+        ]
+      ],
+      "bytes": 196978
+    },
+    {
       "callSign": "MEDVED",
+      "action": "walk",
       "sprite": "medved-walk-v1.webp",
       "frames": 4,
       "sourceSizes": [
@@ -450,7 +581,33 @@
       "bytes": 154382
     },
     {
+      "callSign": "MEDVED",
+      "action": "crouch",
+      "sprite": "medved-crouch-v1.webp",
+      "frames": 4,
+      "sourceSizes": [
+        [
+          617,
+          332
+        ],
+        [
+          545,
+          347
+        ],
+        [
+          620,
+          334
+        ],
+        [
+          547,
+          363
+        ]
+      ],
+      "bytes": 147518
+    },
+    {
       "callSign": "REUSS",
+      "action": "walk",
       "sprite": "reuss-walk-v1.webp",
       "frames": 4,
       "sourceSizes": [
@@ -474,7 +631,33 @@
       "bytes": 144484
     },
     {
+      "callSign": "REUSS",
+      "action": "crouch",
+      "sprite": "reuss-crouch-v1.webp",
+      "frames": 4,
+      "sourceSizes": [
+        [
+          569,
+          339
+        ],
+        [
+          553,
+          354
+        ],
+        [
+          583,
+          330
+        ],
+        [
+          554,
+          353
+        ]
+      ],
+      "bytes": 153632
+    },
+    {
       "callSign": "BRANDT",
+      "action": "walk",
       "sprite": "brandt-walk-v1.webp",
       "frames": 4,
       "sourceSizes": [
@@ -498,7 +681,33 @@
       "bytes": 153050
     },
     {
+      "callSign": "BRANDT",
+      "action": "crouch",
+      "sprite": "brandt-crouch-v1.webp",
+      "frames": 4,
+      "sourceSizes": [
+        [
+          604,
+          354
+        ],
+        [
+          566,
+          356
+        ],
+        [
+          600,
+          326
+        ],
+        [
+          569,
+          364
+        ]
+      ],
+      "bytes": 159170
+    },
+    {
       "callSign": "MARCHAND",
+      "action": "walk",
       "sprite": "marchand-walk-v1.webp",
       "frames": 4,
       "sourceSizes": [
@@ -522,7 +731,33 @@
       "bytes": 233058
     },
     {
+      "callSign": "MARCHAND",
+      "action": "crouch",
+      "sprite": "marchand-crouch-v1.webp",
+      "frames": 4,
+      "sourceSizes": [
+        [
+          531,
+          357
+        ],
+        [
+          523,
+          357
+        ],
+        [
+          529,
+          320
+        ],
+        [
+          524,
+          357
+        ]
+      ],
+      "bytes": 236864
+    },
+    {
       "callSign": "HALLORAN",
+      "action": "walk",
       "sprite": "halloran-walk-v1.webp",
       "frames": 4,
       "sourceSizes": [
@@ -546,7 +781,33 @@
       "bytes": 191404
     },
     {
+      "callSign": "HALLORAN",
+      "action": "crouch",
+      "sprite": "halloran-crouch-v1.webp",
+      "frames": 4,
+      "sourceSizes": [
+        [
+          594,
+          327
+        ],
+        [
+          566,
+          346
+        ],
+        [
+          597,
+          334
+        ],
+        [
+          566,
+          351
+        ]
+      ],
+      "bytes": 198288
+    },
+    {
       "callSign": "성곽",
+      "action": "walk",
       "sprite": "seonggak-walk-v1.webp",
       "frames": 4,
       "sourceSizes": [
@@ -570,7 +831,33 @@
       "bytes": 186468
     },
     {
+      "callSign": "성곽",
+      "action": "crouch",
+      "sprite": "seonggak-crouch-v1.webp",
+      "frames": 4,
+      "sourceSizes": [
+        [
+          548,
+          348
+        ],
+        [
+          535,
+          359
+        ],
+        [
+          547,
+          313
+        ],
+        [
+          535,
+          370
+        ]
+      ],
+      "bytes": 193356
+    },
+    {
       "callSign": "SAVELLI",
+      "action": "walk",
       "sprite": "savelli-walk-v1.webp",
       "frames": 4,
       "sourceSizes": [
@@ -592,6 +879,31 @@
         ]
       ],
       "bytes": 168524
+    },
+    {
+      "callSign": "SAVELLI",
+      "action": "crouch",
+      "sprite": "savelli-crouch-v1.webp",
+      "frames": 4,
+      "sourceSizes": [
+        [
+          556,
+          341
+        ],
+        [
+          547,
+          356
+        ],
+        [
+          558,
+          332
+        ],
+        [
+          547,
+          362
+        ]
+      ],
+      "bytes": 182348
     }
   ],
   "operatorCount": 12,

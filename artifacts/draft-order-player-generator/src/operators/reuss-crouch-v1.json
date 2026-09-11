@@ -1,0 +1,190 @@
+{
+  "action": "crouch",
+  "source": {
+    "file": "crouch-v1-keyed.png",
+    "size": [
+      1254,
+      1254
+    ],
+    "sha256": "a8ccf625ac777fb2f082ee29725b02d8a3f9e005a0228a3180562ce109307fbd",
+    "frames": [
+      {
+        "bounds": [
+          66,
+          98,
+          635,
+          437
+        ],
+        "subjectSize": [
+          569,
+          339
+        ],
+        "pivot": [
+          266,
+          278
+        ],
+        "muzzle": [
+          632,
+          277
+        ]
+      },
+      {
+        "bounds": [
+          693,
+          98,
+          1246,
+          452
+        ],
+        "subjectSize": [
+          553,
+          354
+        ],
+        "pivot": [
+          887,
+          278
+        ],
+        "muzzle": [
+          1243,
+          279
+        ]
+      },
+      {
+        "bounds": [
+          52,
+          714,
+          635,
+          1044
+        ],
+        "subjectSize": [
+          583,
+          330
+        ],
+        "pivot": [
+          266,
+          894
+        ],
+        "muzzle": [
+          632,
+          885
+        ]
+      },
+      {
+        "bounds": [
+          692,
+          713,
+          1246,
+          1066
+        ],
+        "subjectSize": [
+          554,
+          353
+        ],
+        "pivot": [
+          887,
+          894
+        ],
+        "muzzle": [
+          1243,
+          887
+        ]
+      }
+    ]
+  },
+  "processing": {
+    "ratio": 0.8547579298831386,
+    "upscaled": false,
+    "geometryEdited": false,
+    "bytes": 153632
+  },
+  "frames": [
+    {
+      "sprite": "reuss-crouch-v1.webp",
+      "width": 512,
+      "height": 318,
+      "sheetWidth": 1024,
+      "sheetHeight": 636,
+      "region": [
+        0,
+        0,
+        512,
+        318
+      ],
+      "pivot": [
+        189.756,
+        161.549
+      ],
+      "muzzle": [
+        502.598,
+        160.694
+      ],
+      "scale": 0.08488392152996846
+    },
+    {
+      "sprite": "reuss-crouch-v1.webp",
+      "width": 512,
+      "height": 318,
+      "sheetWidth": 1024,
+      "sheetHeight": 636,
+      "region": [
+        512,
+        0,
+        512,
+        318
+      ],
+      "pivot": [
+        189.756,
+        161.549
+      ],
+      "muzzle": [
+        494.05,
+        162.404
+      ],
+      "scale": 0.08488392152996846
+    },
+    {
+      "sprite": "reuss-crouch-v1.webp",
+      "width": 512,
+      "height": 318,
+      "sheetWidth": 1024,
+      "sheetHeight": 636,
+      "region": [
+        0,
+        318,
+        512,
+        318
+      ],
+      "pivot": [
+        189.756,
+        161.549
+      ],
+      "muzzle": [
+        502.598,
+        153.856
+      ],
+      "scale": 0.08488392152996846
+    },
+    {
+      "sprite": "reuss-crouch-v1.webp",
+      "width": 512,
+      "height": 318,
+      "sheetWidth": 1024,
+      "sheetHeight": 636,
+      "region": [
+        512,
+        318,
+        512,
+        318
+      ],
+      "pivot": [
+        189.756,
+        161.549
+      ],
+      "muzzle": [
+        494.05,
+        155.566
+      ],
+      "scale": 0.08488392152996846
+    }
+  ],
+  "review": "One action per sheet. Pixel checks do not replace grip, anatomy or motion review."
+}

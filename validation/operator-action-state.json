@@ -8,10 +8,22 @@
       "sprite": "magpie-walk-v1.webp"
     },
     {
+      "callSign": "MAGPIE",
+      "action": "crouch",
+      "frames": 4,
+      "sprite": "magpie-crouch-v1.webp"
+    },
+    {
       "callSign": "COLLIER",
       "action": "walk",
       "frames": 4,
       "sprite": "collier-walk-v1.webp"
+    },
+    {
+      "callSign": "COLLIER",
+      "action": "crouch",
+      "frames": 4,
+      "sprite": "collier-crouch-v1.webp"
     },
     {
       "callSign": "해동",
@@ -20,10 +32,22 @@
       "sprite": "haedong-walk-v1.webp"
     },
     {
+      "callSign": "해동",
+      "action": "crouch",
+      "frames": 4,
+      "sprite": "haedong-crouch-v1.webp"
+    },
+    {
       "callSign": "ARBEL",
       "action": "walk",
       "frames": 4,
       "sprite": "arbel-walk-v1.webp"
+    },
+    {
+      "callSign": "ARBEL",
+      "action": "crouch",
+      "frames": 4,
+      "sprite": "arbel-crouch-v1.webp"
     },
     {
       "callSign": "AUBERT",
@@ -32,10 +56,22 @@
       "sprite": "aubert-walk-v1.webp"
     },
     {
+      "callSign": "AUBERT",
+      "action": "crouch",
+      "frames": 4,
+      "sprite": "aubert-crouch-v1.webp"
+    },
+    {
       "callSign": "MEDVED",
       "action": "walk",
       "frames": 4,
       "sprite": "medved-walk-v1.webp"
+    },
+    {
+      "callSign": "MEDVED",
+      "action": "crouch",
+      "frames": 4,
+      "sprite": "medved-crouch-v1.webp"
     },
     {
       "callSign": "REUSS",
@@ -44,10 +80,22 @@
       "sprite": "reuss-walk-v1.webp"
     },
     {
+      "callSign": "REUSS",
+      "action": "crouch",
+      "frames": 4,
+      "sprite": "reuss-crouch-v1.webp"
+    },
+    {
       "callSign": "BRANDT",
       "action": "walk",
       "frames": 4,
       "sprite": "brandt-walk-v1.webp"
+    },
+    {
+      "callSign": "BRANDT",
+      "action": "crouch",
+      "frames": 4,
+      "sprite": "brandt-crouch-v1.webp"
     },
     {
       "callSign": "MARCHAND",
@@ -56,10 +104,22 @@
       "sprite": "marchand-walk-v1.webp"
     },
     {
+      "callSign": "MARCHAND",
+      "action": "crouch",
+      "frames": 4,
+      "sprite": "marchand-crouch-v1.webp"
+    },
+    {
       "callSign": "HALLORAN",
       "action": "walk",
       "frames": 4,
       "sprite": "halloran-walk-v1.webp"
+    },
+    {
+      "callSign": "HALLORAN",
+      "action": "crouch",
+      "frames": 4,
+      "sprite": "halloran-crouch-v1.webp"
     },
     {
       "callSign": "성곽",
@@ -68,10 +128,22 @@
       "sprite": "seonggak-walk-v1.webp"
     },
     {
+      "callSign": "성곽",
+      "action": "crouch",
+      "frames": 4,
+      "sprite": "seonggak-crouch-v1.webp"
+    },
+    {
       "callSign": "SAVELLI",
       "action": "walk",
       "frames": 4,
       "sprite": "savelli-walk-v1.webp"
+    },
+    {
+      "callSign": "SAVELLI",
+      "action": "crouch",
+      "frames": 4,
+      "sprite": "savelli-crouch-v1.webp"
     }
   ]
 }

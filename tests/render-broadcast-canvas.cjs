@@ -22,11 +22,11 @@ let callback;global.requestAnimationFrame=fn=>{callback=fn;return 1;};global.can
 const {BroadcastCanvas}=require(app+'/src/components/BroadcastCanvas.tsx');const rows=[];
 const {operatorStateVisual}=require(app+'/src/domain/operatorVisuals.ts');
 // Skia의 이미지 디코드 콜백이 끝난 뒤 실제 인물 픽셀까지 포함해 프레임 시간을 잽니다.
-(async()=>{for(const [name,width,height] of [['desktop',1280,720],['phone',390,844],['phone-landscape',844,390],['downed',1280,720],['collier-downed',1280,720],['collier-crawl',1280,720],['walk',1280,720]]){
+(async()=>{for(const [name,width,height] of [['desktop',1280,720],['phone',390,844],['phone-landscape',844,390],['downed',1280,720],['collier-downed',1280,720],['collier-crawl',1280,720],['walk',1280,720],['crouch',1280,720]]){
  const canvas=createCanvas(width,height);canvas.getBoundingClientRect=()=>({width,height,left:0,top:0});canvas.addEventListener=()=>{};canvas.removeEventListener=()=>{};
- const context=canvas.getContext('2d'),originalDraw=context.drawImage.bind(context);let spriteDraws=0,downedPoseDraws=0,crawlPoseDraws=0,walkPoseDraws=0;
+ const context=canvas.getContext('2d'),originalDraw=context.drawImage.bind(context);let spriteDraws=0,downedPoseDraws=0,crawlPoseDraws=0,walkPoseDraws=0,crouchPoseDraws=0;
  // 실제 인물 drawImage가 호출되지 않으면 빈 화면을 통과시키지 않습니다.
- context.drawImage=(source,...args)=>{if(source instanceof LocalImage){spriteDraws++;if(source.assetName==='collier-downed-v3.webp')downedPoseDraws++;if(source.assetName==='collier-downed-crawl-v1.webp')crawlPoseDraws++;if(source.assetName.endsWith('-walk-v1.webp'))walkPoseDraws++;const transform=context.getTransform();assert(Math.abs(Math.hypot(transform.a,transform.b)-Math.hypot(transform.c,transform.d))<1e-6,'전신 원화의 비균등 압축 금지');}return originalDraw(source,...args);};
+ context.drawImage=(source,...args)=>{if(source instanceof LocalImage){spriteDraws++;if(source.assetName==='collier-downed-v3.webp')downedPoseDraws++;if(source.assetName==='collier-downed-crawl-v1.webp')crawlPoseDraws++;if(source.assetName.endsWith('-walk-v1.webp'))walkPoseDraws++;if(source.assetName.endsWith('-crouch-v1.webp'))crouchPoseDraws++;const transform=context.getTransform();assert(Math.abs(Math.hypot(transform.a,transform.b)-Math.hypot(transform.c,transform.d))<1e-6,'전신 원화의 비균등 압축 금지');}return originalDraw(source,...args);};
  const effects=[],refs=[];let index=0;
  React.useRef=value=>{const ref={current:index++===0?canvas:value};refs.push(ref);return ref;};React.useEffect=fn=>effects.push(fn);
  const casualty=u=>u.side==='공격'&&u.downed&&(!name.startsWith('collier-')||u.callSign==='COLLIER')
@@ -35,9 +35,9 @@ const {operatorStateVisual}=require(app+'/src/domain/operatorVisuals.ts');
  const needsInjury=name==='downed'||name.startsWith('collier-');
  const injurySnapshot=needsInjury?result.snapshots.find(s=>s.units.some(casualty)):undefined;
  if(needsInjury)assert(injurySnapshot,'실제 다운/기어가는 장면 필요: '+name);
- const walking=(unit,time)=>unit.side==='공격'&&operatorStateVisual(unit,time)?.sprite.endsWith('-walk-v1.webp');
- const walkSnapshot=name==='walk'?result.snapshots.find(s=>s.units.some(u=>walking(u,s.time))):undefined;
- if(name==='walk')assert(walkSnapshot,'실제 전진 보행 장면 필요');
+ const walking=(unit,time)=>unit.side==='공격'&&operatorStateVisual(unit,time)?.sprite.endsWith(name==='crouch'?'-crouch-v1.webp':'-walk-v1.webp');
+ const walkSnapshot=name==='walk'||name==='crouch'?result.snapshots.find(s=>s.units.some(u=>walking(u,s.time))):undefined;
+ if(name==='walk'||name==='crouch')assert(walkSnapshot,'실제 전진 보행 장면 필요: '+name);
  const selectedSnapshot=walkSnapshot??injurySnapshot;
  const renderedTick=selectedSnapshot?{time:selectedSnapshot.time,snapshot:selectedSnapshot,events:[]}:tick;
  const viewed=walkSnapshot?.units.find(u=>walking(u,walkSnapshot.time))?.id??injurySnapshot?.units.find(casualty)?.id??shot.actor;
@@ -50,6 +50,7 @@ const {operatorStateVisual}=require(app+'/src/domain/operatorVisuals.ts');
  if(name==='collier-downed')assert(downedPoseDraws>0,'실제 다운 상태에서 검수한 다운 프레임을 그려야 합니다');
  if(name==='collier-crawl')assert(crawlPoseDraws>0,'실제 다운 이동 상태에서 행동 시트를 그려야 합니다');
  if(name==='walk')assert(walkPoseDraws>0,'실제 전진 보행 상태에서 행동 시트를 그려야 합니다');
+ if(name==='crouch')assert(crouchPoseDraws>0,'실제 저자세 이동 상태에서 행동 시트를 그려야 합니다');
  const file=path.join(output,`broadcast-canvas-${name}.png`);fs.writeFileSync(file,canvas.toBuffer('image/png'));cleanup.forEach(fn=>fn?.());times.sort((a,b)=>a-b);
  rows.push({name,width,height,medianMs:+times[Math.floor(times.length/2)].toFixed(2),p95Ms:+times[Math.floor(times.length*.95)].toFixed(2),file:path.basename(file)});
 }

@@ -1,0 +1,190 @@
+{
+  "action": "crouch",
+  "source": {
+    "file": "crouch-v1-keyed.png",
+    "size": [
+      1254,
+      1254
+    ],
+    "sha256": "9c5e3678234c9f1d043946cea01f5af4345d4c43b2d576cb9d71c5ec0a4f6d1f",
+    "frames": [
+      {
+        "bounds": [
+          85,
+          110,
+          612,
+          465
+        ],
+        "subjectSize": [
+          527,
+          355
+        ],
+        "pivot": [
+          266,
+          281
+        ],
+        "muzzle": [
+          609,
+          281
+        ]
+      },
+      {
+        "bounds": [
+          709,
+          112,
+          1232,
+          489
+        ],
+        "subjectSize": [
+          523,
+          377
+        ],
+        "pivot": [
+          887,
+          281
+        ],
+        "muzzle": [
+          1229,
+          281
+        ]
+      },
+      {
+        "bounds": [
+          80,
+          717,
+          612,
+          1052
+        ],
+        "subjectSize": [
+          532,
+          335
+        ],
+        "pivot": [
+          266,
+          889
+        ],
+        "muzzle": [
+          609,
+          891
+        ]
+      },
+      {
+        "bounds": [
+          707,
+          715,
+          1233,
+          1075
+        ],
+        "subjectSize": [
+          526,
+          360
+        ],
+        "pivot": [
+          887,
+          889
+        ],
+        "muzzle": [
+          1230,
+          891
+        ]
+      }
+    ]
+  },
+  "processing": {
+    "ratio": 0.9343065693430657,
+    "upscaled": false,
+    "geometryEdited": false,
+    "bytes": 197198
+  },
+  "frames": [
+    {
+      "sprite": "arbel-crouch-v1.webp",
+      "width": 512,
+      "height": 372,
+      "sheetWidth": 1024,
+      "sheetHeight": 744,
+      "region": [
+        0,
+        0,
+        512,
+        372
+      ],
+      "pivot": [
+        181.255,
+        170.044
+      ],
+      "muzzle": [
+        501.723,
+        170.044
+      ],
+      "scale": 0.07309451219512196
+    },
+    {
+      "sprite": "arbel-crouch-v1.webp",
+      "width": 512,
+      "height": 372,
+      "sheetWidth": 1024,
+      "sheetHeight": 744,
+      "region": [
+        512,
+        0,
+        512,
+        372
+      ],
+      "pivot": [
+        181.255,
+        170.044
+      ],
+      "muzzle": [
+        500.788,
+        170.044
+      ],
+      "scale": 0.07309451219512196
+    },
+    {
+      "sprite": "arbel-crouch-v1.webp",
+      "width": 512,
+      "height": 372,
+      "sheetWidth": 1024,
+      "sheetHeight": 744,
+      "region": [
+        0,
+        372,
+        512,
+        372
+      ],
+      "pivot": [
+        181.255,
+        170.044
+      ],
+      "muzzle": [
+        501.723,
+        171.912
+      ],
+      "scale": 0.07309451219512196
+    },
+    {
+      "sprite": "arbel-crouch-v1.webp",
+      "width": 512,
+      "height": 372,
+      "sheetWidth": 1024,
+      "sheetHeight": 744,
+      "region": [
+        512,
+        372,
+        512,
+        372
+      ],
+      "pivot": [
+        181.255,
+        170.044
+      ],
+      "muzzle": [
+        501.723,
+        171.912
+      ],
+      "scale": 0.07309451219512196
+    }
+  ],
+  "review": "One action per sheet. Pixel checks do not replace grip, anatomy or motion review."
+}

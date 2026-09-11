@@ -3,6 +3,18 @@ import collierDowned from '../operators/collier-downed-v3.json';
 import collierCrawl from '../operators/collier-downed-crawl-v1.json';
 import magpieWalk from '../operators/magpie-walk-v1.json';
 import haedongWalk from '../operators/haedong-walk-v1.json';
+import magpieCrouch from '../operators/magpie-crouch-v1.json';
+import collierCrouch from '../operators/collier-crouch-v1.json';
+import haedongCrouch from '../operators/haedong-crouch-v1.json';
+import arbelCrouch from '../operators/arbel-crouch-v1.json';
+import aubertCrouch from '../operators/aubert-crouch-v1.json';
+import medvedCrouch from '../operators/medved-crouch-v1.json';
+import reussCrouch from '../operators/reuss-crouch-v1.json';
+import brandtCrouch from '../operators/brandt-crouch-v1.json';
+import marchandCrouch from '../operators/marchand-crouch-v1.json';
+import halloranCrouch from '../operators/halloran-crouch-v1.json';
+import seonggakCrouch from '../operators/seonggak-crouch-v1.json';
+import savelliCrouch from '../operators/savelli-crouch-v1.json';
 import collierWalk from '../operators/collier-walk-v1.json';
 import arbelWalk from '../operators/arbel-walk-v1.json';
 import aubertWalk from '../operators/aubert-walk-v1.json';
@@ -72,10 +84,24 @@ const WALK_SHEETS: Record<string, { frames: OperatorVisual[] }> = {
   'SAVELLI': savelliWalk,
 };
 const WALK_ACTIONS = new Set(['approach', 'search', 'reposition']);
+const CROUCH_SHEETS: Record<string, { frames: OperatorVisual[] }> = {
+  'MAGPIE': magpieCrouch,
+  'COLLIER': collierCrouch,
+  '해동': haedongCrouch,
+  'ARBEL': arbelCrouch,
+  'AUBERT': aubertCrouch,
+  'MEDVED': medvedCrouch,
+  'REUSS': reussCrouch,
+  'BRANDT': brandtCrouch,
+  'MARCHAND': marchandCrouch,
+  'HALLORAN': halloranCrouch,
+  '성곽': seonggakCrouch,
+  'SAVELLI': savelliCrouch,
+};
 
 /** 검수된 보행만 미리 읽습니다. 적 편성이나 엔진 상태를 변경하지 않습니다. */
-export function operatorWalkVisual(callSign: string): OperatorVisual | undefined {
-  return WALK_SHEETS[callSign]?.frames[0];
+export function operatorWalkVisual(callSign: string, crouched = false): OperatorVisual | undefined {
+  return (crouched ? CROUCH_SHEETS : WALK_SHEETS)[callSign]?.frames[0];
 }
 
 /** 실제 이동·행동·경기 시각으로 시트를 고릅니다. 발사와 특수 동작에는 보행을 덧씌우지 않습니다. */
@@ -84,14 +110,14 @@ export function operatorStateVisual(unit: RealtimeUnitState, time: number): Oper
   const moving = speed > .01;
   const crawling = unit.alive && unit.downed?.mode === 'crawl' && moving;
   const fallback = operatorPoseVisual(unit.callSign, Boolean(unit.downed), crawling ? time : undefined);
-  const sheet = WALK_SHEETS[unit.callSign];
+  const sheet = (unit.locomotion === 'crouch' ? CROUCH_SHEETS : WALK_SHEETS)[unit.callSign];
   if (!sheet || !unit.alive || unit.downed || unit.traversal || unit.shieldRaised || unit.reviving
-    || unit.reloadRemaining > 0 || unit.locomotion !== 'walk' || !WALK_ACTIONS.has(unit.action)
+    || unit.reloadRemaining > 0 || (unit.locomotion !== 'walk' && unit.locomotion !== 'crouch') || !WALK_ACTIONS.has(unit.action)
     || !moving || !Number.isFinite(time) || time < 0) return fallback;
   // 앞걸음 시트를 횡이동·후진에 재사용해 발이 미끄러지는 표현을 만들지 않습니다.
   const forward = (unit.velocity.x * Math.cos(unit.facing) + unit.velocity.y * Math.sin(unit.facing)) / speed;
   if (forward < .7) return fallback;
-  return sheet.frames[Math.floor(time * 4) % sheet.frames.length];
+  return sheet.frames[Math.floor(time * (unit.locomotion === 'crouch' ? 3 : 4)) % sheet.frames.length];
 }
 
 /** 이미지의 피벗·총구를 회전시켜 판정과 중계가 같은 발사 원점을 사용합니다. */

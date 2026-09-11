@@ -84,6 +84,7 @@ export function BroadcastCanvas(props: Props): ReactElement {
         const still=operatorPoseVisual(unit.callSign,true),crawl=operatorPoseVisual(unit.callSign,true,0);
         if(still)asset(still.sprite);if(crawl)asset(crawl.sprite);
         const walk=operatorWalkVisual(unit.callSign);if(walk)asset(walk.sprite);
+        const crouch=operatorWalkVisual(unit.callSign,true);if(crouch)asset(crouch.sprite);
       }
       const snapshot=amount>=1?state.next.snapshot:state.previous.snapshot,breaches=snapshot.breaches??[];
       const map={...p.map,walls:breaches.reduce((walls,breach)=>breachWalls(walls,breach.wallId,breach.position,breach.width),p.map.walls)};

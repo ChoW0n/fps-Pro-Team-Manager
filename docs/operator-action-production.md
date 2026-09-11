@@ -4,6 +4,8 @@
 
 2026-09-11 추가: 현재 12명 전원의 전진 보행 12시트·48프레임을 제작해 Canvas/SVG 공통 선택 경로에 연결했습니다. COLLIER 다운 이동 1시트·4프레임과 별도입니다. 전체 행동 팩은 아직 0개이며 달리기·저자세·장전·목표 작업 등은 이 완료 수에 포함하지 않습니다. 원본·검수·재실행은 `art-source/operators/WALK-SHEETS.md`와 `validation/operator-action-state.json`에 있습니다.
 
+같은 날 후속: 저자세 보행 12시트·48프레임을 추가 연결했습니다. 이번 신규 묶음은 일반 걷기와 저자세 이동을 합한 **24시트·96프레임**입니다. 나머지 행동은 미완료이며 장전 후보는 파지·삽입 위치 검수에서 탈락해 적용하지 않았습니다. 상세 범위는 `art-source/operators/CROUCH-SHEETS.md`에 기록했습니다.
+
 ## 현재 구현과 남은 표현
 
 `src/`는 `artifacts/draft-order-player-generator/src/`를 뜻합니다. 현재 `RealtimeAction`은 14개 이름, `locomotion`은 5개 값입니다. 이것이 완성된 애니메이션 19종이라는 뜻은 아닙니다. `take-cover`는 행동 타입에 있으나 현재 엔진에서 별도 행동으로 대입하는 경로는 확인되지 않았습니다.
