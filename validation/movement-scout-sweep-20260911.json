@@ -1,0 +1,234 @@
+{
+  "scenario": "scout",
+  "map": {
+    "id": "breachline-02",
+    "width": 3600,
+    "height": 2400
+  },
+  "rows": [
+    {
+      "seed": 3,
+      "ms": 573,
+      "duration": 62.5,
+      "winner": "수비",
+      "reason": "attackers-eliminated",
+      "plantedAt": null,
+      "operationTransitions": [
+        {
+          "time": 18,
+          "phase": "operation:returning"
+        },
+        {
+          "time": 18.1,
+          "phase": "operation:regrouping"
+        },
+        {
+          "time": 18.2,
+          "phase": "operation:entering"
+        }
+      ],
+      "firstShot": 4.3,
+      "shots": 33,
+      "reversals": 18,
+      "movingButStationaryTicks": 8,
+      "loopWindows": 0,
+      "blockedEvents": 41
+    },
+    {
+      "seed": 11,
+      "ms": 596,
+      "duration": 112.6,
+      "winner": "수비",
+      "reason": "device-disabled",
+      "plantedAt": 78.1,
+      "operationTransitions": [
+        {
+          "time": 20.9,
+          "phase": "operation:returning"
+        },
+        {
+          "time": 21,
+          "phase": "operation:regrouping"
+        },
+        {
+          "time": 21.1,
+          "phase": "operation:entering"
+        }
+      ],
+      "firstShot": 4.3,
+      "shots": 35,
+      "reversals": 24,
+      "movingButStationaryTicks": 24,
+      "loopWindows": 0,
+      "blockedEvents": 35
+    },
+    {
+      "seed": 23,
+      "ms": 445,
+      "duration": 61.3,
+      "winner": "수비",
+      "reason": "attackers-eliminated",
+      "plantedAt": null,
+      "operationTransitions": [
+        {
+          "time": 20.9,
+          "phase": "operation:returning"
+        },
+        {
+          "time": 21,
+          "phase": "operation:regrouping"
+        },
+        {
+          "time": 21.1,
+          "phase": "operation:entering"
+        }
+      ],
+      "firstShot": 4.3,
+      "shots": 39,
+      "reversals": 23,
+      "movingButStationaryTicks": 18,
+      "loopWindows": 0,
+      "blockedEvents": 36
+    },
+    {
+      "seed": 41,
+      "ms": 565,
+      "duration": 123.8,
+      "winner": "공격",
+      "reason": "defenders-eliminated",
+      "plantedAt": 102.6,
+      "operationTransitions": [
+        {
+          "time": 40,
+          "phase": "operation:returning"
+        },
+        {
+          "time": 48.2,
+          "phase": "operation:regrouping"
+        },
+        {
+          "time": 48.3,
+          "phase": "operation:entering"
+        }
+      ],
+      "firstShot": 4.3,
+      "shots": 42,
+      "reversals": 18,
+      "movingButStationaryTicks": 9,
+      "loopWindows": 0,
+      "blockedEvents": 87
+    },
+    {
+      "seed": 51,
+      "ms": 405,
+      "duration": 65.5,
+      "winner": "수비",
+      "reason": "attackers-eliminated",
+      "plantedAt": null,
+      "operationTransitions": [
+        {
+          "time": 22.1,
+          "phase": "operation:returning"
+        },
+        {
+          "time": 22.2,
+          "phase": "operation:regrouping"
+        },
+        {
+          "time": 22.3,
+          "phase": "operation:entering"
+        }
+      ],
+      "firstShot": 4.3,
+      "shots": 27,
+      "reversals": 17,
+      "movingButStationaryTicks": 6,
+      "loopWindows": 0,
+      "blockedEvents": 17
+    },
+    {
+      "seed": 81,
+      "ms": 547,
+      "duration": 139,
+      "winner": "수비",
+      "reason": "device-disabled",
+      "plantedAt": 109.1,
+      "operationTransitions": [
+        {
+          "time": 40,
+          "phase": "operation:returning"
+        },
+        {
+          "time": 49.3,
+          "phase": "operation:regrouping"
+        },
+        {
+          "time": 49.4,
+          "phase": "operation:entering"
+        }
+      ],
+      "firstShot": 4.3,
+      "shots": 45,
+      "reversals": 18,
+      "movingButStationaryTicks": 7,
+      "loopWindows": 0,
+      "blockedEvents": 69
+    },
+    {
+      "seed": 107,
+      "ms": 417,
+      "duration": 60.9,
+      "winner": "수비",
+      "reason": "attackers-eliminated",
+      "plantedAt": null,
+      "operationTransitions": [
+        {
+          "time": 21.8,
+          "phase": "operation:returning"
+        },
+        {
+          "time": 21.9,
+          "phase": "operation:regrouping"
+        },
+        {
+          "time": 22,
+          "phase": "operation:entering"
+        }
+      ],
+      "firstShot": 4.3,
+      "shots": 26,
+      "reversals": 20,
+      "movingButStationaryTicks": 7,
+      "loopWindows": 0,
+      "blockedEvents": 33
+    },
+    {
+      "seed": 149,
+      "ms": 514,
+      "duration": 110.6,
+      "winner": "수비",
+      "reason": "device-disabled",
+      "plantedAt": 71.8,
+      "operationTransitions": [
+        {
+          "time": 22.1,
+          "phase": "operation:returning"
+        },
+        {
+          "time": 22.2,
+          "phase": "operation:regrouping"
+        },
+        {
+          "time": 22.3,
+          "phase": "operation:entering"
+        }
+      ],
+      "firstShot": 4.3,
+      "shots": 44,
+      "reversals": 18,
+      "movingButStationaryTicks": 12,
+      "loopWindows": 1,
+      "blockedEvents": 34
+    }
+  ]
+}

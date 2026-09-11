@@ -288,10 +288,15 @@ export class TacticalRealtimeSimulation {
         if(choice){unit.routeIndex=choice.index;unit.position={...choice.setup.position};occupied.push(unit.position);unit.lookDirection=Math.atan2(entry.y-unit.position.y,entry.x-unit.position.x);}
       }
     }
+    const selectedScoutIndices=new Set(scoutPlan?.indices??[]),supportRank=new Map(units.filter(unit=>unit.side==='공격'&&!selectedScoutIndices.has(unit.formationIndex)).map((unit,index)=>[unit.id,index]));
     const rally = new Map(units.filter(unit=>unit.side==='공격').map(unit=>{
       // 진압조도 선발조 뒤의 출입구 대기선까지 전진합니다. 스폰에 영구 대기하지 않습니다.
-      const center=entryRoute.points[1]??entryRoute.points[0], start=entryRoute.points[0];
-      const point={x:center.x+(unit.position.x-start.x),y:center.y+(unit.position.y-start.y)};
+      const start=entryRoute.points[0],next=entryRoute.points[1]??start;
+      // 진압조는 입구 정면의 긴 사선에 서지 않고 첫 외곽 엄폐선까지만 전진합니다.
+      const center={x:start.x+(next.x-start.x)*.45,y:start.y+(next.y-start.y)*.45};
+      const length=Math.max(1,distance(start,next)),perpendicular={x:-(next.y-start.y)/length,y:(next.x-start.x)/length};
+      const lane=selectedScoutIndices.has(unit.formationIndex)?0:-(supportRank.get(unit.id)!+1)*55;
+      const point={x:center.x+perpendicular.x*lane,y:center.y+perpendicular.y*lane};
       return [unit.id,scoutPlan&&this.canStand(point,map)?point:{...unit.position}];
     }));
     const operation = new ScoutOperation((scoutPlan?.indices??[]).map(index=>units[index].id), scoutPlan?.seconds??25, rally);
@@ -320,15 +325,17 @@ export class TacticalRealtimeSimulation {
     const portalReservations = new Map<string, PortalReservation>();
     const openedPortals = new Set<string>();
     let navigationNodes = this.buildNavigationNodes(map);
-    const scoutDestinations = new Map<string,RealtimeVector>();
-    for(const unit of units.filter(unit=>operation.snapshot().scoutIds.includes(unit.id))) {
+    const scoutDestinations = new Map<string,RealtimeVector[]>(),scoutSweepIndex=new Map<string,number>();
+    const scoutUnits=units.filter(unit=>operation.snapshot().scoutIds.includes(unit.id));
+    for(const [scoutIndex,unit] of scoutUnits.entries()) {
       const center=entryRoute.points[Math.min(3,entryRoute.points.length-1)];
       const intended={x:center.x+unit.position.x-entryRoute.points[0].x,y:center.y+unit.position.y-entryRoute.points[0].y};
-      const candidates=[intended,...navigationNodes].filter(point=>this.canStand(point,map)
-        && [...scoutDestinations.values()].every(other=>distance(point,other)>=TEAMMATE_CLEARANCE));
+      const candidates=[intended,...entryRoute.points.slice(1),...map.searchPoints].filter(point=>this.canStand(point,map));
       candidates.sort((a,b)=>distance(a,intended)-distance(b,intended));
       if(!candidates.length) throw new Error('선발조의 유효한 관측 위치를 찾을 수 없습니다.');
-      scoutDestinations.set(unit.id,{...candidates[0]});
+      const separated=candidates.filter((point,index)=>index===0||candidates.slice(0,index).every(other=>distance(point,other)>90));
+      const ordered=separated.slice(scoutIndex,scoutIndex+4).map(point=>({...point}));
+      scoutDestinations.set(unit.id,ordered.length?ordered:[{...candidates[0]}]);scoutSweepIndex.set(unit.id,0);
     }
     const identified = new Map<OperatorSide, Set<string>>([['공격',new Set()],['수비',new Set()]]);
     const teamReports = new Map<OperatorSide, TeamReport[]>([
@@ -763,8 +770,10 @@ export class TacticalRealtimeSimulation {
           continue;
         }
         const order = directorOrders.get(unit.side);
+        const sweep=scoutDestinations.get(unit.id),sweepIndex=scoutSweepIndex.get(unit.id)??0;
+        if(isOpeningScout&&sweep&&distance(unit.position,sweep[Math.min(sweepIndex,sweep.length-1)])<=30&&sweepIndex<sweep.length-1){scoutSweepIndex.set(unit.id,sweepIndex+1);pathCache.delete(unit.id);}
         const operationGoal = unit.side==='공격' && openingSearch
-          ? isOpeningScout ? scoutDestinations.get(unit.id) : rally.get(unit.id)
+          ? isOpeningScout ? sweep?.[Math.min(scoutSweepIndex.get(unit.id)??0,(sweep?.length??1)-1)] : rally.get(unit.id)
           : undefined;
         const operationMoving = Boolean(operationGoal && distance(unit.position,operationGoal)>24);
         const objectiveSite = map.sites.find(site => site.id === objectiveState.siteId) ?? plannedSite;
@@ -941,11 +950,13 @@ export class TacticalRealtimeSimulation {
               && now - (friend.knowledge.lastKnownAt ?? -100) < 1 && distance(unit.position, friend.position) < 350);
             if (friend) destination = this.supportDestination(unit, friend.position, units, map);
           }
-          if (!unit.traversal && !seen && !hasUnresolvedLead && !shouldReposition && trait !== 'methodical'
+          if (!unit.traversal && !isOpeningScout && !seen && !hasUnresolvedLead && !shouldReposition && trait !== 'methodical'
             && distance(unit.position, destination) > 180) unit.locomotion = 'sprint';
+          if(isOpeningScout&&!unit.traversal){const inside=unit.position.x>map.building.x&&unit.position.x<map.building.x+map.building.width&&unit.position.y>map.building.y&&unit.position.y<map.building.y+map.building.height;
+            unit.locomotion=inside||seen||hasUnresolvedLead?'crouch':'sprint';if(!seen&&!hasUnresolvedLead)unit.lookDirection=Math.atan2(destination.y-unit.position.y,destination.x-unit.position.x)+Math.sin(now*1.4+unit.formationIndex)*.38;}
           if (unit.traversal && pathCache.has(unit.id)) destination = pathCache.get(unit.id)!.goal;
           if(roamer&&!seen)unit.goal='로머 순환 · 실제 관측 보고에 대응';
-          if(operationGoal) unit.goal = isOpeningScout ? '선발조 수색 · 지정 방향 확인' : operationState.phase==='scouting' ? '진압조 전진 대기선 · 선발조 엄호' : '실제 복귀 · 진압조와 합류';
+          if(operationGoal) unit.goal = isOpeningScout ? `선발조 저자세 수색 · 구역 ${(scoutSweepIndex.get(unit.id)??0)+1}/${sweep?.length??1}` : operationState.phase==='scouting' ? '진압조 전진 대기선 · 선발조 엄호' : '실제 복귀 · 진압조와 합류';
           this.move(
             unit,
             destination,

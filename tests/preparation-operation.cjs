@@ -26,6 +26,9 @@ test('실제 엔진에서 선발조 복귀·합류를 거쳐 재진입하며 순
   for(const unit of [...input.attackers,...input.defenders]) unit.player={...unit.player,aim:75,entry:75,informationGathering:75,defensiveSetup:75,mastery:75,composure:70,aggression:65,teamSynergy:70};
   const engine=new TacticalRealtimeSimulation(),round=engine.run(input),phases=[...new Set(round.snapshots.map(snapshot=>snapshot.operation.phase))];
   assert.deepEqual(phases,['scouting','returning','regrouping','entering']);
+  for(const scoutId of round.snapshots[0].operation.scoutIds){const states=round.snapshots.filter(snapshot=>snapshot.operation.phase==='scouting').map(snapshot=>snapshot.units.find(unit=>unit.id===scoutId));
+    const interior=states.filter(unit=>unit.position.x>input.map.building.x&&unit.position.x<input.map.building.x+input.map.building.width&&unit.position.y>input.map.building.y&&unit.position.y<input.map.building.y+input.map.building.height);assert(states.some(unit=>unit.locomotion==='crouch'),'관측 지점 접근 중 저자세 수색 상태 발생');assert(interior.every(unit=>unit.locomotion!=='sprint'),'실내 수색은 달리지 않음');
+    assert(new Set(states.map(unit=>unit.goal).filter(goal=>goal.includes('구역'))).size>=2,'선발조가 한 지점에서 끝나지 않고 다음 구역을 확인');}
   const session=new TacticalRealtimeSimulation().createSession(input);
   while(!session.isComplete)session.step();assert.deepEqual(session.getResult(),round);
   const start=round.snapshots[0];
