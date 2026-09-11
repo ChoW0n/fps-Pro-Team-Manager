@@ -4,7 +4,7 @@ const {execFileSync}=require('node:child_process'),ts=require('typescript');
 const root=path.resolve(__dirname,'../artifacts/draft-order-player-generator');
 require.extensions['.ts']=(module,file)=>module._compile(ts.transpileModule(fs.readFileSync(file,'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022,esModuleInterop:true,resolveJsonModule:true}}).outputText,file);
 const {OPERATORS}=require(root+'/src/domain/Operator.ts');
-const {operatorVisual,operatorPoseVisual,muzzlePosition}=require(root+'/src/domain/operatorVisuals.ts');
+const {operatorVisual,operatorPoseVisual,operatorWalkVisual,muzzlePosition}=require(root+'/src/domain/operatorVisuals.ts');
 
 /** 오프라인 Pillow로 픽셀을 읽기만 합니다. 런타임 의존성·배경 제거·이미지 수정은 없습니다. */
 function inspect(file,region){
@@ -60,7 +60,19 @@ if(process.argv[2]){
   assert.equal(operatorPoseVisual('COLLIER',true),operatorPoseVisual('COLLIER',true,NaN),'정지 및 잘못된 시각은 정지 원화');
   assert.equal(operatorPoseVisual('COLLIER',false,.5),operatorVisual('COLLIER'),'다운 전에는 다운 이동 금지');
   assert.equal(operatorPoseVisual('MAGPIE',true,.5),operatorVisual('MAGPIE'),'다른 오퍼레이터 몸 복제 금지');
-  const report={kind:'Asset contracts and alpha only; not anatomy, firearm authenticity, animation or browser-play approval',operators:rows,downed,crawlFrames:crawl.length,crawlSprite:crawl[0].sprite,operatorCount:rows.length,completeAnimationPacks:0};
+  const walks=OPERATORS.map(operator=>{
+    const visual=operatorWalkVisual(operator.callSign);assert(visual,operator.callSign+': 걷기 시트 필요');
+    const record=JSON.parse(fs.readFileSync(root+'/src/operators/'+visual.sprite.replace('.webp','.json')));
+    assert.equal(record.action,'walk');assert.equal(record.frames.length,4);assert.equal(record.processing.upscaled,false);
+    assert(record.source.frames.every(frame=>Math.max(...frame.subjectSize)>=512),'원본 인물 장축 512px 이상');
+    assert.equal(new Set(record.frames.map(frame=>JSON.stringify(frame.pivot))).size,1);
+    assert.equal(new Set(record.frames.map(frame=>frame.scale)).size,1);
+    const lengths=record.frames.map(frame=>Math.hypot(frame.muzzle[0]-frame.pivot[0],frame.muzzle[1]-frame.pivot[1]));
+    assert(Math.max(...lengths)/Math.min(...lengths)<1.06,'프레임별 총열 길이·원점 변화 검토 필요: '+operator.callSign);
+    for(const frame of record.frames)checkSprite(frame);
+    return {callSign:operator.callSign,sprite:visual.sprite,frames:record.frames.length,sourceSizes:record.source.frames.map(frame=>frame.subjectSize),bytes:record.processing.bytes};
+  });
+  const report={kind:'Asset contracts and alpha only; not anatomy, firearm authenticity, animation or browser-play approval',operators:rows,downed,crawlFrames:crawl.length,crawlSprite:crawl[0].sprite,walks,operatorCount:rows.length,completeAnimationPacks:0};
   fs.writeFileSync(path.resolve(__dirname,'../validation/operator-sprite-audit.json'),JSON.stringify(report,null,2)+'\n');
-  console.log(`PASS ${rows.length} operator asset contracts + COLLIER downed + 4 crawl frames; complete animation packs: 0`);
+  console.log(`PASS ${rows.length} operator asset contracts + ${walks.length} four-frame walk sheets + COLLIER downed/crawl; complete animation packs: 0`);
 }

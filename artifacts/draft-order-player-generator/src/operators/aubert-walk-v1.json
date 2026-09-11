@@ -1,0 +1,190 @@
+{
+  "action": "walk",
+  "source": {
+    "file": "walk-v1-keyed.png",
+    "size": [
+      1254,
+      1254
+    ],
+    "sha256": "ac0d90b3a7a862050d66d5fa17435c1d5c40de5a95c650e3fd276f8494f095bf",
+    "frames": [
+      {
+        "bounds": [
+          16,
+          100,
+          605,
+          442
+        ],
+        "subjectSize": [
+          589,
+          342
+        ],
+        "pivot": [
+          266,
+          278
+        ],
+        "muzzle": [
+          602,
+          282
+        ]
+      },
+      {
+        "bounds": [
+          694,
+          114,
+          1223,
+          476
+        ],
+        "subjectSize": [
+          529,
+          362
+        ],
+        "pivot": [
+          886,
+          278
+        ],
+        "muzzle": [
+          1220,
+          282
+        ]
+      },
+      {
+        "bounds": [
+          19,
+          723,
+          598,
+          1046
+        ],
+        "subjectSize": [
+          579,
+          323
+        ],
+        "pivot": [
+          266,
+          887
+        ],
+        "muzzle": [
+          595,
+          888
+        ]
+      },
+      {
+        "bounds": [
+          693,
+          723,
+          1223,
+          1092
+        ],
+        "subjectSize": [
+          530,
+          369
+        ],
+        "pivot": [
+          886,
+          887
+        ],
+        "muzzle": [
+          1220,
+          888
+        ]
+      }
+    ]
+  },
+  "processing": {
+    "ratio": 0.8462809917355372,
+    "upscaled": false,
+    "geometryEdited": false,
+    "bytes": 181772
+  },
+  "frames": [
+    {
+      "sprite": "aubert-walk-v1.webp",
+      "width": 512,
+      "height": 338,
+      "sheetWidth": 1024,
+      "sheetHeight": 676,
+      "region": [
+        0,
+        0,
+        512,
+        338
+      ],
+      "pivot": [
+        218.34,
+        157.408
+      ],
+      "muzzle": [
+        502.691,
+        160.793
+      ],
+      "scale": 0.078125
+    },
+    {
+      "sprite": "aubert-walk-v1.webp",
+      "width": 512,
+      "height": 338,
+      "sheetWidth": 1024,
+      "sheetHeight": 676,
+      "region": [
+        512,
+        0,
+        512,
+        338
+      ],
+      "pivot": [
+        218.34,
+        157.408
+      ],
+      "muzzle": [
+        500.998,
+        160.793
+      ],
+      "scale": 0.078125
+    },
+    {
+      "sprite": "aubert-walk-v1.webp",
+      "width": 512,
+      "height": 338,
+      "sheetWidth": 1024,
+      "sheetHeight": 676,
+      "region": [
+        0,
+        338,
+        512,
+        338
+      ],
+      "pivot": [
+        218.34,
+        157.408
+      ],
+      "muzzle": [
+        496.767,
+        158.255
+      ],
+      "scale": 0.078125
+    },
+    {
+      "sprite": "aubert-walk-v1.webp",
+      "width": 512,
+      "height": 338,
+      "sheetWidth": 1024,
+      "sheetHeight": 676,
+      "region": [
+        512,
+        338,
+        512,
+        338
+      ],
+      "pivot": [
+        218.34,
+        157.408
+      ],
+      "muzzle": [
+        500.998,
+        158.255
+      ],
+      "scale": 0.078125
+    }
+  ],
+  "review": "One action per sheet. Pixel checks do not replace grip, anatomy or motion review."
+}

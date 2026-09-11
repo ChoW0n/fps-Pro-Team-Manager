@@ -1,0 +1,190 @@
+{
+  "action": "walk",
+  "source": {
+    "file": "walk-v1-keyed.png",
+    "size": [
+      1254,
+      1254
+    ],
+    "sha256": "044ea5b3eed2c653a6f2d93471db0e60fe123813fb2bbf2167dcbd64f819a49b",
+    "frames": [
+      {
+        "bounds": [
+          31,
+          97,
+          620,
+          452
+        ],
+        "subjectSize": [
+          589,
+          355
+        ],
+        "pivot": [
+          252,
+          267
+        ],
+        "muzzle": [
+          615,
+          266
+        ]
+      },
+      {
+        "bounds": [
+          663,
+          99,
+          1241,
+          456
+        ],
+        "subjectSize": [
+          578,
+          357
+        ],
+        "pivot": [
+          876,
+          267
+        ],
+        "muzzle": [
+          1237,
+          265
+        ]
+      },
+      {
+        "bounds": [
+          39,
+          716,
+          619,
+          1079
+        ],
+        "subjectSize": [
+          580,
+          363
+        ],
+        "pivot": [
+          252,
+          881
+        ],
+        "muzzle": [
+          615,
+          881
+        ]
+      },
+      {
+        "bounds": [
+          661,
+          718,
+          1241,
+          1078
+        ],
+        "subjectSize": [
+          580,
+          360
+        ],
+        "pivot": [
+          876,
+          881
+        ],
+        "muzzle": [
+          1237,
+          891
+        ]
+      }
+    ]
+  },
+  "processing": {
+    "ratio": 0.8462809917355372,
+    "upscaled": false,
+    "geometryEdited": false,
+    "bytes": 182730
+  },
+  "frames": [
+    {
+      "sprite": "haedong-walk-v1.webp",
+      "width": 512,
+      "height": 325,
+      "sheetWidth": 1024,
+      "sheetHeight": 650,
+      "region": [
+        0,
+        0,
+        512,
+        325
+      ],
+      "pivot": [
+        193.798,
+        150.638
+      ],
+      "muzzle": [
+        500.998,
+        149.792
+      ],
+      "scale": 0.0859375
+    },
+    {
+      "sprite": "haedong-walk-v1.webp",
+      "width": 512,
+      "height": 325,
+      "sheetWidth": 1024,
+      "sheetHeight": 650,
+      "region": [
+        512,
+        0,
+        512,
+        325
+      ],
+      "pivot": [
+        193.798,
+        150.638
+      ],
+      "muzzle": [
+        499.306,
+        148.945
+      ],
+      "scale": 0.0859375
+    },
+    {
+      "sprite": "haedong-walk-v1.webp",
+      "width": 512,
+      "height": 325,
+      "sheetWidth": 1024,
+      "sheetHeight": 650,
+      "region": [
+        0,
+        325,
+        512,
+        325
+      ],
+      "pivot": [
+        193.798,
+        150.638
+      ],
+      "muzzle": [
+        500.998,
+        150.638
+      ],
+      "scale": 0.0859375
+    },
+    {
+      "sprite": "haedong-walk-v1.webp",
+      "width": 512,
+      "height": 325,
+      "sheetWidth": 1024,
+      "sheetHeight": 650,
+      "region": [
+        512,
+        325,
+        512,
+        325
+      ],
+      "pivot": [
+        193.798,
+        150.638
+      ],
+      "muzzle": [
+        499.306,
+        159.101
+      ],
+      "scale": 0.0859375
+    }
+  ],
+  "review": "One action per sheet. Pixel checks do not replace grip, anatomy or motion review."
+}

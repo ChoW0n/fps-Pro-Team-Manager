@@ -1,0 +1,190 @@
+{
+  "action": "walk",
+  "source": {
+    "file": "walk-v1-keyed.png",
+    "size": [
+      1254,
+      1254
+    ],
+    "sha256": "5603507e6445b8843fc157cfe829ec20516aa92e58f946b7cad045e84fe84176",
+    "frames": [
+      {
+        "bounds": [
+          42,
+          105,
+          624,
+          470
+        ],
+        "subjectSize": [
+          582,
+          365
+        ],
+        "pivot": [
+          289,
+          279
+        ],
+        "muzzle": [
+          621,
+          276
+        ]
+      },
+      {
+        "bounds": [
+          684,
+          105,
+          1242,
+          461
+        ],
+        "subjectSize": [
+          558,
+          356
+        ],
+        "pivot": [
+          909,
+          279
+        ],
+        "muzzle": [
+          1239,
+          277
+        ]
+      },
+      {
+        "bounds": [
+          29,
+          725,
+          624,
+          1085
+        ],
+        "subjectSize": [
+          595,
+          360
+        ],
+        "pivot": [
+          289,
+          901
+        ],
+        "muzzle": [
+          621,
+          901
+        ]
+      },
+      {
+        "bounds": [
+          684,
+          726,
+          1242,
+          1085
+        ],
+        "subjectSize": [
+          558,
+          359
+        ],
+        "pivot": [
+          909,
+          901
+        ],
+        "muzzle": [
+          1239,
+          902
+        ]
+      }
+    ]
+  },
+  "processing": {
+    "ratio": 0.8379705400981997,
+    "upscaled": false,
+    "geometryEdited": false,
+    "bytes": 162482
+  },
+  "frames": [
+    {
+      "sprite": "collier-walk-v1.webp",
+      "width": 512,
+      "height": 321,
+      "sheetWidth": 1024,
+      "sheetHeight": 642,
+      "region": [
+        0,
+        0,
+        512,
+        321
+      ],
+      "pivot": [
+        224.576,
+        154.187
+      ],
+      "muzzle": [
+        502.782,
+        151.673
+      ],
+      "scale": 0.080078125
+    },
+    {
+      "sprite": "collier-walk-v1.webp",
+      "width": 512,
+      "height": 321,
+      "sheetWidth": 1024,
+      "sheetHeight": 642,
+      "region": [
+        512,
+        0,
+        512,
+        321
+      ],
+      "pivot": [
+        224.576,
+        154.187
+      ],
+      "muzzle": [
+        501.106,
+        152.511
+      ],
+      "scale": 0.080078125
+    },
+    {
+      "sprite": "collier-walk-v1.webp",
+      "width": 512,
+      "height": 321,
+      "sheetWidth": 1024,
+      "sheetHeight": 642,
+      "region": [
+        0,
+        321,
+        512,
+        321
+      ],
+      "pivot": [
+        224.576,
+        154.187
+      ],
+      "muzzle": [
+        502.782,
+        154.187
+      ],
+      "scale": 0.080078125
+    },
+    {
+      "sprite": "collier-walk-v1.webp",
+      "width": 512,
+      "height": 321,
+      "sheetWidth": 1024,
+      "sheetHeight": 642,
+      "region": [
+        512,
+        321,
+        512,
+        321
+      ],
+      "pivot": [
+        224.576,
+        154.187
+      ],
+      "muzzle": [
+        501.106,
+        155.025
+      ],
+      "scale": 0.080078125
+    }
+  ],
+  "review": "One action per sheet. Pixel checks do not replace grip, anatomy or motion review."
+}

@@ -1,0 +1,77 @@
+{
+  "scope": "State selection only; not anatomy or browser play",
+  "clips": [
+    {
+      "callSign": "MAGPIE",
+      "action": "walk",
+      "frames": 4,
+      "sprite": "magpie-walk-v1.webp"
+    },
+    {
+      "callSign": "COLLIER",
+      "action": "walk",
+      "frames": 4,
+      "sprite": "collier-walk-v1.webp"
+    },
+    {
+      "callSign": "해동",
+      "action": "walk",
+      "frames": 4,
+      "sprite": "haedong-walk-v1.webp"
+    },
+    {
+      "callSign": "ARBEL",
+      "action": "walk",
+      "frames": 4,
+      "sprite": "arbel-walk-v1.webp"
+    },
+    {
+      "callSign": "AUBERT",
+      "action": "walk",
+      "frames": 4,
+      "sprite": "aubert-walk-v1.webp"
+    },
+    {
+      "callSign": "MEDVED",
+      "action": "walk",
+      "frames": 4,
+      "sprite": "medved-walk-v1.webp"
+    },
+    {
+      "callSign": "REUSS",
+      "action": "walk",
+      "frames": 4,
+      "sprite": "reuss-walk-v1.webp"
+    },
+    {
+      "callSign": "BRANDT",
+      "action": "walk",
+      "frames": 4,
+      "sprite": "brandt-walk-v1.webp"
+    },
+    {
+      "callSign": "MARCHAND",
+      "action": "walk",
+      "frames": 4,
+      "sprite": "marchand-walk-v1.webp"
+    },
+    {
+      "callSign": "HALLORAN",
+      "action": "walk",
+      "frames": 4,
+      "sprite": "halloran-walk-v1.webp"
+    },
+    {
+      "callSign": "성곽",
+      "action": "walk",
+      "frames": 4,
+      "sprite": "seonggak-walk-v1.webp"
+    },
+    {
+      "callSign": "SAVELLI",
+      "action": "walk",
+      "frames": 4,
+      "sprite": "savelli-walk-v1.webp"
+    }
+  ]
+}

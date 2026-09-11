@@ -1,0 +1,190 @@
+{
+  "action": "walk",
+  "source": {
+    "file": "walk-v1-keyed.png",
+    "size": [
+      1254,
+      1254
+    ],
+    "sha256": "3e8992a0ebf81ddca8a8da2b0773a46b91525e3ce472c60bba7c0a7b2fe522d4",
+    "frames": [
+      {
+        "bounds": [
+          15,
+          101,
+          637,
+          440
+        ],
+        "subjectSize": [
+          622,
+          339
+        ],
+        "pivot": [
+          266,
+          278
+        ],
+        "muzzle": [
+          634,
+          276
+        ]
+      },
+      {
+        "bounds": [
+          694,
+          112,
+          1243,
+          474
+        ],
+        "subjectSize": [
+          549,
+          362
+        ],
+        "pivot": [
+          886,
+          278
+        ],
+        "muzzle": [
+          1240,
+          276
+        ]
+      },
+      {
+        "bounds": [
+          19,
+          720,
+          637,
+          1049
+        ],
+        "subjectSize": [
+          618,
+          329
+        ],
+        "pivot": [
+          266,
+          887
+        ],
+        "muzzle": [
+          634,
+          885
+        ]
+      },
+      {
+        "bounds": [
+          693,
+          720,
+          1243,
+          1093
+        ],
+        "subjectSize": [
+          550,
+          373
+        ],
+        "pivot": [
+          886,
+          887
+        ],
+        "muzzle": [
+          1240,
+          885
+        ]
+      }
+    ]
+  },
+  "processing": {
+    "ratio": 0.8025078369905956,
+    "upscaled": false,
+    "geometryEdited": false,
+    "bytes": 154382
+  },
+  "frames": [
+    {
+      "sprite": "medved-walk-v1.webp",
+      "width": 512,
+      "height": 321,
+      "sheetWidth": 1024,
+      "sheetHeight": 642,
+      "region": [
+        0,
+        0,
+        512,
+        321
+      ],
+      "pivot": [
+        207.85,
+        148.464
+      ],
+      "muzzle": [
+        503.172,
+        146.859
+      ],
+      "scale": 0.08984375
+    },
+    {
+      "sprite": "medved-walk-v1.webp",
+      "width": 512,
+      "height": 321,
+      "sheetWidth": 1024,
+      "sheetHeight": 642,
+      "region": [
+        512,
+        0,
+        512,
+        321
+      ],
+      "pivot": [
+        207.85,
+        148.464
+      ],
+      "muzzle": [
+        491.937,
+        146.859
+      ],
+      "scale": 0.08984375
+    },
+    {
+      "sprite": "medved-walk-v1.webp",
+      "width": 512,
+      "height": 321,
+      "sheetWidth": 1024,
+      "sheetHeight": 642,
+      "region": [
+        0,
+        321,
+        512,
+        321
+      ],
+      "pivot": [
+        207.85,
+        148.464
+      ],
+      "muzzle": [
+        503.172,
+        146.859
+      ],
+      "scale": 0.08984375
+    },
+    {
+      "sprite": "medved-walk-v1.webp",
+      "width": 512,
+      "height": 321,
+      "sheetWidth": 1024,
+      "sheetHeight": 642,
+      "region": [
+        512,
+        321,
+        512,
+        321
+      ],
+      "pivot": [
+        207.85,
+        148.464
+      ],
+      "muzzle": [
+        491.937,
+        146.859
+      ],
+      "scale": 0.08984375
+    }
+  ],
+  "review": "One action per sheet. Pixel checks do not replace grip, anatomy or motion review."
+}

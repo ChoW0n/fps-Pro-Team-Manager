@@ -1,0 +1,190 @@
+{
+  "action": "walk",
+  "source": {
+    "file": "walk-v1-keyed.png",
+    "size": [
+      1254,
+      1254
+    ],
+    "sha256": "534a7ca0c1eddeceee01a1aa1ba7768aae92f925115665e119fea60af1d72599",
+    "frames": [
+      {
+        "bounds": [
+          17,
+          97,
+          635,
+          435
+        ],
+        "subjectSize": [
+          618,
+          338
+        ],
+        "pivot": [
+          266,
+          278
+        ],
+        "muzzle": [
+          632,
+          278
+        ]
+      },
+      {
+        "bounds": [
+          691,
+          115,
+          1246,
+          472
+        ],
+        "subjectSize": [
+          555,
+          357
+        ],
+        "pivot": [
+          886,
+          278
+        ],
+        "muzzle": [
+          1243,
+          279
+        ]
+      },
+      {
+        "bounds": [
+          21,
+          722,
+          635,
+          1043
+        ],
+        "subjectSize": [
+          614,
+          321
+        ],
+        "pivot": [
+          266,
+          887
+        ],
+        "muzzle": [
+          632,
+          885
+        ]
+      },
+      {
+        "bounds": [
+          691,
+          723,
+          1246,
+          1092
+        ],
+        "subjectSize": [
+          555,
+          369
+        ],
+        "pivot": [
+          886,
+          887
+        ],
+        "muzzle": [
+          1243,
+          887
+        ]
+      }
+    ]
+  },
+  "processing": {
+    "ratio": 0.807570977917981,
+    "upscaled": false,
+    "geometryEdited": false,
+    "bytes": 144484
+  },
+  "frames": [
+    {
+      "sprite": "reuss-walk-v1.webp",
+      "width": 512,
+      "height": 325,
+      "sheetWidth": 1024,
+      "sheetHeight": 650,
+      "region": [
+        0,
+        0,
+        512,
+        325
+      ],
+      "pivot": [
+        207.546,
+        152.631
+      ],
+      "muzzle": [
+        503.117,
+        152.631
+      ],
+      "scale": 0.08984375
+    },
+    {
+      "sprite": "reuss-walk-v1.webp",
+      "width": 512,
+      "height": 325,
+      "sheetWidth": 1024,
+      "sheetHeight": 650,
+      "region": [
+        512,
+        0,
+        512,
+        325
+      ],
+      "pivot": [
+        207.546,
+        152.631
+      ],
+      "muzzle": [
+        495.849,
+        153.438
+      ],
+      "scale": 0.08984375
+    },
+    {
+      "sprite": "reuss-walk-v1.webp",
+      "width": 512,
+      "height": 325,
+      "sheetWidth": 1024,
+      "sheetHeight": 650,
+      "region": [
+        0,
+        325,
+        512,
+        325
+      ],
+      "pivot": [
+        207.546,
+        152.631
+      ],
+      "muzzle": [
+        503.117,
+        151.016
+      ],
+      "scale": 0.08984375
+    },
+    {
+      "sprite": "reuss-walk-v1.webp",
+      "width": 512,
+      "height": 325,
+      "sheetWidth": 1024,
+      "sheetHeight": 650,
+      "region": [
+        512,
+        325,
+        512,
+        325
+      ],
+      "pivot": [
+        207.546,
+        152.631
+      ],
+      "muzzle": [
+        495.849,
+        152.631
+      ],
+      "scale": 0.08984375
+    }
+  ],
+  "review": "One action per sheet. Pixel checks do not replace grip, anatomy or motion review."
+}

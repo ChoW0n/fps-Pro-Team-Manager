@@ -1,0 +1,190 @@
+{
+  "action": "walk",
+  "source": {
+    "file": "walk-v1-keyed.png",
+    "size": [
+      1254,
+      1254
+    ],
+    "sha256": "ab9fc767c89f69a6e4e54e1c867ae1ad24b8d75136796c33026288b232b0bcf9",
+    "frames": [
+      {
+        "bounds": [
+          17,
+          108,
+          659,
+          439
+        ],
+        "subjectSize": [
+          642,
+          331
+        ],
+        "pivot": [
+          266,
+          278
+        ],
+        "muzzle": [
+          654,
+          276
+        ]
+      },
+      {
+        "bounds": [
+          671,
+          113,
+          1238,
+          472
+        ],
+        "subjectSize": [
+          567,
+          359
+        ],
+        "pivot": [
+          846,
+          278
+        ],
+        "muzzle": [
+          1234,
+          276
+        ]
+      },
+      {
+        "bounds": [
+          18,
+          720,
+          659,
+          1048
+        ],
+        "subjectSize": [
+          641,
+          328
+        ],
+        "pivot": [
+          266,
+          887
+        ],
+        "muzzle": [
+          654,
+          882
+        ]
+      },
+      {
+        "bounds": [
+          671,
+          717,
+          1238,
+          1089
+        ],
+        "subjectSize": [
+          567,
+          372
+        ],
+        "pivot": [
+          846,
+          887
+        ],
+        "muzzle": [
+          1234,
+          882
+        ]
+      }
+    ]
+  },
+  "processing": {
+    "ratio": 0.7781155015197568,
+    "upscaled": false,
+    "geometryEdited": false,
+    "bytes": 191404
+  },
+  "frames": [
+    {
+      "sprite": "halloran-walk-v1.webp",
+      "width": 512,
+      "height": 302,
+      "sheetWidth": 1024,
+      "sheetHeight": 604,
+      "region": [
+        0,
+        0,
+        512,
+        302
+      ],
+      "pivot": [
+        199.976,
+        138.505
+      ],
+      "muzzle": [
+        501.884,
+        136.948
+      ],
+      "scale": 0.099609375
+    },
+    {
+      "sprite": "halloran-walk-v1.webp",
+      "width": 512,
+      "height": 302,
+      "sheetWidth": 1024,
+      "sheetHeight": 604,
+      "region": [
+        512,
+        0,
+        512,
+        302
+      ],
+      "pivot": [
+        199.976,
+        138.505
+      ],
+      "muzzle": [
+        501.884,
+        136.948
+      ],
+      "scale": 0.099609375
+    },
+    {
+      "sprite": "halloran-walk-v1.webp",
+      "width": 512,
+      "height": 302,
+      "sheetWidth": 1024,
+      "sheetHeight": 604,
+      "region": [
+        0,
+        302,
+        512,
+        302
+      ],
+      "pivot": [
+        199.976,
+        138.505
+      ],
+      "muzzle": [
+        501.884,
+        134.614
+      ],
+      "scale": 0.099609375
+    },
+    {
+      "sprite": "halloran-walk-v1.webp",
+      "width": 512,
+      "height": 302,
+      "sheetWidth": 1024,
+      "sheetHeight": 604,
+      "region": [
+        512,
+        302,
+        512,
+        302
+      ],
+      "pivot": [
+        199.976,
+        138.505
+      ],
+      "muzzle": [
+        501.884,
+        134.614
+      ],
+      "scale": 0.099609375
+    }
+  ],
+  "review": "One action per sheet. Pixel checks do not replace grip, anatomy or motion review."
+}

@@ -1,0 +1,190 @@
+{
+  "action": "walk",
+  "source": {
+    "file": "walk-v1-keyed.png",
+    "size": [
+      1254,
+      1254
+    ],
+    "sha256": "a4ce36ca8d2d8f39583f5c1ff1f5807577bbc5ce9509929874c2754651ca90d8",
+    "frames": [
+      {
+        "bounds": [
+          15,
+          100,
+          656,
+          436
+        ],
+        "subjectSize": [
+          641,
+          336
+        ],
+        "pivot": [
+          266,
+          278
+        ],
+        "muzzle": [
+          652,
+          284
+        ]
+      },
+      {
+        "bounds": [
+          673,
+          115,
+          1240,
+          480
+        ],
+        "subjectSize": [
+          567,
+          365
+        ],
+        "pivot": [
+          846,
+          278
+        ],
+        "muzzle": [
+          1236,
+          284
+        ]
+      },
+      {
+        "bounds": [
+          19,
+          723,
+          656,
+          1046
+        ],
+        "subjectSize": [
+          637,
+          323
+        ],
+        "pivot": [
+          266,
+          887
+        ],
+        "muzzle": [
+          652,
+          890
+        ]
+      },
+      {
+        "bounds": [
+          671,
+          723,
+          1240,
+          1094
+        ],
+        "subjectSize": [
+          569,
+          371
+        ],
+        "pivot": [
+          846,
+          887
+        ],
+        "muzzle": [
+          1236,
+          890
+        ]
+      }
+    ]
+  },
+  "processing": {
+    "ratio": 0.7745839636913767,
+    "upscaled": false,
+    "geometryEdited": false,
+    "bytes": 153050
+  },
+  "frames": [
+    {
+      "sprite": "brandt-walk-v1.webp",
+      "width": 512,
+      "height": 311,
+      "sheetWidth": 1024,
+      "sheetHeight": 622,
+      "region": [
+        0,
+        0,
+        512,
+        311
+      ],
+      "pivot": [
+        200.617,
+        144.073
+      ],
+      "muzzle": [
+        499.607,
+        148.72
+      ],
+      "scale": 0.099609375
+    },
+    {
+      "sprite": "brandt-walk-v1.webp",
+      "width": 512,
+      "height": 311,
+      "sheetWidth": 1024,
+      "sheetHeight": 622,
+      "region": [
+        512,
+        0,
+        512,
+        311
+      ],
+      "pivot": [
+        200.617,
+        144.073
+      ],
+      "muzzle": [
+        502.705,
+        148.72
+      ],
+      "scale": 0.099609375
+    },
+    {
+      "sprite": "brandt-walk-v1.webp",
+      "width": 512,
+      "height": 311,
+      "sheetWidth": 1024,
+      "sheetHeight": 622,
+      "region": [
+        0,
+        311,
+        512,
+        311
+      ],
+      "pivot": [
+        200.617,
+        144.073
+      ],
+      "muzzle": [
+        499.607,
+        146.396
+      ],
+      "scale": 0.099609375
+    },
+    {
+      "sprite": "brandt-walk-v1.webp",
+      "width": 512,
+      "height": 311,
+      "sheetWidth": 1024,
+      "sheetHeight": 622,
+      "region": [
+        512,
+        311,
+        512,
+        311
+      ],
+      "pivot": [
+        200.617,
+        144.073
+      ],
+      "muzzle": [
+        502.705,
+        146.396
+      ],
+      "scale": 0.099609375
+    }
+  ],
+  "review": "One action per sheet. Pixel checks do not replace grip, anatomy or motion review."
+}

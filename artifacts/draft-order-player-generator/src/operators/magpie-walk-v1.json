@@ -1,0 +1,190 @@
+{
+  "action": "walk",
+  "source": {
+    "file": "walk-v1-keyed.png",
+    "size": [
+      1254,
+      1254
+    ],
+    "sha256": "cd7d99b59c33e238f078ebc1ccd5517f3297e9aa36f5f03eb35a01e6f01b3d14",
+    "frames": [
+      {
+        "bounds": [
+          16,
+          102,
+          629,
+          434
+        ],
+        "subjectSize": [
+          613,
+          332
+        ],
+        "pivot": [
+          266,
+          278
+        ],
+        "muzzle": [
+          625,
+          278
+        ]
+      },
+      {
+        "bounds": [
+          693,
+          116,
+          1243,
+          472
+        ],
+        "subjectSize": [
+          550,
+          356
+        ],
+        "pivot": [
+          886,
+          278
+        ],
+        "muzzle": [
+          1239,
+          278
+        ]
+      },
+      {
+        "bounds": [
+          20,
+          724,
+          629,
+          1041
+        ],
+        "subjectSize": [
+          609,
+          317
+        ],
+        "pivot": [
+          266,
+          887
+        ],
+        "muzzle": [
+          625,
+          887
+        ]
+      },
+      {
+        "bounds": [
+          693,
+          724,
+          1242,
+          1090
+        ],
+        "subjectSize": [
+          549,
+          366
+        ],
+        "pivot": [
+          886,
+          887
+        ],
+        "muzzle": [
+          1238,
+          887
+        ]
+      }
+    ]
+  },
+  "processing": {
+    "ratio": 0.8139904610492846,
+    "upscaled": false,
+    "geometryEdited": false,
+    "bytes": 186634
+  },
+  "frames": [
+    {
+      "sprite": "magpie-walk-v1.webp",
+      "width": 512,
+      "height": 322,
+      "sheetWidth": 1024,
+      "sheetHeight": 644,
+      "region": [
+        0,
+        0,
+        512,
+        322
+      ],
+      "pivot": [
+        210.01,
+        149.774
+      ],
+      "muzzle": [
+        502.232,
+        149.774
+      ],
+      "scale": 0.0859375
+    },
+    {
+      "sprite": "magpie-walk-v1.webp",
+      "width": 512,
+      "height": 322,
+      "sheetWidth": 1024,
+      "sheetHeight": 644,
+      "region": [
+        512,
+        0,
+        512,
+        322
+      ],
+      "pivot": [
+        210.01,
+        149.774
+      ],
+      "muzzle": [
+        497.348,
+        149.774
+      ],
+      "scale": 0.0859375
+    },
+    {
+      "sprite": "magpie-walk-v1.webp",
+      "width": 512,
+      "height": 322,
+      "sheetWidth": 1024,
+      "sheetHeight": 644,
+      "region": [
+        0,
+        322,
+        512,
+        322
+      ],
+      "pivot": [
+        210.01,
+        149.774
+      ],
+      "muzzle": [
+        502.232,
+        149.774
+      ],
+      "scale": 0.0859375
+    },
+    {
+      "sprite": "magpie-walk-v1.webp",
+      "width": 512,
+      "height": 322,
+      "sheetWidth": 1024,
+      "sheetHeight": 644,
+      "region": [
+        512,
+        322,
+        512,
+        322
+      ],
+      "pivot": [
+        210.01,
+        149.774
+      ],
+      "muzzle": [
+        496.534,
+        149.774
+      ],
+      "scale": 0.0859375
+    }
+  ],
+  "review": "One action per sheet. Pixel checks do not replace grip, anatomy or motion review."
+}

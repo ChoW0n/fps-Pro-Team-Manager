@@ -5,7 +5,7 @@ import type { BombState } from '../domain/realtime/BombObjective';
 import type { Operator } from '../domain/Operator';
 import type { RealtimeEvent, RealtimeSnapshot, RealtimeGadget, RealtimeBreach } from '../domain/realtime/TacticalRealtimeSimulation';
 import type { TacticalMapDefinition } from '../domain/tacticalMaps';
-import { operatorVisual, operatorPoseVisual, OPERATOR_SCALE, TEMPORARY_OPERATOR_SCALE } from '../domain/operatorVisuals';
+import { operatorVisual, operatorStateVisual, OPERATOR_SCALE, TEMPORARY_OPERATOR_SCALE } from '../domain/operatorVisuals';
 
 export const SIDE_COLOR = { 공격: '#2FD4C4', 수비: '#F0873C' };
 const ASSET_ROOT = `${import.meta.env.BASE_URL}operators/`;
@@ -57,8 +57,7 @@ function TemporaryOperator({ operator }: { operator: Operator }): ReactElement {
 function Soldier({ unit, operator, selected, onSelect, time }: {
   unit: BattleUnit; operator: Operator; selected: boolean; onSelect: (id: string) => void; time:number;
 }): ReactElement {
-  const crawling=unit.alive&&unit.downed?.mode==='crawl'&&Math.hypot(unit.velocity.x,unit.velocity.y)>.01;
-  const visual = operatorPoseVisual(unit.callSign, Boolean(unit.downed), crawling?time:undefined);
+  const visual = operatorStateVisual(unit, time);
   const scale = visual?.scale ?? OPERATOR_SCALE;
   const clipId=useId().replaceAll(':','');
   const color = SIDE_COLOR[unit.side];

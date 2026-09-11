@@ -304,6 +304,296 @@
   },
   "crawlFrames": 4,
   "crawlSprite": "collier-downed-crawl-v1.webp",
+  "walks": [
+    {
+      "callSign": "MAGPIE",
+      "sprite": "magpie-walk-v1.webp",
+      "frames": 4,
+      "sourceSizes": [
+        [
+          613,
+          332
+        ],
+        [
+          550,
+          356
+        ],
+        [
+          609,
+          317
+        ],
+        [
+          549,
+          366
+        ]
+      ],
+      "bytes": 186634
+    },
+    {
+      "callSign": "COLLIER",
+      "sprite": "collier-walk-v1.webp",
+      "frames": 4,
+      "sourceSizes": [
+        [
+          582,
+          365
+        ],
+        [
+          558,
+          356
+        ],
+        [
+          595,
+          360
+        ],
+        [
+          558,
+          359
+        ]
+      ],
+      "bytes": 162482
+    },
+    {
+      "callSign": "해동",
+      "sprite": "haedong-walk-v1.webp",
+      "frames": 4,
+      "sourceSizes": [
+        [
+          589,
+          355
+        ],
+        [
+          578,
+          357
+        ],
+        [
+          580,
+          363
+        ],
+        [
+          580,
+          360
+        ]
+      ],
+      "bytes": 182730
+    },
+    {
+      "callSign": "ARBEL",
+      "sprite": "arbel-walk-v1.webp",
+      "frames": 4,
+      "sourceSizes": [
+        [
+          597,
+          339
+        ],
+        [
+          542,
+          365
+        ],
+        [
+          594,
+          322
+        ],
+        [
+          544,
+          372
+        ]
+      ],
+      "bytes": 181392
+    },
+    {
+      "callSign": "AUBERT",
+      "sprite": "aubert-walk-v1.webp",
+      "frames": 4,
+      "sourceSizes": [
+        [
+          589,
+          342
+        ],
+        [
+          529,
+          362
+        ],
+        [
+          579,
+          323
+        ],
+        [
+          530,
+          369
+        ]
+      ],
+      "bytes": 181772
+    },
+    {
+      "callSign": "MEDVED",
+      "sprite": "medved-walk-v1.webp",
+      "frames": 4,
+      "sourceSizes": [
+        [
+          622,
+          339
+        ],
+        [
+          549,
+          362
+        ],
+        [
+          618,
+          329
+        ],
+        [
+          550,
+          373
+        ]
+      ],
+      "bytes": 154382
+    },
+    {
+      "callSign": "REUSS",
+      "sprite": "reuss-walk-v1.webp",
+      "frames": 4,
+      "sourceSizes": [
+        [
+          618,
+          338
+        ],
+        [
+          555,
+          357
+        ],
+        [
+          614,
+          321
+        ],
+        [
+          555,
+          369
+        ]
+      ],
+      "bytes": 144484
+    },
+    {
+      "callSign": "BRANDT",
+      "sprite": "brandt-walk-v1.webp",
+      "frames": 4,
+      "sourceSizes": [
+        [
+          641,
+          336
+        ],
+        [
+          567,
+          365
+        ],
+        [
+          637,
+          323
+        ],
+        [
+          569,
+          371
+        ]
+      ],
+      "bytes": 153050
+    },
+    {
+      "callSign": "MARCHAND",
+      "sprite": "marchand-walk-v1.webp",
+      "frames": 4,
+      "sourceSizes": [
+        [
+          568,
+          337
+        ],
+        [
+          521,
+          352
+        ],
+        [
+          567,
+          317
+        ],
+        [
+          524,
+          364
+        ]
+      ],
+      "bytes": 233058
+    },
+    {
+      "callSign": "HALLORAN",
+      "sprite": "halloran-walk-v1.webp",
+      "frames": 4,
+      "sourceSizes": [
+        [
+          642,
+          331
+        ],
+        [
+          567,
+          359
+        ],
+        [
+          641,
+          328
+        ],
+        [
+          567,
+          372
+        ]
+      ],
+      "bytes": 191404
+    },
+    {
+      "callSign": "성곽",
+      "sprite": "seonggak-walk-v1.webp",
+      "frames": 4,
+      "sourceSizes": [
+        [
+          600,
+          337
+        ],
+        [
+          543,
+          357
+        ],
+        [
+          597,
+          321
+        ],
+        [
+          542,
+          370
+        ]
+      ],
+      "bytes": 186468
+    },
+    {
+      "callSign": "SAVELLI",
+      "sprite": "savelli-walk-v1.webp",
+      "frames": 4,
+      "sourceSizes": [
+        [
+          613,
+          337
+        ],
+        [
+          547,
+          357
+        ],
+        [
+          610,
+          321
+        ],
+        [
+          548,
+          369
+        ]
+      ],
+      "bytes": 168524
+    }
+  ],
   "operatorCount": 12,
   "completeAnimationPacks": 0
 }

@@ -1,0 +1,190 @@
+{
+  "action": "walk",
+  "source": {
+    "file": "walk-v1-keyed.png",
+    "size": [
+      1254,
+      1254
+    ],
+    "sha256": "edd5143d4e67df8d6de2538d2b7645b1b4d47ad6a5f2bdc6e3fd4723d5c56878",
+    "frames": [
+      {
+        "bounds": [
+          17,
+          102,
+          585,
+          439
+        ],
+        "subjectSize": [
+          568,
+          337
+        ],
+        "pivot": [
+          266,
+          278
+        ],
+        "muzzle": [
+          582,
+          277
+        ]
+      },
+      {
+        "bounds": [
+          692,
+          121,
+          1213,
+          473
+        ],
+        "subjectSize": [
+          521,
+          352
+        ],
+        "pivot": [
+          886,
+          278
+        ],
+        "muzzle": [
+          1210,
+          280
+        ]
+      },
+      {
+        "bounds": [
+          19,
+          727,
+          586,
+          1044
+        ],
+        "subjectSize": [
+          567,
+          317
+        ],
+        "pivot": [
+          266,
+          887
+        ],
+        "muzzle": [
+          583,
+          887
+        ]
+      },
+      {
+        "bounds": [
+          689,
+          727,
+          1213,
+          1091
+        ],
+        "subjectSize": [
+          524,
+          364
+        ],
+        "pivot": [
+          886,
+          887
+        ],
+        "muzzle": [
+          1210,
+          891
+        ]
+      }
+    ]
+  },
+  "processing": {
+    "ratio": 0.8648648648648649,
+    "upscaled": false,
+    "geometryEdited": false,
+    "bytes": 233058
+  },
+  "frames": [
+    {
+      "sprite": "marchand-walk-v1.webp",
+      "width": 512,
+      "height": 343,
+      "sheetWidth": 1024,
+      "sheetHeight": 686,
+      "region": [
+        0,
+        0,
+        512,
+        343
+      ],
+      "pivot": [
+        222.27,
+        159.135
+      ],
+      "muzzle": [
+        495.568,
+        158.27
+      ],
+      "scale": 0.078125
+    },
+    {
+      "sprite": "marchand-walk-v1.webp",
+      "width": 512,
+      "height": 343,
+      "sheetWidth": 1024,
+      "sheetHeight": 686,
+      "region": [
+        512,
+        0,
+        512,
+        343
+      ],
+      "pivot": [
+        222.27,
+        159.135
+      ],
+      "muzzle": [
+        502.486,
+        160.865
+      ],
+      "scale": 0.078125
+    },
+    {
+      "sprite": "marchand-walk-v1.webp",
+      "width": 512,
+      "height": 343,
+      "sheetWidth": 1024,
+      "sheetHeight": 686,
+      "region": [
+        0,
+        343,
+        512,
+        343
+      ],
+      "pivot": [
+        222.27,
+        159.135
+      ],
+      "muzzle": [
+        496.432,
+        159.135
+      ],
+      "scale": 0.078125
+    },
+    {
+      "sprite": "marchand-walk-v1.webp",
+      "width": 512,
+      "height": 343,
+      "sheetWidth": 1024,
+      "sheetHeight": 686,
+      "region": [
+        512,
+        343,
+        512,
+        343
+      ],
+      "pivot": [
+        222.27,
+        159.135
+      ],
+      "muzzle": [
+        502.486,
+        162.595
+      ],
+      "scale": 0.078125
+    }
+  ],
+  "review": "One action per sheet. Pixel checks do not replace grip, anatomy or motion review."
+}

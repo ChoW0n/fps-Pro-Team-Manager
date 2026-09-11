@@ -1,6 +1,6 @@
 import { useEffect, useRef, type ReactElement } from 'react';
 import type { OperatorSide } from '../domain/Operator';
-import { operatorPoseVisual, OPERATOR_SCALE } from '../domain/operatorVisuals';
+import { operatorPoseVisual, operatorStateVisual, operatorWalkVisual, OPERATOR_SCALE } from '../domain/operatorVisuals';
 import { TacticalRealtimeSimulation, type RealtimeEvent, type RealtimeTick, type RealtimeUnitState } from '../domain/realtime/TacticalRealtimeSimulation';
 import { breachWalls } from '../domain/realtime/breachGeometry';
 import { angleDifference } from '../domain/realtime/perception';
@@ -83,6 +83,7 @@ export function BroadcastCanvas(props: Props): ReactElement {
       for(const unit of units.filter(unit=>unit.side===p.side)){
         const still=operatorPoseVisual(unit.callSign,true),crawl=operatorPoseVisual(unit.callSign,true,0);
         if(still)asset(still.sprite);if(crawl)asset(crawl.sprite);
+        const walk=operatorWalkVisual(unit.callSign);if(walk)asset(walk.sprite);
       }
       const snapshot=amount>=1?state.next.snapshot:state.previous.snapshot,breaches=snapshot.breaches??[];
       const map={...p.map,walls:breaches.reduce((walls,breach)=>breachWalls(walls,breach.wallId,breach.position,breach.width),p.map.walls)};
@@ -138,8 +139,7 @@ export function BroadcastCanvas(props: Props): ReactElement {
       for(const [id,contact] of contacts){if(cachedVisibleIds.has(id))continue;ctx.save();ctx.globalAlpha=Math.max(0,1-(time-contact.seenAt));ctx.strokeStyle='#6EA8FF';ctx.setLineDash([3,4]);ctx.lineWidth=1.5;ctx.beginPath();ctx.arc(contact.position.x,contact.position.y,17,0,Math.PI*2);ctx.stroke();ctx.setLineDash([]);ctx.font='10px sans-serif';ctx.textAlign='center';ctx.fillStyle='#B0C9E9';ctx.fillText('마지막 목격',contact.position.x,contact.position.y+29);ctx.restore();}
       // 사격 가능한 자세의 총구 계약은 보존합니다. 다운 원화는 실제 다운 상태에서만 사용합니다.
       for(const unit of visible){
-        const crawling=unit.alive&&unit.downed?.mode==='crawl'&&Math.hypot(unit.velocity.x,unit.velocity.y)>.01;
-        let visual=operatorPoseVisual(unit.callSign,Boolean(unit.downed),crawling?time:undefined);
+        let visual=operatorStateVisual(unit,time);
         if(!visual)continue;
         let image=asset(visual.sprite);
         // 새 행동 시트 디코딩 중에도 이미 읽은 정지 자세를 유지해 인물이 사라지지 않게 합니다.

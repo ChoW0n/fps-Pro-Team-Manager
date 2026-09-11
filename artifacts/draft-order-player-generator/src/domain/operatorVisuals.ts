@@ -1,7 +1,20 @@
 import manifest from '../operators/manifest.json';
 import collierDowned from '../operators/collier-downed-v3.json';
 import collierCrawl from '../operators/collier-downed-crawl-v1.json';
+import magpieWalk from '../operators/magpie-walk-v1.json';
+import haedongWalk from '../operators/haedong-walk-v1.json';
+import collierWalk from '../operators/collier-walk-v1.json';
+import arbelWalk from '../operators/arbel-walk-v1.json';
+import aubertWalk from '../operators/aubert-walk-v1.json';
+import medvedWalk from '../operators/medved-walk-v1.json';
+import reussWalk from '../operators/reuss-walk-v1.json';
+import brandtWalk from '../operators/brandt-walk-v1.json';
+import marchandWalk from '../operators/marchand-walk-v1.json';
+import halloranWalk from '../operators/halloran-walk-v1.json';
+import seonggakWalk from '../operators/seonggak-walk-v1.json';
+import savelliWalk from '../operators/savelli-walk-v1.json';
 import type { TacticalPoint } from './tacticalMaps';
+import type { RealtimeUnitState } from './realtime/TacticalRealtimeSimulation';
 
 /** 3600×2400 월드에서 몸통 약 24단위, 총구와 충돌 반경이 같은 게임용 비율입니다. */
 export const OPERATOR_SCALE = 0.11;
@@ -43,6 +56,42 @@ export function operatorPoseVisual(callSign: string, downed: boolean, crawlTime?
   if (callSign !== 'COLLIER' || !downed) return operatorVisual(callSign);
   if (crawlTime === undefined || !Number.isFinite(crawlTime) || crawlTime < 0) return COLLIER_DOWNED;
   return collierCrawl.frames[Math.floor(crawlTime * 4) % collierCrawl.frames.length];
+}
+
+const WALK_SHEETS: Record<string, { frames: OperatorVisual[] }> = {
+  MAGPIE: magpieWalk, 해동: haedongWalk,
+  'COLLIER': collierWalk,
+  'ARBEL': arbelWalk,
+  'AUBERT': aubertWalk,
+  'MEDVED': medvedWalk,
+  'REUSS': reussWalk,
+  'BRANDT': brandtWalk,
+  'MARCHAND': marchandWalk,
+  'HALLORAN': halloranWalk,
+  '성곽': seonggakWalk,
+  'SAVELLI': savelliWalk,
+};
+const WALK_ACTIONS = new Set(['approach', 'search', 'reposition']);
+
+/** 검수된 보행만 미리 읽습니다. 적 편성이나 엔진 상태를 변경하지 않습니다. */
+export function operatorWalkVisual(callSign: string): OperatorVisual | undefined {
+  return WALK_SHEETS[callSign]?.frames[0];
+}
+
+/** 실제 이동·행동·경기 시각으로 시트를 고릅니다. 발사와 특수 동작에는 보행을 덧씌우지 않습니다. */
+export function operatorStateVisual(unit: RealtimeUnitState, time: number): OperatorVisual | undefined {
+  const speed = Math.hypot(unit.velocity.x, unit.velocity.y);
+  const moving = speed > .01;
+  const crawling = unit.alive && unit.downed?.mode === 'crawl' && moving;
+  const fallback = operatorPoseVisual(unit.callSign, Boolean(unit.downed), crawling ? time : undefined);
+  const sheet = WALK_SHEETS[unit.callSign];
+  if (!sheet || !unit.alive || unit.downed || unit.traversal || unit.shieldRaised || unit.reviving
+    || unit.reloadRemaining > 0 || unit.locomotion !== 'walk' || !WALK_ACTIONS.has(unit.action)
+    || !moving || !Number.isFinite(time) || time < 0) return fallback;
+  // 앞걸음 시트를 횡이동·후진에 재사용해 발이 미끄러지는 표현을 만들지 않습니다.
+  const forward = (unit.velocity.x * Math.cos(unit.facing) + unit.velocity.y * Math.sin(unit.facing)) / speed;
+  if (forward < .7) return fallback;
+  return sheet.frames[Math.floor(time * 4) % sheet.frames.length];
 }
 
 /** 이미지의 피벗·총구를 회전시켜 판정과 중계가 같은 발사 원점을 사용합니다. */

@@ -1,0 +1,190 @@
+{
+  "action": "walk",
+  "source": {
+    "file": "walk-v1-keyed.png",
+    "size": [
+      1254,
+      1254
+    ],
+    "sha256": "b56db4b06d77518a20a704caeee516d00b7fab4f0bea45953763a3d54dcf6420",
+    "frames": [
+      {
+        "bounds": [
+          16,
+          99,
+          613,
+          438
+        ],
+        "subjectSize": [
+          597,
+          339
+        ],
+        "pivot": [
+          266,
+          278
+        ],
+        "muzzle": [
+          610,
+          280
+        ]
+      },
+      {
+        "bounds": [
+          692,
+          114,
+          1234,
+          479
+        ],
+        "subjectSize": [
+          542,
+          365
+        ],
+        "pivot": [
+          886,
+          278
+        ],
+        "muzzle": [
+          1231,
+          280
+        ]
+      },
+      {
+        "bounds": [
+          19,
+          723,
+          613,
+          1045
+        ],
+        "subjectSize": [
+          594,
+          322
+        ],
+        "pivot": [
+          266,
+          887
+        ],
+        "muzzle": [
+          610,
+          891
+        ]
+      },
+      {
+        "bounds": [
+          691,
+          723,
+          1235,
+          1095
+        ],
+        "subjectSize": [
+          544,
+          372
+        ],
+        "pivot": [
+          886,
+          887
+        ],
+        "muzzle": [
+          1232,
+          891
+        ]
+      }
+    ]
+  },
+  "processing": {
+    "ratio": 0.832520325203252,
+    "upscaled": false,
+    "geometryEdited": false,
+    "bytes": 181392
+  },
+  "frames": [
+    {
+      "sprite": "arbel-walk-v1.webp",
+      "width": 512,
+      "height": 336,
+      "sheetWidth": 1024,
+      "sheetHeight": 672,
+      "region": [
+        0,
+        0,
+        512,
+        336
+      ],
+      "pivot": [
+        214.79,
+        155.681
+      ],
+      "muzzle": [
+        501.177,
+        157.346
+      ],
+      "scale": 0.08203125
+    },
+    {
+      "sprite": "arbel-walk-v1.webp",
+      "width": 512,
+      "height": 336,
+      "sheetWidth": 1024,
+      "sheetHeight": 672,
+      "region": [
+        512,
+        0,
+        512,
+        336
+      ],
+      "pivot": [
+        214.79,
+        155.681
+      ],
+      "muzzle": [
+        502.01,
+        157.346
+      ],
+      "scale": 0.08203125
+    },
+    {
+      "sprite": "arbel-walk-v1.webp",
+      "width": 512,
+      "height": 336,
+      "sheetWidth": 1024,
+      "sheetHeight": 672,
+      "region": [
+        0,
+        336,
+        512,
+        336
+      ],
+      "pivot": [
+        214.79,
+        155.681
+      ],
+      "muzzle": [
+        501.177,
+        159.011
+      ],
+      "scale": 0.08203125
+    },
+    {
+      "sprite": "arbel-walk-v1.webp",
+      "width": 512,
+      "height": 336,
+      "sheetWidth": 1024,
+      "sheetHeight": 672,
+      "region": [
+        512,
+        336,
+        512,
+        336
+      ],
+      "pivot": [
+        214.79,
+        155.681
+      ],
+      "muzzle": [
+        502.842,
+        159.011
+      ],
+      "scale": 0.08203125
+    }
+  ],
+  "review": "One action per sheet. Pixel checks do not replace grip, anatomy or motion review."
+}

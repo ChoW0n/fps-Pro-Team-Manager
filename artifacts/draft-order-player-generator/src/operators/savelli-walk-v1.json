@@ -1,0 +1,190 @@
+{
+  "action": "walk",
+  "source": {
+    "file": "walk-v1-keyed.png",
+    "size": [
+      1254,
+      1254
+    ],
+    "sha256": "0e6eca249fdc15e74fa41409552515ab99d47b3dcb2328a0ecec270026101c78",
+    "frames": [
+      {
+        "bounds": [
+          16,
+          101,
+          629,
+          438
+        ],
+        "subjectSize": [
+          613,
+          337
+        ],
+        "pivot": [
+          266,
+          278
+        ],
+        "muzzle": [
+          626,
+          278
+        ]
+      },
+      {
+        "bounds": [
+          695,
+          116,
+          1242,
+          473
+        ],
+        "subjectSize": [
+          547,
+          357
+        ],
+        "pivot": [
+          886,
+          278
+        ],
+        "muzzle": [
+          1239,
+          278
+        ]
+      },
+      {
+        "bounds": [
+          19,
+          724,
+          629,
+          1045
+        ],
+        "subjectSize": [
+          610,
+          321
+        ],
+        "pivot": [
+          266,
+          887
+        ],
+        "muzzle": [
+          626,
+          887
+        ]
+      },
+      {
+        "bounds": [
+          694,
+          724,
+          1242,
+          1093
+        ],
+        "subjectSize": [
+          548,
+          369
+        ],
+        "pivot": [
+          886,
+          887
+        ],
+        "muzzle": [
+          1239,
+          887
+        ]
+      }
+    ]
+  },
+  "processing": {
+    "ratio": 0.8139904610492846,
+    "upscaled": false,
+    "geometryEdited": false,
+    "bytes": 168524
+  },
+  "frames": [
+    {
+      "sprite": "savelli-walk-v1.webp",
+      "width": 512,
+      "height": 325,
+      "sheetWidth": 1024,
+      "sheetHeight": 650,
+      "region": [
+        0,
+        0,
+        512,
+        325
+      ],
+      "pivot": [
+        210.01,
+        150.588
+      ],
+      "muzzle": [
+        503.046,
+        150.588
+      ],
+      "scale": 0.0859375
+    },
+    {
+      "sprite": "savelli-walk-v1.webp",
+      "width": 512,
+      "height": 325,
+      "sheetWidth": 1024,
+      "sheetHeight": 650,
+      "region": [
+        512,
+        0,
+        512,
+        325
+      ],
+      "pivot": [
+        210.01,
+        150.588
+      ],
+      "muzzle": [
+        497.348,
+        150.588
+      ],
+      "scale": 0.0859375
+    },
+    {
+      "sprite": "savelli-walk-v1.webp",
+      "width": 512,
+      "height": 325,
+      "sheetWidth": 1024,
+      "sheetHeight": 650,
+      "region": [
+        0,
+        325,
+        512,
+        325
+      ],
+      "pivot": [
+        210.01,
+        150.588
+      ],
+      "muzzle": [
+        503.046,
+        150.588
+      ],
+      "scale": 0.0859375
+    },
+    {
+      "sprite": "savelli-walk-v1.webp",
+      "width": 512,
+      "height": 325,
+      "sheetWidth": 1024,
+      "sheetHeight": 650,
+      "region": [
+        512,
+        325,
+        512,
+        325
+      ],
+      "pivot": [
+        210.01,
+        150.588
+      ],
+      "muzzle": [
+        497.348,
+        150.588
+      ],
+      "scale": 0.0859375
+    }
+  ],
+  "review": "One action per sheet. Pixel checks do not replace grip, anatomy or motion review."
+}

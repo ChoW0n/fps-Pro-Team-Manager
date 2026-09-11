@@ -1,0 +1,72 @@
+[
+  {
+    "id": "collier",
+    "callSign": "COLLIER",
+    "source": "exec-862c25e3-ae8c-441c-9b97-de7e8c6500b8.png",
+    "action": "walk",
+    "worldWidth": 41
+  },
+  {
+    "id": "arbel",
+    "callSign": "ARBEL",
+    "source": "exec-075c0501-87a8-4d38-87e7-301ab0f680a4.png",
+    "action": "walk",
+    "worldWidth": 42
+  },
+  {
+    "id": "aubert",
+    "callSign": "AUBERT",
+    "source": "exec-959474f5-46f8-42a3-92a1-e9294003a7fa.png",
+    "action": "walk",
+    "worldWidth": 40
+  },
+  {
+    "id": "medved",
+    "callSign": "MEDVED",
+    "source": "exec-40a21d51-bd2e-4fc1-9e6f-9ca0bdf6f815.png",
+    "action": "walk",
+    "worldWidth": 46
+  },
+  {
+    "id": "reuss",
+    "callSign": "REUSS",
+    "source": "exec-523738be-05e4-4674-b0f3-d547a44ca64c.png",
+    "action": "walk",
+    "worldWidth": 46
+  },
+  {
+    "id": "brandt",
+    "callSign": "BRANDT",
+    "source": "exec-fa9b1b25-d2cc-4527-bda4-6988046653b3.png",
+    "action": "walk",
+    "worldWidth": 51
+  },
+  {
+    "id": "marchand",
+    "callSign": "MARCHAND",
+    "source": "exec-843afb09-1bad-415c-8455-2296412fc4c6.png",
+    "action": "walk",
+    "worldWidth": 40
+  },
+  {
+    "id": "halloran",
+    "callSign": "HALLORAN",
+    "source": "exec-ba25b3e3-234c-448d-94fc-b0cc6553c98b.png",
+    "action": "walk",
+    "worldWidth": 51
+  },
+  {
+    "id": "seonggak",
+    "callSign": "성곽",
+    "source": "exec-94c3b9f9-6aa7-4199-a599-112fb70037ab.png",
+    "action": "walk",
+    "worldWidth": 43
+  },
+  {
+    "id": "savelli",
+    "callSign": "SAVELLI",
+    "source": "exec-e7d51e8f-2659-46c2-82dd-38696dcb4f50.png",
+    "action": "walk",
+    "worldWidth": 44
+  }
+]

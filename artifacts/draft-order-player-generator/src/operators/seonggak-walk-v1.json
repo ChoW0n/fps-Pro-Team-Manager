@@ -1,0 +1,190 @@
+{
+  "action": "walk",
+  "source": {
+    "file": "walk-v1-keyed.png",
+    "size": [
+      1254,
+      1254
+    ],
+    "sha256": "dd32106a859b95eeced44950356bc5480ab914cf2279eb20e530b5fb7a8bb47c",
+    "frames": [
+      {
+        "bounds": [
+          17,
+          99,
+          617,
+          436
+        ],
+        "subjectSize": [
+          600,
+          337
+        ],
+        "pivot": [
+          266,
+          278
+        ],
+        "muzzle": [
+          614,
+          278
+        ]
+      },
+      {
+        "bounds": [
+          694,
+          116,
+          1237,
+          473
+        ],
+        "subjectSize": [
+          543,
+          357
+        ],
+        "pivot": [
+          886,
+          278
+        ],
+        "muzzle": [
+          1234,
+          279
+        ]
+      },
+      {
+        "bounds": [
+          19,
+          721,
+          616,
+          1042
+        ],
+        "subjectSize": [
+          597,
+          321
+        ],
+        "pivot": [
+          266,
+          887
+        ],
+        "muzzle": [
+          613,
+          884
+        ]
+      },
+      {
+        "bounds": [
+          694,
+          720,
+          1236,
+          1090
+        ],
+        "subjectSize": [
+          542,
+          370
+        ],
+        "pivot": [
+          886,
+          887
+        ],
+        "muzzle": [
+          1233,
+          886
+        ]
+      }
+    ]
+  },
+  "processing": {
+    "ratio": 0.8311688311688312,
+    "upscaled": false,
+    "geometryEdited": false,
+    "bytes": 186468
+  },
+  "frames": [
+    {
+      "sprite": "seonggak-walk-v1.webp",
+      "width": 512,
+      "height": 331,
+      "sheetWidth": 1024,
+      "sheetHeight": 662,
+      "region": [
+        0,
+        0,
+        512,
+        331
+      ],
+      "pivot": [
+        213.61,
+        155.429
+      ],
+      "muzzle": [
+        502.857,
+        155.429
+      ],
+      "scale": 0.083984375
+    },
+    {
+      "sprite": "seonggak-walk-v1.webp",
+      "width": 512,
+      "height": 331,
+      "sheetWidth": 1024,
+      "sheetHeight": 662,
+      "region": [
+        512,
+        0,
+        512,
+        331
+      ],
+      "pivot": [
+        213.61,
+        155.429
+      ],
+      "muzzle": [
+        502.857,
+        156.26
+      ],
+      "scale": 0.083984375
+    },
+    {
+      "sprite": "seonggak-walk-v1.webp",
+      "width": 512,
+      "height": 331,
+      "sheetWidth": 1024,
+      "sheetHeight": 662,
+      "region": [
+        0,
+        331,
+        512,
+        331
+      ],
+      "pivot": [
+        213.61,
+        155.429
+      ],
+      "muzzle": [
+        502.026,
+        152.935
+      ],
+      "scale": 0.083984375
+    },
+    {
+      "sprite": "seonggak-walk-v1.webp",
+      "width": 512,
+      "height": 331,
+      "sheetWidth": 1024,
+      "sheetHeight": 662,
+      "region": [
+        512,
+        331,
+        512,
+        331
+      ],
+      "pivot": [
+        213.61,
+        155.429
+      ],
+      "muzzle": [
+        502.026,
+        154.597
+      ],
+      "scale": 0.083984375
+    }
+  ],
+  "review": "One action per sheet. Pixel checks do not replace grip, anatomy or motion review."
+}
