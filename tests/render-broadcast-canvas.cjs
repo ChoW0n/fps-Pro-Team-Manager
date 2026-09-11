@@ -1,5 +1,5 @@
 // 실제 Canvas 중계 컴포넌트를 로컬 Skia에 그립니다. 브라우저·아이폰 플레이가 아닙니다.
-const fs=require('node:fs'),path=require('node:path'),ts=require('typescript'),{execFileSync}=require('node:child_process');
+const fs=require('node:fs'),path=require('node:path'),ts=require('typescript'),assert=require('node:assert/strict'),{execFileSync}=require('node:child_process');
 const app=path.resolve(__dirname,'../artifacts/draft-order-player-generator');
 const compile=(module,file)=>module._compile(ts.transpileModule(fs.readFileSync(file,'utf8').replaceAll('import.meta.env.BASE_URL',JSON.stringify('/draft-order-player-generator/')),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022,jsx:ts.JsxEmit.ReactJSX,esModuleInterop:true,resolveJsonModule:true}}).outputText,file);
 require.extensions['.ts']=compile;require.extensions['.tsx']=compile;
@@ -20,13 +20,19 @@ global.Image=LocalImage;global.window={devicePixelRatio:1,matchMedia:()=>({match
 let callback;global.requestAnimationFrame=fn=>{callback=fn;return 1;};global.cancelAnimationFrame=()=>{};
 const {BroadcastCanvas}=require(app+'/src/components/BroadcastCanvas.tsx');const rows=[];
 // Skia의 이미지 디코드 콜백이 끝난 뒤 실제 인물 픽셀까지 포함해 프레임 시간을 잽니다.
-(async()=>{for(const [name,width,height] of [['desktop',1280,720],['phone',390,844]]){
+(async()=>{for(const [name,width,height] of [['desktop',1280,720],['phone',390,844],['phone-landscape',844,390]]){
  const canvas=createCanvas(width,height);canvas.getBoundingClientRect=()=>({width,height,left:0,top:0});canvas.addEventListener=()=>{};canvas.removeEventListener=()=>{};
+ const context=canvas.getContext('2d'),originalDraw=context.drawImage.bind(context);let spriteDraws=0;
+ // 실제 인물 drawImage가 호출되지 않으면 빈 화면을 통과시키지 않습니다.
+ context.drawImage=(source,...args)=>{if(source instanceof LocalImage){spriteDraws++;const transform=context.getTransform();assert(Math.abs(Math.hypot(transform.a,transform.b)-Math.hypot(transform.c,transform.d))<1e-6,'전신 원화의 비균등 압축 금지');}return originalDraw(source,...args);};
  const effects=[],refs=[];let index=0;
  React.useRef=value=>{const ref={current:index++===0?canvas:value};refs.push(ref);return ref;};React.useEffect=fn=>effects.push(fn);
  BroadcastCanvas({tick,events:result.events,map,side:'공격',selectedId:shot.actor,mode:'follow',speed:1,paused:true,onSelect:()=>{}});
- const cleanup=effects.map(fn=>fn());await new Promise(resolve=>setTimeout(resolve,50));const times=[];let stamp=performance.now();
+ const cleanup=effects.map(fn=>fn());const times=[];let stamp=performance.now();
+ // 첫 프레임에서 이미지 요청이 시작됩니다. 그 전에 기다리면 빈 스프라이트를 검사하게 됩니다.
+ callback(stamp+=16.67);await new Promise(resolve=>setTimeout(resolve,50));
  for(let frame=0;frame<45;frame++){const started=performance.now();callback(stamp+=16.67);if(frame>=15)times.push(performance.now()-started);}
+ assert(spriteDraws>0,`${name}: 인물 이미지가 실제로 그려져야 합니다`);
  const file=path.join(output,`broadcast-canvas-${name}.png`);fs.writeFileSync(file,canvas.toBuffer('image/png'));cleanup.forEach(fn=>fn?.());times.sort((a,b)=>a-b);
  rows.push({name,width,height,medianMs:+times[Math.floor(times.length/2)].toFixed(2),p95Ms:+times[Math.floor(times.length*.95)].toFixed(2),file:path.basename(file)});
 }

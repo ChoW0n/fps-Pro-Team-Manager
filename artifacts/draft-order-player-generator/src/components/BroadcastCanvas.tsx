@@ -92,10 +92,12 @@ export function BroadcastCanvas(props: Props): ReactElement {
       // 기기 화면 비율을 반영해 넓은 화면의 교전과 세로 화면의 인물이 모두 잘리지 않게 합니다.
       if(p.mode!=='full'){viewport.height=Math.min(map.height,viewport.width*h/w);viewport.y=Math.max(0,Math.min(map.height-viewport.height,actualFrame.y-viewport.height/2));}
       const elapsed=Math.min(.05,(stamp-lastStamp)/1000||.016);lastStamp=stamp;
-      const blend=window.matchMedia('(prefers-reduced-motion: reduce)').matches?1:1-Math.exp(-elapsed*5.5);
+      const reducedMotion=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      const blend=reducedMotion?1:1-Math.exp(-elapsed*5.5);
       for(const key of ['x','y','width','height'] as const)camera[key]+=(viewport[key]-camera[key])*blend;
       const scale=Math.min(w/camera.width,h/camera.height),ox=(w-camera.width*scale)/2,oy=(h-camera.height*scale)/2;
-      const blast=[...events].reverse().find(event=>event.position&&time-event.time>=0&&time-event.time<.38&&(event.goal==='grenade-exploded'||event.goal==='wall-breached'));
+      // 관전 밖의 폭발은 화면을 흔들지 않으며 동작 줄이기·일시 정지는 충격을 끕니다.
+      const blast=!reducedMotion&&!p.paused&&p.mode!=='full'?[...events].reverse().find(event=>event.position&&event.position.x>=camera.x&&event.position.x<=camera.x+camera.width&&event.position.y>=camera.y&&event.position.y<=camera.y+camera.height&&vision.some(friend=>observer.canObserve(friend,event.position!,map,snapshot.gadgets,time))&&time-event.time>=0&&time-event.time<.38&&(event.goal==='grenade-exploded'||event.goal==='wall-breached')):undefined;
       const blastAge=blast?time-blast.time:1,shake=blast?(1-blastAge/.38)*Math.min(7,scale*5):0,shakeX=(seeded(`${blast?.time}:x`,Math.floor(blastAge*80))-.5)*shake,shakeY=(seeded(`${blast?.time}:y`,Math.floor(blastAge*80))-.5)*shake;
       ctx.setTransform(1,0,0,1,0,0);ctx.fillStyle='#080E12';ctx.fillRect(0,0,w,h);ctx.setTransform(scale,0,0,scale,ox-camera.x*scale+shakeX,oy-camera.y*scale+shakeY);
       const key=p.map.id+':'+breaches.map(b=>b.wallId+':'+b.position.x+':'+b.position.y).join(',');
@@ -103,7 +105,6 @@ export function BroadcastCanvas(props: Props): ReactElement {
       // 감독은 익숙한 경기장 구조를 보되 상대 선수·가젯은 실제 개인 시야로 확인된 경우에만 봅니다.
       // AI 판정용 시야 폴리곤을 화면에 칠하지 않아 거대한 삼각형 조명이 생기지 않습니다.
       ctx.globalAlpha=p.mode==='full'?.72:.56;ctx.drawImage(scene,camera.x/2,camera.y/2,camera.width/2,camera.height/2,camera.x,camera.y,camera.width,camera.height);ctx.globalAlpha=1;
-      const smokes=(snapshot.gadgets??[]).filter(g=>g.kind==='smoke'&&time>=g.activeAt&&time<g.until);
       for(const portal of map.portals.filter(portal=>portal.traversal)){
         if(!vision.some(friend=>observer.canObserve(friend,portal.center,map,snapshot.gadgets,time)))continue;
         const opened=snapshot.openedPortals?.includes(portal.id);ctx.save();ctx.translate(portal.center.x,portal.center.y);if(portal.axis==='vertical')ctx.rotate(Math.PI/2);ctx.fillStyle=portal.traversal==='window'?(opened?'#A7CDCE33':'#86CEDB88'):'#B7A984';ctx.fillRect(-portal.width/2,-6,portal.width,12);ctx.strokeStyle='#D9E4D8';ctx.lineWidth=2;ctx.strokeRect(-portal.width/2,-8,portal.width,16);if(opened){ctx.beginPath();ctx.moveTo(-portal.width/2,-12);ctx.lineTo(-portal.width/2+8,3);ctx.lineTo(-portal.width/2+15,-8);ctx.stroke();}ctx.restore();
@@ -114,7 +115,8 @@ export function BroadcastCanvas(props: Props): ReactElement {
       const objective=snapshot.objective,device=objective?.devicePosition;
       if(device&&(objective.activeUntil||p.side==='공격'||vision.some(friend=>observer.canObserve(friend,device,map,snapshot.gadgets,time)))){ctx.fillStyle='#16272F';ctx.fillRect(device.x-12,device.y-9,24,18);ctx.strokeStyle='#FFC53D';ctx.strokeRect(device.x-12,device.y-9,24,18);ctx.fillStyle='#2FD4C4';ctx.fillRect(device.x-6,device.y-4,9,6);}
       hitTargets=[];
-      for(const unit of visible){const visual=operatorVisual(unit.callSign);if(!visual)continue;const image=asset(visual.sprite);if(!imageReady(image))continue;const moving=Math.hypot(unit.velocity.x,unit.velocity.y)>.05,stride=moving?Math.sin(time*(unit.locomotion==='sprint'?15:9)+seeded(unit.id)*Math.PI*2):0,poseScale=unit.locomotion==='crawl'?.62:unit.locomotion==='crouch'?.84:1,bob=unit.locomotion==='vault'?-7*Math.abs(Math.sin(time*9)):moving?Math.abs(stride)*(unit.locomotion==='sprint'?2.2:1.1):0;ctx.save();ctx.translate(unit.position.x,unit.position.y-bob);ctx.rotate(unit.facing);ctx.scale(1,poseScale);ctx.globalAlpha=unit.alive?1:.4;
+      // 전신 원화를 압축하거나 이동시키면 총구와 탄도가 어긋납니다. 자세별 원화 전까지 실제 위치·회전만 사용합니다.
+      for(const unit of visible){const visual=operatorVisual(unit.callSign);if(!visual)continue;const image=asset(visual.sprite);if(!imageReady(image))continue;ctx.save();ctx.translate(unit.position.x,unit.position.y);ctx.rotate(unit.facing);ctx.globalAlpha=unit.alive?1:.4;
         ctx.fillStyle='#07101466';ctx.beginPath();ctx.ellipse(0,5,22,9,0,0,Math.PI*2);ctx.fill();
         if(visual.region)ctx.drawImage(image,visual.region[0],visual.region[1],visual.width,visual.height,-visual.pivot[0]*OPERATOR_SCALE,-visual.pivot[1]*OPERATOR_SCALE,visual.width*OPERATOR_SCALE,visual.height*OPERATOR_SCALE);
         else ctx.drawImage(image,-visual.pivot[0]*OPERATOR_SCALE,-visual.pivot[1]*OPERATOR_SCALE,visual.width*OPERATOR_SCALE,visual.height*OPERATOR_SCALE);
