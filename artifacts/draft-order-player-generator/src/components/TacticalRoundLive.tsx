@@ -18,6 +18,7 @@ export function TacticalRoundLive({input,map=BREACHLINE_MAP,roundNumber=1,direct
   const complete=useRef(onComplete);complete.current=onComplete;
   const [tick,setTick]=useState<RealtimeTick|null>(null),[events,setEvents]=useState<RealtimeEvent[]>([]),[result,setResult]=useState<TacticalRealtimeResult|null>(null);
   const [selectedId,setSelectedId]=useState<string|null>(null),[mode,setMode]=useState<'broadcast'|'follow'|'full'>('broadcast');
+  const [focusedId,setFocusedId]=useState<string|null>(null);
   const [paused,setPaused]=useState(false),[speed,setSpeed]=useState(1),[error,setError]=useState('');
   const workerRef=useRef<Worker|null>(null),controls=useRef({paused,speed});controls.current={paused,speed};
   const participants=useMemo(()=>new Map([...input.attackers,...input.defenders].map((unit,index)=>[realtimeUnitId(unit,index),unit])),[input]);
@@ -38,7 +39,9 @@ export function TacticalRoundLive({input,map=BREACHLINE_MAP,roundNumber=1,direct
   },[input,map,directorSide,participants]);
   useEffect(()=>{workerRef.current?.postMessage({type:'controls',controls:{paused,speed}});},[paused,speed]);
   const units=tick?.snapshot.units??[],time=tick?.time??0,own=units.filter(unit=>unit.side===directorSide);
-  const selected=own.find(unit=>unit.id===selectedId),source=selectedId?participants.get(selectedId):undefined;
+  // 자동 중계 카드도 실제 카메라 선수의 이름·체력·탄약을 표시합니다.
+  const viewedId=mode==='broadcast'?focusedId??selectedId:selectedId;
+  const selected=own.find(unit=>unit.id===viewedId),source=viewedId?participants.get(viewedId):undefined;
   const known=events.filter(event=>event.seenBy?.includes(directorSide));
   const kills=known.filter(event=>event.type==='death'&&time-event.time<6).slice(-4);
   const objective=tick?.snapshot.objective,active=objective?.phase==='active'||objective?.phase==='disabling';
@@ -51,7 +54,7 @@ export function TacticalRoundLive({input,map=BREACHLINE_MAP,roundNumber=1,direct
   /** 번호나 인물 카드를 고르면 해당 선수 시야로 관전합니다. */
   function select(id:string):void{if(participants.get(id)?.side!==directorSide)return;setSelectedId(id);setMode('follow');}
   return <section className="match-broadcast" aria-label="DRAFT ORDER 경기 중계" data-version="personal-broadcast-20260911">
-    <BroadcastCanvas tick={tick} events={events} map={map} side={directorSide} selectedId={selectedId} mode={mode} speed={speed} paused={paused} onSelect={select}/>
+    <BroadcastCanvas tick={tick} events={events} map={map} side={directorSide} selectedId={selectedId} mode={mode} speed={speed} paused={paused} onSelect={select} onFocus={setFocusedId}/>
     <header className="cast-scorebar">
       {(['공격','수비'] as OperatorSide[]).map(side=><div key={side} className={`cast-team ${side==='공격'?'is-attack':'is-defense'}`}><span><small>{side==='공격'?'ATK':'DEF'}{side===directorSide?' / OUR TEAM':''}</small><strong>{(side==='공격'?input.attackers:input.defenders)[0]?.teamName}</strong></span><b>{score[side===directorSide?0:1]}</b><div className="cast-life" aria-label={side===directorSide?'우리 팀 생존 상태':'상대 생존 상태 미확인'}>{[0,1,2,3,4].map(index=><i key={index} className={side===directorSide?(own[index]?.alive?'is-alive':'is-out'):'is-unknown'}/>)}</div></div>)}
       <div className={`cast-clock ${active?'is-active':''}`}><small>ROUND {String(roundNumber).padStart(2,'0')}</small><b>{clock(left-time)}</b><span>{active?'장치 가동':paused?'PAUSED':'LIVE'}</span></div>

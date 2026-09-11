@@ -4,13 +4,13 @@ import { operatorVisual, OPERATOR_SCALE } from '../domain/operatorVisuals';
 import { TacticalRealtimeSimulation, type RealtimeEvent, type RealtimeTick, type RealtimeUnitState } from '../domain/realtime/TacticalRealtimeSimulation';
 import { breachWalls } from '../domain/realtime/breachGeometry';
 import { angleDifference } from '../domain/realtime/perception';
-import { cameraViewport, combatCamera } from '../domain/realtime/spectatorView';
+import { cameraViewport, combatCamera, rememberContacts } from '../domain/realtime/spectatorView';
 import type { TacticalMapDefinition } from '../domain/tacticalMaps';
 import { createSmokeTexture, paintSmoke } from './smokeEffect';
 
 const COLORS = { 공격: '#2FD4C4', 수비: '#F0873C' };
 const ROOT = `${import.meta.env.BASE_URL}operators/`;
-type Props = { tick: RealtimeTick | null; events: RealtimeEvent[]; map: TacticalMapDefinition; side: OperatorSide; selectedId: string | null; mode: 'broadcast' | 'follow' | 'full'; speed: number; paused: boolean; onSelect: (id: string) => void };
+type Props = { tick: RealtimeTick | null; events: RealtimeEvent[]; map: TacticalMapDefinition; side: OperatorSide; selectedId: string | null; mode: 'broadcast' | 'follow' | 'full'; speed: number; paused: boolean; onSelect: (id: string) => void; onFocus?: (id: string | null) => void };
 
 /** 파티클 모양은 사건과 참가자 ID로 고정해 프레임마다 난수 모양이 떨리지 않게 합니다. */
 function seeded(key:string,index=0):number { let value=2166136261;for(const letter of `${key}:${index}`)value=Math.imul(value^letter.charCodeAt(0),16777619);return (value>>>0)/4294967295; }
@@ -22,6 +22,7 @@ function imageReady(image: HTMLImageElement): boolean {
 
 /** 기록된 두 스냅샷 사이만 보간하며 사망·새 출현과 미래 위치를 외삽하지 않습니다. */
 export function interpolateUnit(previous: RealtimeUnitState, next: RealtimeUnitState | undefined, amount: number): RealtimeUnitState {
+  if (next && amount >= 1) return next;
   if (!next || previous.alive !== next.alive) return previous;
   return { ...previous, position: { x: previous.position.x + (next.position.x-previous.position.x)*amount, y: previous.position.y+(next.position.y-previous.position.y)*amount },
     facing: previous.facing + angleDifference(next.facing, previous.facing)*amount };
@@ -61,7 +62,9 @@ export function BroadcastCanvas(props: Props): ReactElement {
     const asset=(file:string):HTMLImageElement=>{let image=images.get(file);if(!image){image=new Image();image.src=ROOT+file;images.set(file,image);}return image;};
     let frame=0,scene:HTMLCanvasElement|null=null,sceneKey='',visionKey='';
     let cachedVision:RealtimeUnitState[]=[];let cachedVisibleIds=new Set<string>(),camera={x:0,y:0,width:430,height:260};
-    let focusId:string|null=null,holdUntil=0,lastStamp=0;
+    let focusId:string|null=null,holdUntil=0,lastStamp=0,cameraReady=false;
+    const contacts=new Map<string,{position:{x:number;y:number};seenAt:number}>();
+    let contactView='';
     let hitTargets:Array<{id:string;x:number;y:number}>=[];
     const observer=new TacticalRealtimeSimulation(props.map);
     /** 캔버스 좌표를 실제 월드 좌표로 되돌려 우리 선수만 선택합니다. */
@@ -76,17 +79,22 @@ export function BroadcastCanvas(props: Props): ReactElement {
       const time=state.previous.time+(state.next.time-state.previous.time)*amount;
       const nextUnits=new Map(state.next.snapshot.units.map(unit=>[unit.id,unit]));
       const units=state.previous.snapshot.units.map(unit=>interpolateUnit(unit,nextUnits.get(unit.id),amount));
-      const snapshot=state.previous.snapshot,breaches=snapshot.breaches??[];
+      const snapshot=amount>=1?state.next.snapshot:state.previous.snapshot,breaches=snapshot.breaches??[];
       const map={...p.map,walls:breaches.reduce((walls,breach)=>breachWalls(walls,breach.wallId,breach.position,breach.width),p.map.walls)};
       const events=p.events.filter(event=>event.time<=time&&event.seenBy?.includes(p.side));
       const teamVisible=units.filter(unit=>unit.side===p.side||snapshot.visibleTo?.[p.side].includes(unit.id));
       const framing=combatCamera(teamVisible,events,p.side,time,p.selectedId,p.mode==='follow',time<holdUntil?focusId:undefined);
+      if(framing.focusId!==focusId)p.onFocus?.(framing.focusId);
       if(framing.focusId!==focusId||time>=holdUntil){focusId=framing.focusId;holdUntil=time+3.5;}
-      const focus=units.find(unit=>unit.id===focusId&&unit.side===p.side);
-      const currentVision=p.mode==='full'?units.filter(unit=>unit.side===p.side&&unit.alive):focus?.alive?[focus]:[];
-      const nextVisionKey=state.next.time+':'+p.mode+':'+(focus?.id??'none')+':'+breaches.length;
-      if(nextVisionKey!==visionKey){visionKey=nextVisionKey;cachedVision=currentVision;cachedVisibleIds=new Set(units.filter(unit=>unit.id===focus?.id||p.mode==='full'&&unit.side===p.side||currentVision.some(friend=>observer.canObserve(friend,unit.position,map,snapshot.gadgets,state.next.time))).map(unit=>unit.id));}
+      const focus=snapshot.units.find(unit=>unit.id===focusId&&unit.side===p.side);
+      const currentVision=p.mode==='full'?snapshot.units.filter(unit=>unit.side===p.side&&unit.alive):focus?.alive?[focus]:[];
+      const nextVisionKey=snapshot.time+':'+p.mode+':'+(focus?.id??'none')+':'+breaches.length;
+      if(nextVisionKey!==visionKey){visionKey=nextVisionKey;cachedVision=currentVision;cachedVisibleIds=new Set(snapshot.units.filter(unit=>unit.id===focus?.id||p.mode==='full'&&unit.side===p.side||currentVision.some(friend=>observer.canObserve(friend,unit.position,map,snapshot.gadgets,snapshot.time))).map(unit=>unit.id));}
       const vision=cachedVision,visible=units.filter(unit=>cachedVisibleIds.has(unit.id));
+      // 목격 좌표의 사본만 저장합니다. 관전 선수가 바뀌면 이전 개인 시야의 잔상을 버립니다.
+      const view=p.side+':'+p.mode+':'+focusId;
+      if(contactView!==view){contacts.clear();contactView=view;}
+      rememberContacts(contacts,snapshot.units.filter(unit=>unit.side!==p.side&&cachedVisibleIds.has(unit.id)),snapshot.time,time);
       const actualFrame=combatCamera(visible,events,p.side,time,p.selectedId,p.mode==='follow',focusId);
       const noFriendAlive=!units.some(unit=>unit.side===p.side&&unit.alive);
       if(noFriendAlive&&snapshot.objective?.devicePosition){actualFrame.x=snapshot.objective.devicePosition.x;actualFrame.y=snapshot.objective.devicePosition.y;actualFrame.width=520;}
@@ -95,8 +103,9 @@ export function BroadcastCanvas(props: Props): ReactElement {
       if(p.mode!=='full'){viewport.height=Math.min(map.height,viewport.width*h/w);viewport.y=Math.max(0,Math.min(map.height-viewport.height,actualFrame.y-viewport.height/2));}
       const elapsed=Math.min(.05,(stamp-lastStamp)/1000||.016);lastStamp=stamp;
       const reducedMotion=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-      const blend=reducedMotion?1:1-Math.exp(-elapsed*5.5);
+      const blend=reducedMotion||!cameraReady?1:1-Math.exp(-elapsed*9);
       for(const key of ['x','y','width','height'] as const)camera[key]+=(viewport[key]-camera[key])*blend;
+      cameraReady=true;
       const scale=Math.min(w/camera.width,h/camera.height),ox=(w-camera.width*scale)/2,oy=(h-camera.height*scale)/2;
       // 관전 밖의 폭발은 화면을 흔들지 않으며 동작 줄이기·일시 정지는 충격을 끕니다.
       const blast=!reducedMotion&&!p.paused&&p.mode!=='full'?[...events].reverse().find(event=>event.position&&event.position.x>=camera.x&&event.position.x<=camera.x+camera.width&&event.position.y>=camera.y&&event.position.y<=camera.y+camera.height&&vision.some(friend=>observer.canObserve(friend,event.position!,map,snapshot.gadgets,time))&&time-event.time>=0&&time-event.time<.38&&(event.goal==='grenade-exploded'||event.goal==='wall-breached')):undefined;
@@ -120,6 +129,8 @@ export function BroadcastCanvas(props: Props): ReactElement {
       const objective=snapshot.objective,device=objective?.devicePosition;
       if(device&&(objective.activeUntil||p.side==='공격'||vision.some(friend=>observer.canObserve(friend,device,map,snapshot.gadgets,time)))){ctx.fillStyle='#16272F';ctx.fillRect(device.x-12,device.y-9,24,18);ctx.strokeStyle='#FFC53D';ctx.strokeRect(device.x-12,device.y-9,24,18);ctx.fillStyle='#2FD4C4';ctx.fillRect(device.x-6,device.y-4,9,6);}
       hitTargets=[];
+      // 실체를 연장해서 그리지 않습니다. 끊긴 접촉은 고정된 목격 표식으로만 페이드아웃합니다.
+      for(const [id,contact] of contacts){if(cachedVisibleIds.has(id))continue;ctx.save();ctx.globalAlpha=Math.max(0,1-(time-contact.seenAt));ctx.strokeStyle='#6EA8FF';ctx.setLineDash([3,4]);ctx.lineWidth=1.5;ctx.beginPath();ctx.arc(contact.position.x,contact.position.y,17,0,Math.PI*2);ctx.stroke();ctx.setLineDash([]);ctx.font='10px sans-serif';ctx.textAlign='center';ctx.fillStyle='#B0C9E9';ctx.fillText('마지막 목격',contact.position.x,contact.position.y+29);ctx.restore();}
       // 전신 원화를 압축하거나 이동시키면 총구와 탄도가 어긋납니다. 자세별 원화 전까지 실제 위치·회전만 사용합니다.
       for(const unit of visible){const visual=operatorVisual(unit.callSign);if(!visual)continue;const image=asset(visual.sprite);if(!imageReady(image))continue;ctx.save();ctx.translate(unit.position.x,unit.position.y);ctx.rotate(unit.facing);ctx.globalAlpha=unit.alive?1:.4;
         ctx.fillStyle='#07101466';ctx.beginPath();ctx.ellipse(0,5,22,9,0,0,Math.PI*2);ctx.fill();
