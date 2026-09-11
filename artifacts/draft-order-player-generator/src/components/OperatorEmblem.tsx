@@ -1,4 +1,5 @@
 import type { ReactElement } from 'react';
+import { getOperator } from '../domain/Operator';
 
 const SYMBOLS:Record<string,string>={
   MAGPIE:'M6 25 Q16 5 26 25 L20 22 L16 28 L12 22 Z',
@@ -16,8 +17,12 @@ const SYMBOLS:Record<string,string>={
 };
 /** 창작 오퍼레이터의 고유 장비·역할을 단색 방송 아이콘으로 구분합니다. */
 export function OperatorEmblem({callSign,unknown=false}:{callSign?:string;unknown?:boolean}):ReactElement {
-  return <svg className="operator-emblem" viewBox="0 0 36 36" role="img" aria-label={unknown?'미확인 오퍼레이터':`${callSign} 오퍼레이터 아이콘`}>
-    <path d="M18 1 L34 9 V27 L18 35 L2 27 V9 Z" fill="#101C23" stroke="currentColor" strokeWidth="1.5"/>
-    {unknown?<text x="18" y="25" textAnchor="middle" fontSize="20" fontWeight="700" fill="currentColor">?</text>:<path d={SYMBOLS[callSign??'']??'M10 10 L26 26 M26 10 L10 26'} fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"/>}
+  const equipment=getOperator(callSign??'')?.equipment.name;
+  return <svg className="operator-emblem" viewBox="0 0 40 44" role="img" aria-label={unknown?'미확인 오퍼레이터':`${callSign} · ${equipment}`}>
+    <path d="M20 1 37 9v20L20 43 3 29V9Z" fill="currentColor" opacity=".95"/>
+    <path d="M20 5 33 11v16L20 38 7 27V11Z" fill="#101820"/>
+    <path d="M8 29 20 39l12-10" fill="none" stroke="currentColor" strokeWidth="1.5" opacity=".65"/>
+    {unknown?<text x="20" y="29" textAnchor="middle" fontSize="23" fontWeight="800" fill="currentColor">?</text>:<path transform="translate(2 3)" d={SYMBOLS[callSign??'']??'M10 10 L26 26 M26 10 L10 26'} fill="none" stroke="currentColor" strokeWidth="3.1" strokeLinecap="round" strokeLinejoin="round"/>}
+    {!unknown&&<title>{`${callSign} · ${equipment}`}</title>}
   </svg>;
 }

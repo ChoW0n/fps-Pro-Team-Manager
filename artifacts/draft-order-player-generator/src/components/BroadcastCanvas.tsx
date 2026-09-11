@@ -4,7 +4,7 @@ import { operatorVisual, OPERATOR_SCALE } from '../domain/operatorVisuals';
 import { TacticalRealtimeSimulation, type RealtimeEvent, type RealtimeTick, type RealtimeUnitState } from '../domain/realtime/TacticalRealtimeSimulation';
 import { breachWalls } from '../domain/realtime/breachGeometry';
 import { angleDifference } from '../domain/realtime/perception';
-import { cameraViewport, combatCamera, visionPolygon } from '../domain/realtime/spectatorView';
+import { cameraViewport, combatCamera } from '../domain/realtime/spectatorView';
 import type { TacticalMapDefinition } from '../domain/tacticalMaps';
 
 const COLORS = { 공격: '#2FD4C4', 수비: '#F0873C' };
@@ -52,11 +52,10 @@ export function BroadcastCanvas(props: Props): ReactElement {
   useEffect(()=>{
     const canvas=canvasRef.current!; const ctx=canvas.getContext('2d',{alpha:false})!;
     const images=new Map<string,HTMLImageElement>();
-    /** 인물과 동작 아틀라스는 한 번만 읽고 디코드된 이미지를 재사용합니다. */
+    /** 인물 원화는 한 번만 읽고 디코드된 이미지를 재사용합니다. */
     const asset=(file:string):HTMLImageElement=>{let image=images.get(file);if(!image){image=new Image();image.src=ROOT+file;images.set(file,image);}return image;};
-    asset('movement-legs-atlas.webp');
     let frame=0,scene:HTMLCanvasElement|null=null,sceneKey='',visionKey='';
-    let cachedVision:RealtimeUnitState[]=[];let cachedVisibleIds=new Set<string>();let cachedPolygons:string[]=[],camera={x:0,y:0,width:430,height:260};
+    let cachedVision:RealtimeUnitState[]=[];let cachedVisibleIds=new Set<string>(),camera={x:0,y:0,width:430,height:260};
     let focusId:string|null=null,holdUntil=0,lastStamp=0;
     let hitTargets:Array<{id:string;x:number;y:number}>=[];
     const observer=new TacticalRealtimeSimulation(props.map);
@@ -66,7 +65,7 @@ export function BroadcastCanvas(props: Props): ReactElement {
     /** 실제 틱 사이의 이동만 표시하고 발사·탄착은 그 사건의 기록 위치와 시각으로 그립니다. */
     const draw=(stamp:number):void=>{
       frame=requestAnimationFrame(draw);const state=timeline.current,p=latest.current;if(!state)return;
-      const rect=canvas.getBoundingClientRect(),dpr=Math.min(rect.width<700?1:1.5,window.devicePixelRatio||1),w=Math.max(1,Math.round(rect.width*dpr)),h=Math.max(1,Math.round(rect.height*dpr));
+      const rect=canvas.getBoundingClientRect(),touchScreen=window.matchMedia('(hover: none) and (pointer: coarse)').matches,dpr=Math.min(touchScreen||rect.height<520?1:1.5,window.devicePixelRatio||1),w=Math.max(1,Math.round(rect.width*dpr)),h=Math.max(1,Math.round(rect.height*dpr));
       if(canvas.width!==w||canvas.height!==h){canvas.width=w;canvas.height=h;}
       const amount=p.paused?1:Math.min(1,Math.max(0,(stamp-state.received)/(100/p.speed)));
       const time=state.previous.time+(state.next.time-state.previous.time)*amount;
@@ -77,11 +76,11 @@ export function BroadcastCanvas(props: Props): ReactElement {
       const events=p.events.filter(event=>event.time<=time&&event.seenBy?.includes(p.side));
       const teamVisible=units.filter(unit=>unit.side===p.side||snapshot.visibleTo?.[p.side].includes(unit.id));
       const framing=combatCamera(teamVisible,events,p.side,time,p.selectedId,p.mode==='follow',time<holdUntil?focusId:undefined);
-      if(framing.focusId!==focusId||time>=holdUntil){focusId=framing.focusId;holdUntil=time+2.5;}
+      if(framing.focusId!==focusId||time>=holdUntil){focusId=framing.focusId;holdUntil=time+3.5;}
       const focus=units.find(unit=>unit.id===focusId&&unit.side===p.side);
       const currentVision=p.mode==='full'?units.filter(unit=>unit.side===p.side&&unit.alive):focus?.alive?[focus]:[];
       const nextVisionKey=state.next.time+':'+p.mode+':'+(focus?.id??'none')+':'+breaches.length;
-      if(nextVisionKey!==visionKey){visionKey=nextVisionKey;cachedVision=currentVision;cachedVisibleIds=new Set(units.filter(unit=>unit.id===focus?.id||p.mode==='full'&&unit.side===p.side||currentVision.some(friend=>observer.canObserve(friend,unit.position,map,snapshot.gadgets,state.next.time))).map(unit=>unit.id));cachedPolygons=currentVision.map(unit=>visionPolygon(unit,map,(snapshot.gadgets??[]).filter(g=>g.kind==='smoke'&&state.next.time>=g.activeAt&&state.next.time<g.until)));}
+      if(nextVisionKey!==visionKey){visionKey=nextVisionKey;cachedVision=currentVision;cachedVisibleIds=new Set(units.filter(unit=>unit.id===focus?.id||p.mode==='full'&&unit.side===p.side||currentVision.some(friend=>observer.canObserve(friend,unit.position,map,snapshot.gadgets,state.next.time))).map(unit=>unit.id));}
       const vision=cachedVision,visible=units.filter(unit=>cachedVisibleIds.has(unit.id));
       const actualFrame=combatCamera(visible,events,p.side,time,p.selectedId,p.mode==='follow',focusId);
       const noFriendAlive=!units.some(unit=>unit.side===p.side&&unit.alive);
@@ -90,15 +89,16 @@ export function BroadcastCanvas(props: Props): ReactElement {
       // 기기 화면 비율을 반영해 넓은 화면의 교전과 세로 화면의 인물이 모두 잘리지 않게 합니다.
       if(p.mode!=='full'){viewport.height=Math.min(map.height,viewport.width*h/w);viewport.y=Math.max(0,Math.min(map.height-viewport.height,actualFrame.y-viewport.height/2));}
       const elapsed=Math.min(.05,(stamp-lastStamp)/1000||.016);lastStamp=stamp;
-      const blend=window.matchMedia('(prefers-reduced-motion: reduce)').matches?1:1-Math.exp(-elapsed*9);
+      const blend=window.matchMedia('(prefers-reduced-motion: reduce)').matches?1:1-Math.exp(-elapsed*5.5);
       for(const key of ['x','y','width','height'] as const)camera[key]+=(viewport[key]-camera[key])*blend;
       const scale=Math.min(w/camera.width,h/camera.height),ox=(w-camera.width*scale)/2,oy=(h-camera.height*scale)/2;
       ctx.setTransform(1,0,0,1,0,0);ctx.fillStyle='#080E12';ctx.fillRect(0,0,w,h);ctx.setTransform(scale,0,0,scale,ox-camera.x*scale,oy-camera.y*scale);
       const key=p.map.id+':'+breaches.map(b=>b.wallId+':'+b.position.x+':'+b.position.y).join(',');
       if(!scene||key!==sceneKey){scene=document.createElement('canvas');scene.width=Math.ceil(map.width/2);scene.height=Math.ceil(map.height/2);const sceneContext=scene.getContext('2d')!;sceneContext.scale(.5,.5);paintBattleMap(sceneContext,map);sceneKey=key;}
-      ctx.globalAlpha=.18;ctx.drawImage(scene,camera.x/2,camera.y/2,camera.width/2,camera.height/2,camera.x,camera.y,camera.width,camera.height);ctx.globalAlpha=1;
+      // 감독은 익숙한 경기장 구조를 보되 상대 선수·가젯은 실제 개인 시야로 확인된 경우에만 봅니다.
+      // AI 판정용 시야 폴리곤을 화면에 칠하지 않아 거대한 삼각형 조명이 생기지 않습니다.
+      ctx.globalAlpha=p.mode==='full'?.72:.56;ctx.drawImage(scene,camera.x/2,camera.y/2,camera.width/2,camera.height/2,camera.x,camera.y,camera.width,camera.height);ctx.globalAlpha=1;
       const smokes=(snapshot.gadgets??[]).filter(g=>g.kind==='smoke'&&time>=g.activeAt&&time<g.until);
-      ctx.save();ctx.beginPath();for(const unit of vision){const points=(cachedPolygons[vision.indexOf(unit)]??'').split(' ').map(point=>point.split(',').map(Number));points.forEach(([x,y],i)=>i?ctx.lineTo(x,y):ctx.moveTo(x,y));ctx.closePath();}ctx.clip();ctx.drawImage(scene,camera.x/2,camera.y/2,camera.width/2,camera.height/2,camera.x,camera.y,camera.width,camera.height);ctx.restore();
       for(const portal of map.portals.filter(portal=>portal.traversal)){
         if(!vision.some(friend=>observer.canObserve(friend,portal.center,map,snapshot.gadgets,time)))continue;
         const opened=snapshot.openedPortals?.includes(portal.id);ctx.save();ctx.translate(portal.center.x,portal.center.y);if(portal.axis==='vertical')ctx.rotate(Math.PI/2);ctx.fillStyle=portal.traversal==='window'?(opened?'#A7CDCE33':'#86CEDB88'):'#B7A984';ctx.fillRect(-portal.width/2,-6,portal.width,12);ctx.strokeStyle='#D9E4D8';ctx.lineWidth=2;ctx.strokeRect(-portal.width/2,-8,portal.width,16);if(opened){ctx.beginPath();ctx.moveTo(-portal.width/2,-12);ctx.lineTo(-portal.width/2+8,3);ctx.lineTo(-portal.width/2+15,-8);ctx.stroke();}ctx.restore();
@@ -108,10 +108,6 @@ export function BroadcastCanvas(props: Props): ReactElement {
       if(device&&(objective.activeUntil||p.side==='공격'||vision.some(friend=>observer.canObserve(friend,device,map,snapshot.gadgets,time)))){ctx.fillStyle='#16272F';ctx.fillRect(device.x-12,device.y-9,24,18);ctx.strokeStyle='#FFC53D';ctx.strokeRect(device.x-12,device.y-9,24,18);ctx.fillStyle='#2FD4C4';ctx.fillRect(device.x-6,device.y-4,9,6);}
       hitTargets=[];
       for(const unit of visible){const visual=operatorVisual(unit.callSign);if(!visual)continue;const image=asset(visual.sprite);if(!imageReady(image))continue;ctx.save();ctx.translate(unit.position.x,unit.position.y);ctx.rotate(unit.facing);ctx.globalAlpha=unit.alive?1:.4;
-        const legs=asset('movement-legs-atlas.webp');const moving=Math.hypot(unit.velocity.x,unit.velocity.y)>.05;
-        const step=moving?Math.floor(time*(unit.locomotion==='sprint'?8:5))%2:0;
-        const pose=!unit.alive||unit.locomotion==='crawl'?6:unit.locomotion==='crouch'||unit.locomotion==='vault'?4:unit.locomotion==='sprint'?2:0;
-        const n=pose+step;if(imageReady(legs)){ctx.drawImage(legs,n%4*384,Math.floor(n/4)*512,384,512,-39,-24,35,47);}
         if(visual.region)ctx.drawImage(image,visual.region[0],visual.region[1],visual.width,visual.height,-visual.pivot[0]*OPERATOR_SCALE,-visual.pivot[1]*OPERATOR_SCALE,visual.width*OPERATOR_SCALE,visual.height*OPERATOR_SCALE);
         else ctx.drawImage(image,-visual.pivot[0]*OPERATOR_SCALE,-visual.pivot[1]*OPERATOR_SCALE,visual.width*OPERATOR_SCALE,visual.height*OPERATOR_SCALE);
         if(unit.shieldRaised){ctx.fillStyle='#617582';ctx.fillRect(16,-18,7,36);ctx.strokeStyle='#BED0D9';ctx.strokeRect(16,-18,7,36);}
