@@ -138,6 +138,8 @@ export function BroadcastCanvas(props: Props): ReactElement {
         else ctx.drawImage(image,-visual.pivot[0]*OPERATOR_SCALE,-visual.pivot[1]*OPERATOR_SCALE,visual.width*OPERATOR_SCALE,visual.height*OPERATOR_SCALE);
         if(unit.shieldRaised){ctx.fillStyle='#617582';ctx.fillRect(16,-18,7,36);ctx.strokeStyle='#BED0D9';ctx.strokeRect(16,-18,7,36);}
         ctx.fillStyle=COLORS[unit.side];ctx.fillRect(-5,-14,6,3);ctx.restore();
+        // 다운은 사망과 다른 실제 상태입니다. 자세별 원화 전에는 명확한 구조 표식을 사용합니다.
+        if(unit.downed){ctx.save();ctx.strokeStyle='#FFC53D';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(unit.position.x-5,unit.position.y-23);ctx.lineTo(unit.position.x+5,unit.position.y-23);ctx.moveTo(unit.position.x,unit.position.y-28);ctx.lineTo(unit.position.x,unit.position.y-18);ctx.stroke();if(unit.downed.progress>0){ctx.beginPath();ctx.arc(unit.position.x,unit.position.y,21,-Math.PI/2,-Math.PI/2+Math.PI*2*unit.downed.progress);ctx.stroke();}ctx.restore();}
         if(unit.side===p.side){hitTargets.push({id:unit.id,x:ox+(unit.position.x-camera.x)*scale,y:oy+(unit.position.y-camera.y)*scale});if(unit.id===p.selectedId){ctx.strokeStyle='#FFC53D';ctx.lineWidth=1.5;ctx.beginPath();ctx.arc(unit.position.x,unit.position.y,18,0,Math.PI*2);ctx.stroke();}}
         if(p.mode==='full'||unit.id===focusId){ctx.font='10px sans-serif';ctx.textAlign='center';ctx.fillStyle='#EDF2F0';ctx.fillText(unit.callSign,unit.position.x,unit.position.y+29);}
       }

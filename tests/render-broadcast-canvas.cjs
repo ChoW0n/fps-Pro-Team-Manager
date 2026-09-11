@@ -20,14 +20,18 @@ global.Image=LocalImage;global.window={devicePixelRatio:1,matchMedia:()=>({match
 let callback;global.requestAnimationFrame=fn=>{callback=fn;return 1;};global.cancelAnimationFrame=()=>{};
 const {BroadcastCanvas}=require(app+'/src/components/BroadcastCanvas.tsx');const rows=[];
 // Skia의 이미지 디코드 콜백이 끝난 뒤 실제 인물 픽셀까지 포함해 프레임 시간을 잽니다.
-(async()=>{for(const [name,width,height] of [['desktop',1280,720],['phone',390,844],['phone-landscape',844,390]]){
+(async()=>{for(const [name,width,height] of [['desktop',1280,720],['phone',390,844],['phone-landscape',844,390],['downed',1280,720]]){
  const canvas=createCanvas(width,height);canvas.getBoundingClientRect=()=>({width,height,left:0,top:0});canvas.addEventListener=()=>{};canvas.removeEventListener=()=>{};
  const context=canvas.getContext('2d'),originalDraw=context.drawImage.bind(context);let spriteDraws=0;
  // 실제 인물 drawImage가 호출되지 않으면 빈 화면을 통과시키지 않습니다.
  context.drawImage=(source,...args)=>{if(source instanceof LocalImage){spriteDraws++;const transform=context.getTransform();assert(Math.abs(Math.hypot(transform.a,transform.b)-Math.hypot(transform.c,transform.d))<1e-6,'전신 원화의 비균등 압축 금지');}return originalDraw(source,...args);};
  const effects=[],refs=[];let index=0;
  React.useRef=value=>{const ref={current:index++===0?canvas:value};refs.push(ref);return ref;};React.useEffect=fn=>effects.push(fn);
- BroadcastCanvas({tick,events:result.events,map,side:'공격',selectedId:shot.actor,mode:'follow',speed:1,paused:true,onSelect:()=>{}});
+ const injurySnapshot=name==='downed'?result.snapshots.find(s=>s.units.some(u=>u.side==='공격'&&u.downed)):undefined;
+ if(name==='downed')assert(injurySnapshot,'실제 다운 장면 필요');
+ const renderedTick=injurySnapshot?{time:injurySnapshot.time,snapshot:injurySnapshot,events:[]}:tick;
+ const viewed=injurySnapshot?.units.find(u=>u.side==='공격'&&u.downed)?.id??shot.actor;
+ BroadcastCanvas({tick:renderedTick,events:result.events,map,side:'공격',selectedId:viewed,mode:'follow',speed:1,paused:true,onSelect:()=>{}});
  const cleanup=effects.map(fn=>fn());const times=[];let stamp=performance.now();
  // 첫 프레임에서 이미지 요청이 시작됩니다. 그 전에 기다리면 빈 스프라이트를 검사하게 됩니다.
  callback(stamp+=16.67);await new Promise(resolve=>setTimeout(resolve,50));

@@ -80,7 +80,10 @@ test('탄창 소모·장전·탄약 보존 및 장전 중 사격 금지',()=>{
     startPosition(unit,index,count){return {x:1000+(unit.side==='공격'?index:index-count)*90,y:unit.side==='공격'?900:1600};}
     startFacing(unit){return unit.side==='공격'?Math.PI/2:-Math.PI/2;}
   }
-  const reloadRun=new ReloadArena().run(input);
+  // 장전 검사만 무피해 사격장으로 고정합니다. 명중·부상은 별도 실제 피해 검사에서 확인합니다.
+  const profile=require(root+'domain/realtime/weaponHandling.ts').weaponHandling('C14 팀버울프');
+  const damage=profile.damage;let reloadRun;
+  try{profile.damage=0;reloadRun=new ReloadArena().run(input);}finally{profile.damage=damage;}
   for(const [index, first] of reloadRun.snapshots[0].units.entries()){
     for(const snap of reloadRun.snapshots){const u=snap.units[index]; const shots=reloadRun.events.filter(e=>e.type==='shot'&&e.actor===u.id&&e.time<=snap.time).length;
       assert.equal(u.ammo+u.reserveAmmo+shots,first.magazineSize+first.reserveAmmo);assert(u.ammo>=0&&u.ammo<=u.magazineSize);
