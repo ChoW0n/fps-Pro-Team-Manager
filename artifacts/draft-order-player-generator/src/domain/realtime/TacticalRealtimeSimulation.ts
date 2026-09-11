@@ -300,6 +300,7 @@ export class TacticalRealtimeSimulation {
     const searchUntil = new Map<string, number>();
     const searchOrigin = new Map<string, RealtimeVector>();
     const retreatGoals = new Map<string, RealtimeVector>();
+    const grenadeEscapes = new Map<string, { gadgetId: string; goal: RealtimeVector }>();
     const retreatStarted=new Map<string,number>(),retreatRestUntil=new Map<string,number>();
     const directorOrders = new Map<OperatorSide, TacticalDirectorCommand>();
     const yieldUntil = new Map<string, number>();
@@ -710,12 +711,40 @@ export class TacticalRealtimeSimulation {
           });
           continue;
         }
-        const threatGrenade=gadgets.find(gadget=>gadget.kind==='grenade'&&distance(unit.position,gadget.position)<gadget.radius+40&&this.canObserve(unit,gadget.position,map,gadgets,now));
-        if(threatGrenade) {
-          const escape=navigationNodes.filter(point=>distance(point,unit.position)<250&&distance(point,threatGrenade.position)>threatGrenade.radius+35&&this.canTraverse(unit.position,point,map))
-            .sort((a,b)=>distance(a,unit.position)-distance(b,unit.position))[0];
-          if(escape){unit.action='reposition';unit.goal='확인한 수류탄 회피 · 이후 원래 임무 복귀';unit.decision=unit.goal;
-            this.move(unit,escape,me,map,now,units,navigationNodes,pathCache,yieldUntil,blockedUntil,log,portalReservations);continue;}
+        // 실제 착지 위치를 관측한 뒤 회피 임무를 기억합니다. 등을 돌려도 위험을 잊지 않습니다.
+        let escapePlan = grenadeEscapes.get(unit.id);
+        if (escapePlan && !gadgets.some(gadget => gadget.id === escapePlan?.gadgetId)) {
+          grenadeEscapes.delete(unit.id);
+          pathCache.delete(unit.id);
+          escapePlan = undefined;
+        }
+        const threatGrenade = gadgets.find(gadget => gadget.kind === 'grenade'
+          && now >= (gadget.landedAt ?? gadget.activeAt)
+          && distance(unit.position, gadget.position) < gadget.radius + 40
+          && this.canObserve(unit, gadget.position, map, gadgets, now));
+        if (threatGrenade && !escapePlan) {
+          const escape = navigationNodes.filter(point => distance(point, unit.position) < 250
+            && distance(point, threatGrenade.position) > threatGrenade.radius + 35
+            && this.canTraverse(unit.position, point, map))
+            .sort((a, b) => distance(a, unit.position) - distance(b, unit.position))[0];
+          if (escape) {
+            escapePlan = { gadgetId: threatGrenade.id, goal: { ...escape } };
+            grenadeEscapes.set(unit.id, escapePlan);
+            pathCache.delete(unit.id);
+          }
+        }
+        if (escapePlan) {
+          unit.action = 'reposition';
+          unit.goal = '확인한 수류탄 회피 · 이후 원래 임무 복귀';
+          unit.decision = unit.goal;
+          this.move(unit, escapePlan.goal, me, map, now, units, navigationNodes, pathCache,
+            yieldUntil, blockedUntil, log, portalReservations);
+          if (distance(unit.position, escapePlan.goal) <= 24) {
+            unit.action = 'hold';
+            unit.goal = '수류탄 폭발까지 안전 지점 유지';
+            unit.decision = unit.goal;
+          }
+          continue;
         }
         const order = directorOrders.get(unit.side);
         const operationGoal = unit.side==='공격' && openingSearch
@@ -759,17 +788,22 @@ export class TacticalRealtimeSimulation {
         const acquisition=.15+(1-control)*.35+(1-exposure)*.65+Math.max(0,range-450)/1800;
         const returning=unit.side==='공격'&&openingSearch&&operationState.phase!=='scouting'&&operationMoving;
         // 복귀 임무 중 먼 적을 보았다는 이유로 무한 조준 대기하지 않습니다.
-        const breakContact=Boolean(seen&&(returning&&range>180 || range>handling.comfortableDistance&&visualContactDuration>2.5));
+        const breakContact=Boolean(!mustCommit && (retreatRestUntil.get(unit.id) ?? 0) <= now
+          && seen && (returning && range > 180 || range > handling.comfortableDistance && visualContactDuration > 2.5));
         const friendlyLine=Boolean(target&&living(unit.side).some(friend=>friend.id!==unit.id&&distance(muzzle,friend.position)<distance(muzzle,target.position)&&pointToSegmentDistance(friend.position,muzzle,target.position)<UNIT_RADIUS));
         const canFire = !friendlyLine&&unit.cooldown <= 0 && unit.ammo > 0 && muzzleClear&&visualContactDuration>=acquisition&&settled>=.15;
-        const shouldFire = Boolean(seen && canFire && !losingPosition && !breakContact
+        const continuingRetreat = !mustCommit && retreatGoals.has(unit.id) && retreatStarted.has(unit.id);
+        const shouldFire = Boolean(seen && canFire && !losingPosition && !breakContact && !continuingRetreat
           && (aggression > 0.25 || isClutch || aimTimedOut));
         const outOfAmmo = unit.ammo <= 0;
         const directorOrder = directorOrders.get(unit.side);
         const forcedPush = directorOrder?.mode === 'push';
         const forcedHold = directorOrder?.mode === 'hold';
         const forcedRetreat = directorOrder?.mode === 'retreat';
-        const shouldReposition = Boolean(forcedRetreat || breakContact || friendlyLine&&visualContactDuration>1 || ((losingPosition || outOfAmmo) && !shouldFire));
+        // 한 번 정한 이탈 임무는 순간적인 시야 소실로 취소하지 않고 도착·기한까지 유지합니다.
+        const shouldReposition = Boolean(forcedRetreat || continuingRetreat || breakContact
+          || !mustCommit && friendlyLine && visualContactDuration > 1 && (retreatRestUntil.get(unit.id) ?? 0) <= now
+          || ((losingPosition || outOfAmmo) && !shouldFire));
         const needsObjectiveMove = Boolean(objectiveTask && taskPoint && !withinReach) || activeDevice&&!guarding;
         const movementHold = Math.max(yieldUntil.get(unit.id) ?? 0, blockedUntil.get(unit.id) ?? 0);
         const shouldSearch = Boolean(
@@ -856,7 +890,7 @@ export class TacticalRealtimeSimulation {
             ? taskPoint : activeDevice ? guardPoint : undefined;
           const searchPoint = map.searchPoints[unit.routeIndex % map.searchPoints.length];
           if (shouldReposition && !retreatGoals.has(unit.id)) {retreatGoals.set(unit.id,this.retreatDestination(unit,map));retreatStarted.set(unit.id,now);}
-          if (!shouldReposition) retreatGoals.delete(unit.id);
+          if (!shouldReposition) { retreatGoals.delete(unit.id); retreatStarted.delete(unit.id); }
           const destination = shouldReposition
             ? returning&&operationGoal?operationGoal:forcedRetreat ? rally.get(unit.id) ?? retreatGoals.get(unit.id)! : retreatGoals.get(unit.id)!
             : operationGoal ?? missionDestination ?? seen?.position
@@ -1238,7 +1272,6 @@ export class TacticalRealtimeSimulation {
     const dx = waypoint.x - unit.position.x;
     const dy = waypoint.y - unit.position.y;
     const length = Math.hypot(dx, dy) || 1;
-    unit.facing = Math.atan2(dy, dx);
     const defensive = unit.side === '수비';
     const speed = (defensive ? 42 : 52) + me.operator.stats.entry / 5 + me.player.teamSynergy / 20;
     const step = Math.min(speed / 10, length);
@@ -1290,6 +1323,8 @@ export class TacticalRealtimeSimulation {
     }
     unit.velocity = { x: next.x - unit.position.x, y: next.y - unit.position.y };
     unit.position = next;
+    // 통행에 실패한 시도만으로 몸을 좌우로 돌리지 않습니다.
+    unit.facing = Math.atan2(dy, dx);
   }
   /** 마지막 위치를 확인한 유닛이 주변을 훑도록, 기억한 지점 주변의 탐색 지점을 만듭니다. */
   private searchDestination(center: TacticalPoint, unit: RealtimeUnitState, _now: number, map: TacticalMapDefinition): RealtimeVector {
