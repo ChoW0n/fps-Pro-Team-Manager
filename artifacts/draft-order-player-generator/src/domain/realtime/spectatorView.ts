@@ -17,7 +17,8 @@ export function combatCamera(units: readonly RealtimeUnitState[], events: readon
   const other=follow?undefined:actor?.id===focus?.id?target:actor;
   const lastKnown=[...events].reverse().find(event=>event.position&&time-event.time<8);
   const a=focus?.position??lastKnown?.position??{x:1800,y:1200},b=other?.position??a;
-  return {x:(a.x+b.x)/2,y:(a.y+b.y)/2,width:Math.max(430,Math.abs(a.x-b.x)*1.45+210,Math.abs(a.y-b.y)*1.65+210),focusId:focus?.id??null};
+  // 최소 두세 개 방을 함께 보여 선수 한 명이 화면을 뒤덮거나 교전 상대가 프레임 밖으로 빠지지 않게 합니다.
+  return {x:(a.x+b.x)/2,y:(a.y+b.y)/2,width:Math.max(900,Math.abs(a.x-b.x)*1.45+260,Math.abs(a.y-b.y)*1.65+260),focusId:focus?.id??null};
 }
 /** 전체 지도는 실제 종횡비를 보존하고 교전 확대는 지도 경계 안에 맞춥니다. */
 export function cameraViewport(map: Pick<TacticalMapDefinition, 'width' | 'height'>, framing: { x: number; y: number; width: number }, full: boolean) {
