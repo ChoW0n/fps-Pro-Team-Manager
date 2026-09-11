@@ -66,7 +66,7 @@ export function OperatorPreparation({homeTeam,awayTeam,onStart,onBack,homeSide='
   function start():void {
     try {
       const home=confirmOperatorDraft(homeTeam,homeSide,draft.home),away=confirmOperatorDraft(awayTeam,awaySide,draft.away);
-      onStart({attackers:homeSide==='공격'?home:away,defenders:homeSide==='수비'?home:away,seed,maxSeconds:180,
+      onStart({attackers:homeSide==='공격'?home:away,defenders:homeSide==='수비'?home:away,seed,maxSeconds:150,
         targetSite:homeSide==='공격'?site:opponent.site,attackStyle:homeSide==='공격'?attackStyle:opponent.attackStyle,
         defenseStyle:homeSide==='수비'?defenseStyle:opponent.defenseStyle,anticipatedEntry:homeSide==='수비'?entryRoute:opponent.anticipatedEntry,
         scoutPlan:homeSide==='공격'?{indices:[...scouts],seconds,entryRoute}:{indices:[],seconds:25,entryRoute:opponent.entry}});
@@ -92,6 +92,6 @@ export function OperatorPreparation({homeTeam,awayTeam,onStart,onBack,homeSide='
     <div className="command-lineup" aria-label="선수별 오퍼레이터 편성">{homeTeam.players.map((member,index)=><div key={index} className={`command-player ${selectedPlayer===index?'is-selected':''}`}><button onClick={()=>setSelectedPlayer(index)} aria-pressed={selectedPlayer===index}><OperatorArt callSign={draft.home[index]??''}/><OperatorEmblem callSign={draft.home[index]??undefined} unknown={!draft.home[index]}/><span><small>{String(index+1).padStart(2,'0')} / {OPERATOR_ROLE_LABELS[member.role]}</small><strong>{member.nickname}</strong><b>{draft.home[index]??'선택 필요'}</b></span></button>{homeSide==='공격'&&<label><input type="checkbox" checked={scouts.includes(index)} disabled={!scouts.includes(index)&&scouts.length===3} onChange={()=>toggleScout(index)}/>선발조 배정</label>}</div>)}</div>
     <section className="command-picks" aria-label="습득 오퍼레이터 선택"><header><div><small>{player.nickname} / 출전 장비</small><h2>누구와 출전할까요?</h2></div><button onClick={()=>setManual(current=>current.map((value,index)=>index===selectedPlayer?null:value))}>이 선수 자동 배정</button></header><div className="command-pick-options">{choices.map(operator=><button key={operator.callSign} aria-pressed={draft.home[selectedPlayer]===operator.callSign} onClick={()=>choose(operator.callSign)}><OperatorArt callSign={operator.callSign}/><OperatorEmblem callSign={operator.callSign}/><span><strong>{operator.callSign}</strong><small>{operator.firearms[0]}</small><b>{OPERATOR_ROLE_LABELS[operator.role]}</b><small>{equipmentBrief(operator.callSign,operator.role)}</small></span></button>)}</div><div className="player-trait"><strong>{trait.name}</strong><p>{trait.description}</p><small>{trait.risk}</small></div><p className="op-prep-help">{player.nickname} · 조준 {player.aim} / 숙련 {player.mastery} / 공격성 {player.aggression} — 조준·숙련은 점사와 재조준을, 공격성은 위험을 감수할 타이밍을 바꿉니다.</p></section>
     {(error||draft.error)&&<p role="alert" className="op-prep-error">{error||draft.error}</p>}
-    <footer><button onClick={onBack}>작전실로</button><p>준비 → 관전 → 복기 → 다음 작전 · 기본 중계 2×</p><button className="op-prep-start" disabled={Boolean(draft.error)} onClick={start}>편성 확정 · 출전 →</button></footer>
+    <footer><button onClick={onBack}>작전실로</button><p>준비 → 관전 → 복기 → 다음 작전 · 2분 30초 · 기본 중계 1×</p><button className="op-prep-start" disabled={Boolean(draft.error)} onClick={start}>편성 확정 · 출전 →</button></footer>
   </section>;
 }
