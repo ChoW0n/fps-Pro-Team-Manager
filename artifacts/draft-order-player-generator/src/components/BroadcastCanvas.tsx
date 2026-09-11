@@ -1,6 +1,6 @@
 import { useEffect, useRef, type ReactElement } from 'react';
 import type { OperatorSide } from '../domain/Operator';
-import { operatorVisual, OPERATOR_SCALE } from '../domain/operatorVisuals';
+import { operatorPoseVisual, OPERATOR_SCALE } from '../domain/operatorVisuals';
 import { TacticalRealtimeSimulation, type RealtimeEvent, type RealtimeTick, type RealtimeUnitState } from '../domain/realtime/TacticalRealtimeSimulation';
 import { breachWalls } from '../domain/realtime/breachGeometry';
 import { angleDifference } from '../domain/realtime/perception';
@@ -79,6 +79,8 @@ export function BroadcastCanvas(props: Props): ReactElement {
       const time=state.previous.time+(state.next.time-state.previous.time)*amount;
       const nextUnits=new Map(state.next.snapshot.units.map(unit=>[unit.id,unit]));
       const units=state.previous.snapshot.units.map(unit=>interpolateUnit(unit,nextUnits.get(unit.id),amount));
+      // 알려진 아군의 다운 원화를 미리 읽어 첫 부상 순간에 큰 이미지 요청이 시작되지 않게 합니다.
+      for(const unit of units.filter(unit=>unit.side===p.side)){const pose=operatorPoseVisual(unit.callSign,true);if(pose)asset(pose.sprite);}
       const snapshot=amount>=1?state.next.snapshot:state.previous.snapshot,breaches=snapshot.breaches??[];
       const map={...p.map,walls:breaches.reduce((walls,breach)=>breachWalls(walls,breach.wallId,breach.position,breach.width),p.map.walls)};
       const events=p.events.filter(event=>event.time<=time&&event.seenBy?.includes(p.side));
@@ -131,11 +133,11 @@ export function BroadcastCanvas(props: Props): ReactElement {
       hitTargets=[];
       // 실체를 연장해서 그리지 않습니다. 끊긴 접촉은 고정된 목격 표식으로만 페이드아웃합니다.
       for(const [id,contact] of contacts){if(cachedVisibleIds.has(id))continue;ctx.save();ctx.globalAlpha=Math.max(0,1-(time-contact.seenAt));ctx.strokeStyle='#6EA8FF';ctx.setLineDash([3,4]);ctx.lineWidth=1.5;ctx.beginPath();ctx.arc(contact.position.x,contact.position.y,17,0,Math.PI*2);ctx.stroke();ctx.setLineDash([]);ctx.font='10px sans-serif';ctx.textAlign='center';ctx.fillStyle='#B0C9E9';ctx.fillText('마지막 목격',contact.position.x,contact.position.y+29);ctx.restore();}
-      // 전신 원화를 압축하거나 이동시키면 총구와 탄도가 어긋납니다. 자세별 원화 전까지 실제 위치·회전만 사용합니다.
-      for(const unit of visible){const visual=operatorVisual(unit.callSign);if(!visual)continue;const image=asset(visual.sprite);if(!imageReady(image))continue;ctx.save();ctx.translate(unit.position.x,unit.position.y);ctx.rotate(unit.facing);ctx.globalAlpha=unit.alive?1:.4;
+      // 사격 가능한 자세의 총구 계약은 보존합니다. 다운 원화는 실제 다운 상태에서만 사용합니다.
+      for(const unit of visible){const visual=operatorPoseVisual(unit.callSign,Boolean(unit.downed));if(!visual)continue;const image=asset(visual.sprite);if(!imageReady(image))continue;const spriteScale=visual.scale??OPERATOR_SCALE;ctx.save();ctx.translate(unit.position.x,unit.position.y);ctx.rotate(unit.facing+(visual.rotationOffset??0));ctx.globalAlpha=unit.alive?1:.4;
         ctx.fillStyle='#07101466';ctx.beginPath();ctx.ellipse(0,5,22,9,0,0,Math.PI*2);ctx.fill();
-        if(visual.region)ctx.drawImage(image,visual.region[0],visual.region[1],visual.width,visual.height,-visual.pivot[0]*OPERATOR_SCALE,-visual.pivot[1]*OPERATOR_SCALE,visual.width*OPERATOR_SCALE,visual.height*OPERATOR_SCALE);
-        else ctx.drawImage(image,-visual.pivot[0]*OPERATOR_SCALE,-visual.pivot[1]*OPERATOR_SCALE,visual.width*OPERATOR_SCALE,visual.height*OPERATOR_SCALE);
+        if(visual.region)ctx.drawImage(image,visual.region[0],visual.region[1],visual.width,visual.height,-visual.pivot[0]*spriteScale,-visual.pivot[1]*spriteScale,visual.width*spriteScale,visual.height*spriteScale);
+        else ctx.drawImage(image,-visual.pivot[0]*spriteScale,-visual.pivot[1]*spriteScale,visual.width*spriteScale,visual.height*spriteScale);
         if(unit.shieldRaised){ctx.fillStyle='#617582';ctx.fillRect(16,-18,7,36);ctx.strokeStyle='#BED0D9';ctx.strokeRect(16,-18,7,36);}
         ctx.fillStyle=COLORS[unit.side];ctx.fillRect(-5,-14,6,3);ctx.restore();
         // 다운은 사망과 다른 실제 상태입니다. 자세별 원화 전에는 명확한 구조 표식을 사용합니다.

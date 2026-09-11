@@ -1,0 +1,312 @@
+{
+  "kind": "Asset contracts and alpha only; not anatomy, firearm authenticity, animation or browser-play approval",
+  "operators": [
+    {
+      "callSign": "MAGPIE",
+      "weapon": "L119A2 카빈",
+      "sprite": {
+        "size": [
+          442,
+          239
+        ],
+        "mode": "RGBA",
+        "alpha": [
+          0,
+          255
+        ],
+        "transparentFraction": 0.6239800071943808,
+        "opaqueFraction": 0.3760199928056192,
+        "file": "magpie-topdown.webp",
+        "region": null
+      },
+      "animationPackComplete": false
+    },
+    {
+      "callSign": "COLLIER",
+      "weapon": "MP5SD",
+      "sprite": {
+        "size": [
+          457,
+          241
+        ],
+        "mode": "RGBA",
+        "alpha": [
+          0,
+          255
+        ],
+        "transparentFraction": 0.6043654720938467,
+        "opaqueFraction": 0.3956345279061532,
+        "file": "collier-topdown.webp",
+        "region": null
+      },
+      "animationPackComplete": false
+    },
+    {
+      "callSign": "해동",
+      "weapon": "HK416",
+      "sprite": {
+        "size": [
+          468,
+          244
+        ],
+        "mode": "RGBA",
+        "alpha": [
+          0,
+          255
+        ],
+        "transparentFraction": 0.6145701975620008,
+        "opaqueFraction": 0.3854298024379992,
+        "file": "haedong-topdown.webp",
+        "region": null
+      },
+      "animationPackComplete": false
+    },
+    {
+      "callSign": "ARBEL",
+      "weapon": "타보르 X95",
+      "sprite": {
+        "size": [
+          1254,
+          1254
+        ],
+        "mode": "RGBA",
+        "alpha": [
+          0,
+          255
+        ],
+        "transparentFraction": 0.4658054054054054,
+        "opaqueFraction": 0.4680324324324324,
+        "file": "field-operators-atlas.webp",
+        "region": [
+          20,
+          100,
+          370,
+          250
+        ]
+      },
+      "animationPackComplete": false
+    },
+    {
+      "callSign": "AUBERT",
+      "weapon": "SIG MPX",
+      "sprite": {
+        "size": [
+          1254,
+          1254
+        ],
+        "mode": "RGBA",
+        "alpha": [
+          0,
+          255
+        ],
+        "transparentFraction": 0.4490028169014085,
+        "opaqueFraction": 0.486287323943662,
+        "file": "field-operators-atlas.webp",
+        "region": [
+          432,
+          100,
+          355,
+          250
+        ]
+      },
+      "animationPackComplete": false
+    },
+    {
+      "callSign": "MEDVED",
+      "weapon": "AS Val 소음소총",
+      "sprite": {
+        "size": [
+          1254,
+          1254
+        ],
+        "mode": "RGBA",
+        "alpha": [
+          0,
+          255
+        ],
+        "transparentFraction": 0.5163150492264417,
+        "opaqueFraction": 0.43465541490857945,
+        "file": "field-operators-atlas.webp",
+        "region": [
+          840,
+          100,
+          395,
+          270
+        ]
+      },
+      "animationPackComplete": false
+    },
+    {
+      "callSign": "REUSS",
+      "weapon": "HK417",
+      "sprite": {
+        "size": [
+          1254,
+          1254
+        ],
+        "mode": "RGBA",
+        "alpha": [
+          0,
+          255
+        ],
+        "transparentFraction": 0.49634712021646693,
+        "opaqueFraction": 0.4474971008890607,
+        "file": "field-operators-atlas.webp",
+        "region": [
+          20,
+          490,
+          398,
+          260
+        ]
+      },
+      "animationPackComplete": false
+    },
+    {
+      "callSign": "BRANDT",
+      "weapon": "PSG-1 정밀소총",
+      "sprite": {
+        "size": [
+          1254,
+          1254
+        ],
+        "mode": "RGBA",
+        "alpha": [
+          0,
+          255
+        ],
+        "transparentFraction": 0.6187340659340659,
+        "opaqueFraction": 0.3344791208791209,
+        "file": "field-operators-atlas.webp",
+        "region": [
+          425,
+          505,
+          455,
+          250
+        ]
+      },
+      "animationPackComplete": false
+    },
+    {
+      "callSign": "MARCHAND",
+      "weapon": "FN P90",
+      "sprite": {
+        "size": [
+          1254,
+          1254
+        ],
+        "mode": "RGBA",
+        "alpha": [
+          0,
+          255
+        ],
+        "transparentFraction": 0.44685430880390725,
+        "opaqueFraction": 0.4915409984642884,
+        "file": "field-operators-atlas.webp",
+        "region": [
+          895,
+          500,
+          314,
+          253
+        ]
+      },
+      "animationPackComplete": false
+    },
+    {
+      "callSign": "HALLORAN",
+      "weapon": "C14 팀버울프",
+      "sprite": {
+        "size": [
+          1254,
+          1254
+        ],
+        "mode": "RGBA",
+        "alpha": [
+          0,
+          255
+        ],
+        "transparentFraction": 0.5434288537549408,
+        "opaqueFraction": 0.39322134387351776,
+        "file": "field-operators-atlas.webp",
+        "region": [
+          20,
+          885,
+          440,
+          230
+        ]
+      },
+      "animationPackComplete": false
+    },
+    {
+      "callSign": "성곽",
+      "weapon": "K1A 기관단총",
+      "sprite": {
+        "size": [
+          1254,
+          1254
+        ],
+        "mode": "RGBA",
+        "alpha": [
+          0,
+          255
+        ],
+        "transparentFraction": 0.4690597667638484,
+        "opaqueFraction": 0.4657312925170068,
+        "file": "field-operators-atlas.webp",
+        "region": [
+          458,
+          890,
+          343,
+          240
+        ]
+      },
+      "animationPackComplete": false
+    },
+    {
+      "callSign": "SAVELLI",
+      "weapon": "베레타 ARX160",
+      "sprite": {
+        "size": [
+          1254,
+          1254
+        ],
+        "mode": "RGBA",
+        "alpha": [
+          0,
+          255
+        ],
+        "transparentFraction": 0.5273314125602717,
+        "opaqueFraction": 0.4127285868456748,
+        "file": "field-operators-atlas.webp",
+        "region": [
+          837,
+          885,
+          393,
+          257
+        ]
+      },
+      "animationPackComplete": false
+    }
+  ],
+  "downed": {
+    "size": [
+      1536,
+      1024
+    ],
+    "mode": "RGBA",
+    "alpha": [
+      0,
+      254
+    ],
+    "transparentFraction": 0.5694758146124267,
+    "opaqueFraction": 0.36902651285164945,
+    "file": "collier-poses-v2.png",
+    "region": [
+      910,
+      565,
+      610,
+      405
+    ]
+  },
+  "operatorCount": 12,
+  "completeAnimationPacks": 0
+}
