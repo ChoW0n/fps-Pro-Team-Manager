@@ -1,0 +1,49 @@
+{
+  "source": {
+    "file": "downed-v3-keyed.png",
+    "sha256": "e356786ede0b9a7c7a26b80e90332337bbbc76af03e3792b0a819c394c178e64",
+    "size": [
+      1536,
+      1024
+    ],
+    "subjectBounds": [
+      27,
+      181,
+      1517,
+      840
+    ],
+    "subjectSize": [
+      1490,
+      659
+    ],
+    "substantialComponents": 1,
+    "key": "magenta"
+  },
+  "processing": {
+    "crop": [
+      19,
+      173,
+      1525,
+      848
+    ],
+    "ratio": 0.6799468791500664,
+    "upscaled": false,
+    "bytes": 164200,
+    "geometryEdited": false
+  },
+  "visual": {
+    "sprite": "collier-downed-v3.webp",
+    "width": 1024,
+    "height": 459,
+    "pivot": [
+      653.429,
+      205.344
+    ],
+    "muzzle": [
+      1002.242,
+      339.973
+    ],
+    "scale": 0.0595703125
+  },
+  "review": "Single pose only. Pixel/alpha checks do not certify anatomy, weapon accuracy or animation."
+}

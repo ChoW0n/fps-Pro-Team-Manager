@@ -289,24 +289,21 @@
   ],
   "downed": {
     "size": [
-      1536,
-      1024
+      1024,
+      459
     ],
     "mode": "RGBA",
     "alpha": [
       0,
-      254
+      255
     ],
-    "transparentFraction": 0.5694758146124267,
-    "opaqueFraction": 0.36902651285164945,
-    "file": "collier-poses-v2.png",
-    "region": [
-      910,
-      565,
-      610,
-      405
-    ]
+    "transparentFraction": 0.363908888208061,
+    "opaqueFraction": 0.6198235804738562,
+    "file": "collier-downed-v3.webp",
+    "region": null
   },
+  "crawlFrames": 4,
+  "crawlSprite": "collier-downed-crawl-v1.webp",
   "operatorCount": 12,
   "completeAnimationPacks": 0
 }

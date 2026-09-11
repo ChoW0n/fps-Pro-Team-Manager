@@ -1,4 +1,6 @@
 import manifest from '../operators/manifest.json';
+import collierDowned from '../operators/collier-downed-v3.json';
+import collierCrawl from '../operators/collier-downed-crawl-v1.json';
 import type { TacticalPoint } from './tacticalMaps';
 
 /** 3600×2400 월드에서 몸통 약 24단위, 총구와 충돌 반경이 같은 게임용 비율입니다. */
@@ -11,6 +13,7 @@ const VISUAL_KEYS: Record<string, keyof typeof manifest> = {
 export interface OperatorVisual {
   width:number; height:number; pivot:readonly number[]; muzzle:readonly number[]; sprite:string; portrait?:string;
   region?:readonly number[];
+  sheetWidth?:number; sheetHeight?:number;
   scale?:number;
   rotationOffset?:number;
 }
@@ -32,14 +35,14 @@ export function operatorVisual(callSign: string): OperatorVisual | undefined {
   return key ? manifest[key] : FIELD_VISUALS[callSign];
 }
 
-const COLLIER_DOWNED: OperatorVisual = {
-  sprite:'collier-poses-v2.png',region:[910,565,610,405],width:610,height:405,
-  pivot:[290,210],muzzle:[590,300],scale:.1,rotationOffset:.45,
-};
+// 한 자세로 제작한 원본에서 크롭·축소한 좌표를 그대로 사용합니다. 다운 중에는 사격하지 않습니다.
+const COLLIER_DOWNED: OperatorVisual = collierDowned.visual;
 
-/** 검수한 다운 자세만 실제 다운 상태에 연결합니다. 다른 인물의 원화로 대체하지 않습니다. */
-export function operatorPoseVisual(callSign: string, downed: boolean): OperatorVisual | undefined {
-  return callSign==='COLLIER' && downed ? COLLIER_DOWNED : operatorVisual(callSign);
+/** 실제 이동 중인 다운 선수만 경기 시각으로 재생합니다. 정지·일시정지에는 가짜 동작을 만들지 않습니다. */
+export function operatorPoseVisual(callSign: string, downed: boolean, crawlTime?: number): OperatorVisual | undefined {
+  if (callSign !== 'COLLIER' || !downed) return operatorVisual(callSign);
+  if (crawlTime === undefined || !Number.isFinite(crawlTime) || crawlTime < 0) return COLLIER_DOWNED;
+  return collierCrawl.frames[Math.floor(crawlTime * 4) % collierCrawl.frames.length];
 }
 
 /** 이미지의 피벗·총구를 회전시켜 판정과 중계가 같은 발사 원점을 사용합니다. */

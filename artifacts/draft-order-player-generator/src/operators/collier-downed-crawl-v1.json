@@ -1,0 +1,190 @@
+{
+  "action": "downed-crawl",
+  "source": {
+    "file": "downed-crawl-v1-keyed.png",
+    "size": [
+      1448,
+      1086
+    ],
+    "sha256": "14ad8fa2e9a5a82b19d216e8d40fe0a6c4e62106d4f1700ad7251a4ecb17e370",
+    "frames": [
+      {
+        "bounds": [
+          16,
+          148,
+          764,
+          438
+        ],
+        "subjectSize": [
+          748,
+          290
+        ],
+        "pivot": [
+          488,
+          265
+        ],
+        "muzzle": [
+          653,
+          369
+        ]
+      },
+      {
+        "bounds": [
+          734,
+          144,
+          1427,
+          468
+        ],
+        "subjectSize": [
+          693,
+          324
+        ],
+        "pivot": [
+          1224,
+          269
+        ],
+        "muzzle": [
+          1410,
+          379
+        ]
+      },
+      {
+        "bounds": [
+          15,
+          639,
+          720,
+          941
+        ],
+        "subjectSize": [
+          705,
+          302
+        ],
+        "pivot": [
+          520,
+          760
+        ],
+        "muzzle": [
+          702,
+          867
+        ]
+      },
+      {
+        "bounds": [
+          732,
+          643,
+          1426,
+          948
+        ],
+        "subjectSize": [
+          694,
+          305
+        ],
+        "pivot": [
+          1220,
+          761
+        ],
+        "muzzle": [
+          1385,
+          861
+        ]
+      }
+    ]
+  },
+  "processing": {
+    "ratio": 0.6424090338770388,
+    "upscaled": false,
+    "geometryEdited": false,
+    "bytes": 163088
+  },
+  "frames": [
+    {
+      "sprite": "collier-downed-crawl-v1.webp",
+      "width": 512,
+      "height": 219,
+      "sheetWidth": 1024,
+      "sheetHeight": 438,
+      "region": [
+        0,
+        0,
+        512,
+        219
+      ],
+      "pivot": [
+        329.556,
+        85.44
+      ],
+      "muzzle": [
+        435.553,
+        152.251
+      ],
+      "scale": 0.119140625
+    },
+    {
+      "sprite": "collier-downed-crawl-v1.webp",
+      "width": 512,
+      "height": 219,
+      "sheetWidth": 1024,
+      "sheetHeight": 438,
+      "region": [
+        512,
+        0,
+        512,
+        219
+      ],
+      "pivot": [
+        329.556,
+        85.44
+      ],
+      "muzzle": [
+        449.044,
+        156.105
+      ],
+      "scale": 0.119140625
+    },
+    {
+      "sprite": "collier-downed-crawl-v1.webp",
+      "width": 512,
+      "height": 219,
+      "sheetWidth": 1024,
+      "sheetHeight": 438,
+      "region": [
+        0,
+        219,
+        512,
+        219
+      ],
+      "pivot": [
+        329.556,
+        85.44
+      ],
+      "muzzle": [
+        446.474,
+        154.178
+      ],
+      "scale": 0.119140625
+    },
+    {
+      "sprite": "collier-downed-crawl-v1.webp",
+      "width": 512,
+      "height": 219,
+      "sheetWidth": 1024,
+      "sheetHeight": 438,
+      "region": [
+        512,
+        219,
+        512,
+        219
+      ],
+      "pivot": [
+        329.556,
+        85.44
+      ],
+      "muzzle": [
+        435.553,
+        149.681
+      ],
+      "scale": 0.119140625
+    }
+  ],
+  "review": "One action per sheet. Pixel checks do not replace grip, anatomy or motion review."
+}

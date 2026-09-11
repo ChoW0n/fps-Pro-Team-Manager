@@ -1,0 +1,55 @@
+{
+  "kind": "Actual Canvas renderer in local Skia; not browser or iPhone performance validation",
+  "seed": 41,
+  "time": 4.4,
+  "rows": [
+    {
+      "name": "desktop",
+      "width": 1280,
+      "height": 720,
+      "medianMs": 3.22,
+      "p95Ms": 26.18,
+      "file": "broadcast-canvas-desktop.png"
+    },
+    {
+      "name": "phone",
+      "width": 390,
+      "height": 844,
+      "medianMs": 25.83,
+      "p95Ms": 31.24,
+      "file": "broadcast-canvas-phone.png"
+    },
+    {
+      "name": "phone-landscape",
+      "width": 844,
+      "height": 390,
+      "medianMs": 0.88,
+      "p95Ms": 1.47,
+      "file": "broadcast-canvas-phone-landscape.png"
+    },
+    {
+      "name": "downed",
+      "width": 1280,
+      "height": 720,
+      "medianMs": 1.22,
+      "p95Ms": 1.58,
+      "file": "broadcast-canvas-downed.png"
+    },
+    {
+      "name": "collier-downed",
+      "width": 1280,
+      "height": 720,
+      "medianMs": 1.29,
+      "p95Ms": 1.82,
+      "file": "broadcast-canvas-collier-downed.png"
+    },
+    {
+      "name": "collier-crawl",
+      "width": 1280,
+      "height": 720,
+      "medianMs": 9.09,
+      "p95Ms": 45.3,
+      "file": "broadcast-canvas-collier-crawl.png"
+    }
+  ]
+}

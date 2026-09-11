@@ -5,7 +5,7 @@ import type { BombState } from '../domain/realtime/BombObjective';
 import type { Operator } from '../domain/Operator';
 import type { RealtimeEvent, RealtimeSnapshot, RealtimeGadget, RealtimeBreach } from '../domain/realtime/TacticalRealtimeSimulation';
 import type { TacticalMapDefinition } from '../domain/tacticalMaps';
-import { operatorVisual, OPERATOR_SCALE, TEMPORARY_OPERATOR_SCALE } from '../domain/operatorVisuals';
+import { operatorVisual, operatorPoseVisual, OPERATOR_SCALE, TEMPORARY_OPERATOR_SCALE } from '../domain/operatorVisuals';
 
 export const SIDE_COLOR = { 공격: '#2FD4C4', 수비: '#F0873C' };
 const ASSET_ROOT = `${import.meta.env.BASE_URL}operators/`;
@@ -22,7 +22,7 @@ export function OperatorArt({callSign}: {callSign:string}): ReactElement {
   const visual=operatorVisual(callSign),portrait=portraitUrl(callSign),clipId=useId().replaceAll(':','');
   return portrait?<img src={portrait} alt={`${callSign} 오퍼레이터`}/>:visual?.region?<svg viewBox={`0 0 ${visual.width} ${visual.height}`} role="img" aria-label={`${callSign} 장비 원화`}>
     <defs><clipPath id={clipId}><rect width={visual.width} height={visual.height}/></clipPath></defs>
-    <g clipPath={`url(#${clipId})`}><image href={ASSET_ROOT+visual.sprite} x={-visual.region[0]} y={-visual.region[1]} width="1254" height="1254"/></g>
+    <g clipPath={`url(#${clipId})`}><image href={ASSET_ROOT+visual.sprite} x={-visual.region[0]} y={-visual.region[1]} width={visual.sheetWidth??1254} height={visual.sheetHeight??1254}/></g>
   </svg>:<span>{callSign}</span>;
 }
 
@@ -53,11 +53,13 @@ function TemporaryOperator({ operator }: { operator: Operator }): ReactElement {
   </g>;
 }
 
-/** 스냅샷의 위치·방향만 사용하며 정지 원화로 없는 동작 프레임을 만들지 않습니다. */
-function Soldier({ unit, operator, selected, onSelect }: {
-  unit: BattleUnit; operator: Operator; selected: boolean; onSelect: (id: string) => void;
+/** Canvas와 같은 실제 자세·좌표를 사용하며 정지 원화로 없는 동작을 만들지 않습니다. */
+function Soldier({ unit, operator, selected, onSelect, time }: {
+  unit: BattleUnit; operator: Operator; selected: boolean; onSelect: (id: string) => void; time:number;
 }): ReactElement {
-  const visual = operatorVisual(unit.callSign);
+  const crawling=unit.alive&&unit.downed?.mode==='crawl'&&Math.hypot(unit.velocity.x,unit.velocity.y)>.01;
+  const visual = operatorPoseVisual(unit.callSign, Boolean(unit.downed), crawling?time:undefined);
+  const scale = visual?.scale ?? OPERATOR_SCALE;
   const clipId=useId().replaceAll(':','');
   const color = SIDE_COLOR[unit.side];
   return <g role="button" tabIndex={0} aria-label={`${unit.callSign} 선수 선택`} aria-pressed={selected}
@@ -66,12 +68,12 @@ function Soldier({ unit, operator, selected, onSelect }: {
     <title>{`${unit.callSign} · ${unit.weaponName} · ${unit.goal}${visual ? '' : ' · 임시 외형'}`}</title>
     <g transform={`translate(${unit.position.x} ${unit.position.y})`}>
       {(unit.alive||selected)&&<circle r="17" fill="transparent" stroke={selected ? '#FFC53D' : color} strokeWidth={selected ? 2.5 : 1.3} strokeDasharray={unit.side === '수비' ? '5 4' : undefined} />}
-      <g transform={`rotate(${unit.facing * 180 / Math.PI})`}>
+      <g transform={`rotate(${(unit.facing + (visual?.rotationOffset ?? 0)) * 180 / Math.PI})`}>
         {visual?.region ? <g>
-          <defs><clipPath id={clipId}><rect x={-visual.pivot[0]*OPERATOR_SCALE} y={-visual.pivot[1]*OPERATOR_SCALE} width={visual.width*OPERATOR_SCALE} height={visual.height*OPERATOR_SCALE}/></clipPath></defs>
-          <g clipPath={`url(#${clipId})`}><image href={ASSET_ROOT+visual.sprite} x={-(visual.region[0]+visual.pivot[0])*OPERATOR_SCALE} y={-(visual.region[1]+visual.pivot[1])*OPERATOR_SCALE} width={1254*OPERATOR_SCALE} height={1254*OPERATOR_SCALE}/></g>
-        </g> : visual ? <image href={ASSET_ROOT + visual.sprite} x={-visual.pivot[0] * OPERATOR_SCALE} y={-visual.pivot[1] * OPERATOR_SCALE}
-          width={visual.width * OPERATOR_SCALE} height={visual.height * OPERATOR_SCALE} /> : <g transform={`scale(${TEMPORARY_OPERATOR_SCALE})`}><TemporaryOperator operator={operator} /></g>}
+          <defs><clipPath id={clipId}><rect x={-visual.pivot[0]*scale} y={-visual.pivot[1]*scale} width={visual.width*scale} height={visual.height*scale}/></clipPath></defs>
+          <g clipPath={`url(#${clipId})`}><image href={ASSET_ROOT+visual.sprite} x={-(visual.region[0]+visual.pivot[0])*scale} y={-(visual.region[1]+visual.pivot[1])*scale} width={(visual.sheetWidth??1254)*scale} height={(visual.sheetHeight??1254)*scale}/></g>
+        </g> : visual ? <image href={ASSET_ROOT + visual.sprite} x={-visual.pivot[0] * scale} y={-visual.pivot[1] * scale}
+          width={visual.width * scale} height={visual.height * scale} /> : <g transform={`scale(${TEMPORARY_OPERATOR_SCALE})`}><TemporaryOperator operator={operator} /></g>}
         {unit.shieldRaised&&<g aria-label="실제 전방 방패 방어"><path d="M15 -19 L23 -16 L23 17 L15 20 Z" fill="#4F606B" stroke="#BCC6C9" strokeWidth="1.2"/><path d="M18 -10 L22 -9 L22 3 L18 4 Z" fill="#172C3B" stroke="#788E9A" strokeWidth=".6"/></g>}
         <path d="M-5 -15 L0 -15 L0 -12 L-5 -12 Z" fill={color} />
       </g>
@@ -179,7 +181,7 @@ export function TacticalBattlefield({ map:baseMap, units, operators, events, tim
       const operator = operators.get(unit.id);
       return miniature ? <circle key={unit.id} cx={unit.position.x} cy={unit.position.y} r={unit.id === selectedId ? 22 : 15}
         fill={unit.alive ? SIDE_COLOR[unit.side] : '#E5484D'} stroke={unit.id === selectedId ? '#fff' : '#101416'} strokeWidth="5" />
-        : operator && <Soldier key={unit.id} unit={unit} operator={operator} selected={unit.id === selectedId} onSelect={onSelect} />;
+        : operator && <Soldier key={unit.id} unit={unit} operator={operator} selected={unit.id === selectedId} onSelect={onSelect} time={time} />;
     })}
     {!miniature && events.filter(event => event.type === 'shot' && event.position && event.targetPosition && time >= event.time && time - event.time <= Math.max(.1, event.travelSeconds ?? .1)).map((shot, index) => {
       const progress = Math.min(1, (time - shot.time) / Math.max(.1, shot.travelSeconds ?? .1));

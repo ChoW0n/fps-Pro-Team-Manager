@@ -80,7 +80,10 @@ export function BroadcastCanvas(props: Props): ReactElement {
       const nextUnits=new Map(state.next.snapshot.units.map(unit=>[unit.id,unit]));
       const units=state.previous.snapshot.units.map(unit=>interpolateUnit(unit,nextUnits.get(unit.id),amount));
       // 알려진 아군의 다운 원화를 미리 읽어 첫 부상 순간에 큰 이미지 요청이 시작되지 않게 합니다.
-      for(const unit of units.filter(unit=>unit.side===p.side)){const pose=operatorPoseVisual(unit.callSign,true);if(pose)asset(pose.sprite);}
+      for(const unit of units.filter(unit=>unit.side===p.side)){
+        const still=operatorPoseVisual(unit.callSign,true),crawl=operatorPoseVisual(unit.callSign,true,0);
+        if(still)asset(still.sprite);if(crawl)asset(crawl.sprite);
+      }
       const snapshot=amount>=1?state.next.snapshot:state.previous.snapshot,breaches=snapshot.breaches??[];
       const map={...p.map,walls:breaches.reduce((walls,breach)=>breachWalls(walls,breach.wallId,breach.position,breach.width),p.map.walls)};
       const events=p.events.filter(event=>event.time<=time&&event.seenBy?.includes(p.side));
@@ -134,7 +137,15 @@ export function BroadcastCanvas(props: Props): ReactElement {
       // 실체를 연장해서 그리지 않습니다. 끊긴 접촉은 고정된 목격 표식으로만 페이드아웃합니다.
       for(const [id,contact] of contacts){if(cachedVisibleIds.has(id))continue;ctx.save();ctx.globalAlpha=Math.max(0,1-(time-contact.seenAt));ctx.strokeStyle='#6EA8FF';ctx.setLineDash([3,4]);ctx.lineWidth=1.5;ctx.beginPath();ctx.arc(contact.position.x,contact.position.y,17,0,Math.PI*2);ctx.stroke();ctx.setLineDash([]);ctx.font='10px sans-serif';ctx.textAlign='center';ctx.fillStyle='#B0C9E9';ctx.fillText('마지막 목격',contact.position.x,contact.position.y+29);ctx.restore();}
       // 사격 가능한 자세의 총구 계약은 보존합니다. 다운 원화는 실제 다운 상태에서만 사용합니다.
-      for(const unit of visible){const visual=operatorPoseVisual(unit.callSign,Boolean(unit.downed));if(!visual)continue;const image=asset(visual.sprite);if(!imageReady(image))continue;const spriteScale=visual.scale??OPERATOR_SCALE;ctx.save();ctx.translate(unit.position.x,unit.position.y);ctx.rotate(unit.facing+(visual.rotationOffset??0));ctx.globalAlpha=unit.alive?1:.4;
+      for(const unit of visible){
+        const crawling=unit.alive&&unit.downed?.mode==='crawl'&&Math.hypot(unit.velocity.x,unit.velocity.y)>.01;
+        let visual=operatorPoseVisual(unit.callSign,Boolean(unit.downed),crawling?time:undefined);
+        if(!visual)continue;
+        let image=asset(visual.sprite);
+        // 새 행동 시트 디코딩 중에도 이미 읽은 정지 자세를 유지해 인물이 사라지지 않게 합니다.
+        if(!imageReady(image)){visual=operatorPoseVisual(unit.callSign,Boolean(unit.downed));if(!visual)continue;image=asset(visual.sprite);}
+        if(!imageReady(image))continue;
+        const spriteScale=visual.scale??OPERATOR_SCALE;ctx.save();ctx.translate(unit.position.x,unit.position.y);ctx.rotate(unit.facing+(visual.rotationOffset??0));ctx.globalAlpha=unit.alive?1:.4;
         ctx.fillStyle='#07101466';ctx.beginPath();ctx.ellipse(0,5,22,9,0,0,Math.PI*2);ctx.fill();
         if(visual.region)ctx.drawImage(image,visual.region[0],visual.region[1],visual.width,visual.height,-visual.pivot[0]*spriteScale,-visual.pivot[1]*spriteScale,visual.width*spriteScale,visual.height*spriteScale);
         else ctx.drawImage(image,-visual.pivot[0]*spriteScale,-visual.pivot[1]*spriteScale,visual.width*spriteScale,visual.height*spriteScale);

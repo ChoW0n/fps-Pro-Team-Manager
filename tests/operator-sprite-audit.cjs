@@ -52,7 +52,15 @@ if(process.argv[2]){
   });
   const downed=checkSprite(operatorPoseVisual('COLLIER',true));
   assert.notEqual(downed.file,operatorVisual('COLLIER').sprite);
-  const report={kind:'Asset contracts and alpha only; not anatomy, firearm authenticity, animation or browser-play approval',operators:rows,downed,operatorCount:rows.length,completeAnimationPacks:0};
+  const crawl=Array.from({length:4},(_,index)=>operatorPoseVisual('COLLIER',true,index*.25));
+  assert.equal(new Set(crawl.map(frame=>JSON.stringify(frame.region))).size,4,'서로 다른 네 프레임 필요');
+  assert(crawl.every(frame=>frame.sprite===crawl[0].sprite),'한 행동은 한 시트에서 읽어야 합니다');
+  for(const frame of crawl){checkSprite(frame);assert.deepEqual(frame.pivot,crawl[0].pivot);assert.equal(frame.scale,crawl[0].scale);}
+  assert.deepEqual(operatorPoseVisual('COLLIER',true,1),crawl[0],'경기 시각으로 반복');
+  assert.equal(operatorPoseVisual('COLLIER',true),operatorPoseVisual('COLLIER',true,NaN),'정지 및 잘못된 시각은 정지 원화');
+  assert.equal(operatorPoseVisual('COLLIER',false,.5),operatorVisual('COLLIER'),'다운 전에는 다운 이동 금지');
+  assert.equal(operatorPoseVisual('MAGPIE',true,.5),operatorVisual('MAGPIE'),'다른 오퍼레이터 몸 복제 금지');
+  const report={kind:'Asset contracts and alpha only; not anatomy, firearm authenticity, animation or browser-play approval',operators:rows,downed,crawlFrames:crawl.length,crawlSprite:crawl[0].sprite,operatorCount:rows.length,completeAnimationPacks:0};
   fs.writeFileSync(path.resolve(__dirname,'../validation/operator-sprite-audit.json'),JSON.stringify(report,null,2)+'\n');
-  console.log(`PASS ${rows.length} operator asset contracts + COLLIER downed crop; complete animation packs: 0`);
+  console.log(`PASS ${rows.length} operator asset contracts + COLLIER downed + 4 crawl frames; complete animation packs: 0`);
 }

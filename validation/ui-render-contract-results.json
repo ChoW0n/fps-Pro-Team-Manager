@@ -1,5 +1,5 @@
 {
-  "passed": 3,
-  "total": 3,
-  "kind": "React server rendering and asset paths; not browser interaction"
+  "passed": 5,
+  "total": 5,
+  "kind": "React server rendering/assets and synthetic SVG pose fixtures; not engine match evidence or browser interaction"
 }
