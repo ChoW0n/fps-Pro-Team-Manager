@@ -6,6 +6,7 @@ import { breachWalls } from '../domain/realtime/breachGeometry';
 import { angleDifference } from '../domain/realtime/perception';
 import { cameraViewport, combatCamera } from '../domain/realtime/spectatorView';
 import type { TacticalMapDefinition } from '../domain/tacticalMaps';
+import { createSmokeTexture, paintSmoke } from './smokeEffect';
 
 const COLORS = { 공격: '#2FD4C4', 수비: '#F0873C' };
 const ROOT = `${import.meta.env.BASE_URL}operators/`;
@@ -55,6 +56,7 @@ export function BroadcastCanvas(props: Props): ReactElement {
   useEffect(()=>{
     const canvas=canvasRef.current!; const ctx=canvas.getContext('2d',{alpha:false})!;
     const images=new Map<string,HTMLImageElement>();
+    const smokeTexture=createSmokeTexture();
     /** 인물 원화는 한 번만 읽고 디코드된 이미지를 재사용합니다. */
     const asset=(file:string):HTMLImageElement=>{let image=images.get(file);if(!image){image=new Image();image.src=ROOT+file;images.set(file,image);}return image;};
     let frame=0,scene:HTMLCanvasElement|null=null,sceneKey='',visionKey='';
@@ -109,8 +111,11 @@ export function BroadcastCanvas(props: Props): ReactElement {
         if(!vision.some(friend=>observer.canObserve(friend,portal.center,map,snapshot.gadgets,time)))continue;
         const opened=snapshot.openedPortals?.includes(portal.id);ctx.save();ctx.translate(portal.center.x,portal.center.y);if(portal.axis==='vertical')ctx.rotate(Math.PI/2);ctx.fillStyle=portal.traversal==='window'?(opened?'#A7CDCE33':'#86CEDB88'):'#B7A984';ctx.fillRect(-portal.width/2,-6,portal.width,12);ctx.strokeStyle='#D9E4D8';ctx.lineWidth=2;ctx.strokeRect(-portal.width/2,-8,portal.width,16);if(opened){ctx.beginPath();ctx.moveTo(-portal.width/2,-12);ctx.lineTo(-portal.width/2+8,3);ctx.lineTo(-portal.width/2+15,-8);ctx.stroke();}ctx.restore();
       }
-      for(const gadget of snapshot.gadgets??[]){if(time>=gadget.until)continue;const flight=gadget.from&&gadget.landedAt&&gadget.thrownAt!==undefined?Math.max(0,Math.min(1,(time-gadget.thrownAt)/(gadget.landedAt-gadget.thrownAt))):1;const point=gadget.from?{x:gadget.from.x+(gadget.position.x-gadget.from.x)*flight,y:gadget.from.y+(gadget.position.y-gadget.from.y)*flight}:gadget.position;if(gadget.side!==p.side&&!vision.some(friend=>observer.canObserve(friend,point,map,snapshot.gadgets,time)))continue;
-        if(gadget.kind==='smoke'&&time>=gadget.activeAt){const grown=Math.min(1,(time-gadget.activeAt)/1.1);ctx.save();ctx.globalAlpha=.72;for(let i=0;i<11;i++){const angle=seeded(gadget.id,i)*Math.PI*2,orbit=seeded(gadget.id,i+20)*gadget.radius*.48*grown,radius=gadget.radius*(.28+seeded(gadget.id,i+40)*.3)*grown;ctx.beginPath();ctx.arc(point.x+Math.cos(angle)*orbit,point.y+Math.sin(angle)*orbit,radius,0,Math.PI*2);ctx.fillStyle=i%3===0?'#D5DCD8':'#89989D';ctx.fill();}ctx.restore();continue;}
+      for(const gadget of snapshot.gadgets??[]){if(time>=gadget.until)continue;const flight=gadget.from&&gadget.landedAt&&gadget.thrownAt!==undefined?Math.max(0,Math.min(1,(time-gadget.thrownAt)/(gadget.landedAt-gadget.thrownAt))):1;const point=gadget.from?{x:gadget.from.x+(gadget.position.x-gadget.from.x)*flight,y:gadget.from.y+(gadget.position.y-gadget.from.y)*flight}:gadget.position;
+        // 연막 자체를 볼 때만 자기 차폐를 제외합니다. 적 선수 판정과 다른 연막·벽은 그대로 유지합니다.
+        const occluders=gadget.kind==='smoke'?(snapshot.gadgets??[]).filter(other=>other.id!==gadget.id):snapshot.gadgets;
+        if(gadget.side!==p.side&&!vision.some(friend=>observer.canObserve(friend,point,map,occluders,time)))continue;
+        if(gadget.kind==='smoke'&&time>=gadget.activeAt){paintSmoke(ctx,smokeTexture,point.x,point.y,gadget.radius,time-gadget.activeAt,gadget.until-gadget.activeAt);continue;}
         ctx.beginPath();ctx.arc(point.x,point.y,gadget.kind==='camera'?7:5,0,Math.PI*2);ctx.fillStyle=gadget.kind==='camera'?'#6EA8FF':'#FFC53D';ctx.fill();}
       const objective=snapshot.objective,device=objective?.devicePosition;
       if(device&&(objective.activeUntil||p.side==='공격'||vision.some(friend=>observer.canObserve(friend,device,map,snapshot.gadgets,time)))){ctx.fillStyle='#16272F';ctx.fillRect(device.x-12,device.y-9,24,18);ctx.strokeStyle='#FFC53D';ctx.strokeRect(device.x-12,device.y-9,24,18);ctx.fillStyle='#2FD4C4';ctx.fillRect(device.x-6,device.y-4,9,6);}
