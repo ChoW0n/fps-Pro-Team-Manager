@@ -813,8 +813,9 @@ export class TacticalRealtimeSimulation {
         const acquisition=.15+(1-control)*.35+(1-exposure)*.65+Math.max(0,range-450)/1800;
         const returning=unit.side==='공격'&&openingSearch&&operationState.phase!=='scouting'&&operationMoving;
         // 복귀 임무 중 먼 적을 보았다는 이유로 무한 조준 대기하지 않습니다.
+        const scoutCompromised=isOpeningScout&&range>120&&visualContactDuration>.35;
         const breakContact=Boolean(!mustCommit && (retreatRestUntil.get(unit.id) ?? 0) <= now
-          && seen && (returning && range > 180 || range > handling.comfortableDistance && visualContactDuration > 2.5));
+          && seen && (scoutCompromised || returning && range > 180 || range > handling.comfortableDistance && visualContactDuration > 2.5));
         const friendlyLine=Boolean(target&&living(unit.side).some(friend=>friend.id!==unit.id&&distance(muzzle,friend.position)<distance(muzzle,target.position)&&pointToSegmentDistance(friend.position,muzzle,target.position)<UNIT_RADIUS));
         const canImproviseNow = !objectiveTask && !activeDevice && !openingSearch && !anchorDuty && !losingPosition;
         if (trait === 'self-assured' && canImproviseNow && seen && range > 180
@@ -875,7 +876,7 @@ export class TacticalRealtimeSimulation {
         if (desired !== unit.action && (actionLockUntil.get(unit.id) ?? 0) <= now) {
           unit.decision=undefined;
           unit.goal = desired === 'reposition'
-            ? '열세 판단 후 후퇴·재배치'
+            ? scoutCompromised ? '선발조 노출 확인 · 엄폐 이탈 후 수색 재개' : '열세 판단 후 후퇴·재배치'
             : desired === 'search'
               ? '마지막 소리 위치 수색'
               : desired === 'hold' ? '담당 구역 각 유지'
