@@ -88,9 +88,14 @@ export function paintMinimalOperator(ctx:CanvasRenderingContext2D,unit:RealtimeU
   else if(kit.tool==='radio'){box(-15,10,8,7,shade);ctx.beginPath();ctx.moveTo(-15,12);ctx.lineTo(-24,12);ctx.stroke();}
   else{for(let i=0;i<Math.min(3,kit.pouches);i++)box(-17+i*5,11,4,6,light);}
   // 같은 두 면의 헬멧이 모든 방향에서 회전하므로 특정 각도에서 높이가 바뀌지 않습니다.
+  // 작은 호흡만 헬멧에 적용합니다. 총구·시야 방향·충돌 좌표는 바꾸지 않습니다.
+  const phase=[...unit.id].reduce((sum,char)=>sum+char.charCodeAt(0),0);
+  const resting=!reducedMotion&&!moving&&!down&&['hold','aim','search'].includes(unit.action);
+  ctx.save();if(resting)ctx.translate(Math.sin(time*1.6+phase)*(unit.action==='aim'?.3:.6),0);
   poly([[-14,-6],[-10,-11],[-2,-12],[5,-7],[6,1],[0,6],[-10,5],[-15,0]],shade);
   poly([[-12,-6],[-9,-10],[-2,-10],[3,-6],[3,0],[-2,3],[-10,2]],kit.color);
   box(-9,-12,8,3,light);box(-8,4,6,3,shade);
+  ctx.restore();
   ctx.fillStyle=unit.side==='공격'?'#2FD4C4':'#F0873C';ctx.fillRect(-18,-5,2,5);
   if(!down){
     const gunStowed=installing||throwing;

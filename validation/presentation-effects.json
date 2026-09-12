@@ -1,0 +1,37 @@
+{
+  "kind": "Synthetic events through actual Canvas renderer; not browser play",
+  "rows": [
+    {
+      "goal": "emp-pulse",
+      "age": 0.8,
+      "draws": 1
+    },
+    {
+      "goal": "camera-deployed",
+      "age": 1,
+      "draws": 1
+    },
+    {
+      "goal": "interceptor-deployed",
+      "age": 1,
+      "draws": 1
+    },
+    {
+      "goal": "breach-started",
+      "age": 2,
+      "draws": 1
+    }
+  ],
+  "lifecycleTypes": [
+    "death",
+    "downed",
+    "revive",
+    "objective"
+  ],
+  "guards": [
+    "expiry",
+    "unseen",
+    "other floor",
+    "future"
+  ]
+}

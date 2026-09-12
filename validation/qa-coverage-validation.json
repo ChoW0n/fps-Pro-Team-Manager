@@ -1,0 +1,54 @@
+{
+  "baseLocal": "941eb0b",
+  "baseRemote": "2576ea421a088795689f068581a94a86e0d35042",
+  "sameBaseTree": "db9c9b8e1771596cef022ba60276fc099aede597",
+  "checks": {
+    "typecheck": 0,
+    "productionBuild": 0,
+    "presentation-effects": 0,
+    "render-broadcast-canvas": 0,
+    "ui-render-contract": 0,
+    "weapon-grip-contract": 0,
+    "preparation-ui-contract": 0,
+    "match-audio": 0
+  },
+  "canvasScenarios": 16,
+  "browser": {
+    "exitCode": 1,
+    "reason": "Chromium headless shell executable absent",
+    "installExitCode": 124,
+    "installReason": "Download connection timeout; terminated after 30 seconds"
+  },
+  "limitations": [
+    "No actual browser match clicks or listening",
+    "No sprite production or weapon recording authenticity approval",
+    "No new simulation balance measurements",
+    "Skia timings include tablet p95 54.34ms and phone-large p95 56.01ms; not a performance pass or device benchmark"
+  ],
+  "originals": [
+    {
+      "path": "docs/2026-09-12-qa-debrief.md",
+      "sha256": "29d0ad681fc42b08d944f3d2cdf6328a1d6e8d27c39e7418ff3008a646a2e57d"
+    },
+    {
+      "path": "docs/ai-behavior-qa.md",
+      "sha256": "7efe97c511a829ba3e05076f18ec64fc36496fad499bd040246c71225c558a97"
+    },
+    {
+      "path": "docs/level-design-and-vertical-combat.md",
+      "sha256": "d66f2a969f72834c19cfa0d8644151567172d0ffe91bce8219414dff56a65d33"
+    },
+    {
+      "path": "docs/OPERATOR_SPRITE_GUIDE.md",
+      "sha256": "2d7fdfac3c773feb9280dae03084b8b31843b8efdd2a5eae26a72dbf0280c92b"
+    },
+    {
+      "path": "docs/qa-sources/direction-and-grip-qa.md",
+      "sha256": "ca3c5ea0d9d5c8c05bda71dcb31f5fabc2e86bdab7955d013832432b8f858758"
+    },
+    {
+      "path": "docs/qa-sources/presentation-and-sound-qa.md",
+      "sha256": "0941789eb958a0331e9c8624aa537d16ee6d2fc4bcf25ee51223ce27a5703f9c"
+    }
+  ]
+}

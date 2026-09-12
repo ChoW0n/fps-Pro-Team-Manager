@@ -34,6 +34,7 @@
 
 .emblem-unknown{display:inline-grid!important;place-items:center;background:#16232B;border:1px solid #8EA1A9;font-weight:800;font-size:20px}
 .is-tactical .cast-player{display:none}
+.cast-decision{margin:7px 0 0;font-size:11px;line-height:1.4;color:#D3DDD5;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 
 @media(max-width:600px){
  .cast-controls{bottom:calc(78px + env(safe-area-inset-bottom));right:max(8px,env(safe-area-inset-right));display:grid;grid-template-columns:repeat(3,minmax(0,1fr));width:174px}
