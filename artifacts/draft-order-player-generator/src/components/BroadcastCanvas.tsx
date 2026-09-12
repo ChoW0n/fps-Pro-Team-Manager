@@ -9,6 +9,11 @@ import { cameraViewport, combatCamera, rememberContacts, visionPolygon } from '.
 import type { TacticalMapDefinition } from '../domain/tacticalMaps';
 import { createSmokeTexture, paintSmoke } from './smokeEffect';
 
+/** 고밀도 폰은 원래 DPR을 사용하되 캔버스 한 장을 약 16MB 이하로 제한합니다. */
+export function canvasSize(width:number,height:number,ratio:number):{width:number;height:number} {
+  const dpr=Math.min(Math.max(1,Number.isFinite(ratio)?ratio:1),3,Math.sqrt(4_000_000/Math.max(1,width*height)));
+  return {width:Math.max(1,Math.floor(width*dpr)),height:Math.max(1,Math.floor(height*dpr))};
+}
 const ROOT = `${import.meta.env.BASE_URL}operators/`;
 type Props = { tick: RealtimeTick | null; events: RealtimeEvent[]; map: TacticalMapDefinition; side: OperatorSide; selectedId: string | null; mode: 'broadcast' | 'follow' | 'full'; speed: number; paused: boolean; onSelect: (id: string) => void; onFocus?: (id: string | null) => void };
 
@@ -59,7 +64,7 @@ export function BroadcastCanvas(props: Props): ReactElement {
     const smokeTexture=createSmokeTexture();
     /** 인물 원화는 한 번만 읽고 디코드된 이미지를 재사용합니다. */
     const asset=(file:string):HTMLImageElement=>{let image=images.get(file);if(!image){image=new Image();image.src=ROOT+file;images.set(file,image);}return image;};
-    const touchMedia=window.matchMedia('(hover: none) and (pointer: coarse)'),motionMedia=window.matchMedia('(prefers-reduced-motion: reduce)');
+    const motionMedia=window.matchMedia('(prefers-reduced-motion: reduce)');
     let frame=0,scene:HTMLCanvasElement|null=null,sceneKey='',visionKey='';
     let cachedVision:RealtimeUnitState[]=[];let cachedVisibleIds=new Set<string>(),camera={x:0,y:0,width:430,height:260};
     let focusId:string|null=null,holdUntil=0,lastStamp=0,cameraReady=false;
@@ -73,7 +78,7 @@ export function BroadcastCanvas(props: Props): ReactElement {
     /** 실제 틱 사이의 이동만 표시하고 발사·탄착은 그 사건의 기록 위치와 시각으로 그립니다. */
     const draw=(stamp:number):void=>{
       frame=requestAnimationFrame(draw);const state=timeline.current,p=latest.current;if(!state)return;
-      const rect=canvas.getBoundingClientRect(),dpr=Math.min(touchMedia.matches||rect.height<520?1:1.5,window.devicePixelRatio||1),w=Math.max(1,Math.round(rect.width*dpr)),h=Math.max(1,Math.round(rect.height*dpr));
+      const rect=canvas.getBoundingClientRect(),{width:w,height:h}=canvasSize(rect.width,rect.height,window.devicePixelRatio||1);
       if(canvas.width!==w||canvas.height!==h){canvas.width=w;canvas.height=h;}
       const amount=p.paused?1:Math.min(1,Math.max(0,(stamp-state.received)/(100/p.speed)));
       const time=state.previous.time+(state.next.time-state.previous.time)*amount;
@@ -108,17 +113,20 @@ export function BroadcastCanvas(props: Props): ReactElement {
       const elapsed=Math.min(.05,(stamp-lastStamp)/1000||.016);lastStamp=stamp;
       const reducedMotion=motionMedia.matches;
       const blend=reducedMotion||!cameraReady?1:1-Math.exp(-elapsed*9);
-      for(const key of ['x','y','width','height'] as const)camera[key]+=(viewport[key]-camera[key])*blend;
+      for(const key of ['x','y','width','height'] as const){const delta=viewport[key]-camera[key];camera[key]=Math.abs(delta)<.01?viewport[key]:camera[key]+delta*blend;}
       cameraReady=true;
       const scale=Math.min(w/camera.width,h/camera.height),ox=(w-camera.width*scale)/2,oy=(h-camera.height*scale)/2;
       // 관전 밖의 폭발은 화면을 흔들지 않으며 동작 줄이기·일시 정지는 충격을 끕니다.
       const blast=!reducedMotion&&!p.paused&&p.mode!=='full'?[...events].reverse().find(event=>event.position&&event.position.x>=camera.x&&event.position.x<=camera.x+camera.width&&event.position.y>=camera.y&&event.position.y<=camera.y+camera.height&&vision.some(friend=>observer.canObserve(friend,event.position!,map,snapshot.gadgets,time))&&time-event.time>=0&&time-event.time<.38&&(event.goal==='grenade-exploded'||event.goal==='wall-breached')):undefined;
       const blastAge=blast?time-blast.time:1,shake=blast?(1-blastAge/.38)*Math.min(7,scale*5):0,shakeX=(seeded(`${blast?.time}:x`,Math.floor(blastAge*80))-.5)*shake,shakeY=(seeded(`${blast?.time}:y`,Math.floor(blastAge*80))-.5)*shake;
       ctx.setTransform(1,0,0,1,0,0);ctx.fillStyle='#080E12';ctx.fillRect(0,0,w,h);ctx.setTransform(scale,0,0,scale,ox-camera.x*scale+shakeX,oy-camera.y*scale+shakeY);
-      const key=p.map.id+':'+breaches.map(b=>b.wallId+':'+b.position.x+':'+b.position.y).join(',')+':'+(snapshot.fortifications??[]).map(item=>item.id).join(',');
-      if(!scene||key!==sceneKey){scene=document.createElement('canvas');scene.width=Math.ceil(map.width/2);scene.height=Math.ceil(map.height/2);const sceneContext=scene.getContext('2d')!;sceneContext.scale(.5,.5);paintBattleMap(sceneContext,map);sceneKey=key;}
+      const mapX=Math.floor((camera.x*scale-ox)/128)*128,mapY=Math.floor((camera.y*scale-oy)/128)*128;
+      const key=[w,h,mapX,mapY,scale].join(':')+':'+p.map.id+':'+breaches.map(b=>b.wallId+':'+b.position.x+':'+b.position.y).join(',')+':'+(snapshot.fortifications??[]).map(item=>item.id).join(',');
+      // 전체 지도를 저해상도로 확대하지 않고 현재 화면만 출력 픽셀에 직접 그립니다.
+      // 카메라가 멈추면 재사용하며, 이동·회전·파괴 시 같은 캔버스를 갱신합니다.
+      if(!scene||key!==sceneKey){scene??=document.createElement('canvas');if(scene.width!==w+128||scene.height!==h+128){scene.width=w+128;scene.height=h+128;}const c=scene.getContext('2d')!;c.setTransform(1,0,0,1,0,0);c.clearRect(0,0,scene.width,scene.height);c.setTransform(scale,0,0,scale,-mapX,-mapY);paintBattleMap(c,map);sceneKey=key;}
       // 감독은 익숙한 경기장 구조를 보되 상대 선수·가젯은 실제 개인 시야로 확인된 경우에만 봅니다.
-      ctx.globalAlpha=.86;ctx.drawImage(scene,camera.x/2,camera.y/2,camera.width/2,camera.height/2,camera.x,camera.y,camera.width,camera.height);ctx.globalAlpha=1;
+      ctx.save();ctx.setTransform(1,0,0,1,shakeX,shakeY);ctx.globalAlpha=.86;ctx.drawImage(scene,ox-camera.x*scale+mapX,oy-camera.y*scale+mapY);ctx.restore();
       // 전술 보기의 선택 아군만 실제 벽·연막으로 잘린 시야를 표시합니다. 적 정보는 추가로 공개하지 않습니다.
       const watched=p.mode==='full'?snapshot.units.find(unit=>unit.id===p.selectedId&&unit.side===p.side&&unit.alive):undefined;
       if(watched){const key=snapshot.time+':'+watched.id;if(key!==fanKey){fanKey=key;

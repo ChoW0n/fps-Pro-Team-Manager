@@ -1,10 +1,10 @@
-# 현재 작업 프롬프트 — 2026-09-12
+# 현재 작업 프롬프트 — 2026-09-12 모바일·QA 후속
 
-목표: 사용자가 거부한 코드 총기를 개별 래스터 스프라이트로 교체하고 과도하게 늘어나는 투척 팔을 수정한다.
-완료 조건: 참조 시트 수준의 총기 식별 구조, 투명 배경, 총구/파지 정렬, 실제 중계 연결. 생성만 한 시안과 연결·검증을 구분한다.
-금지: 벡터 총기 재사용, 품질을 낮춘 대체물, 가짜 투척 판정, 별도 API 과금.
-현재 근거: 기존 12종은 코드 도형이며 사용자가 품질 미달로 거부했다. 투척은 직선 팔 길이 변화여서 부자연스럽다.
-다음 행동: L119A2 개별 스프라이트부터 새 프롬프트로 생성·검수하고 같은 제작 규격을 총종별로 조정한다.
+목표: 승인된 생성 총기를 유지하면서 약실 개방처럼 보이는 부분을 국소 수정하고, 모바일 캔버스 열화 원인을 제거한다. 구버전 Claude QA는 본문 확보 후 현재 코드와 대조한다.
+완료 조건: DPR·화면 크기·회전별 실제 렌더러와 CSS 터치 좌표 검증, 원화 알파와 파지 기준점 보존, GitHub 안전 병합·푸시와 Replit Free 실행 확인. 실기기 검증과 로컬 검증을 구분한다.
+제약: 거부된 코드 총기 재사용 금지. 기존 데이터·AI 정보 규칙·포트·작업 보존. 유료 옵션 금지. QA 본문 추측 금지. C# 전환은 언어 자체 병목의 근거가 있을 때만 한다.
+현재 근거: 터치/짧은 화면 DPR 1 제한, 지도 0.5배 캐시, 총기 192px 고정 중간 이미지. 시뮬레이션은 Worker에서 실행된다. Claude 링크 일반 열람 실패로 본문 미확보.
+다음 행동: 화면 픽셀 예산 내 고밀도 출력과 화면 크기 지도 캐시를 적용·검증한다. 총기는 원본 검수 후 국소 편집 프롬프트를 별도 기록한다.
 
 ## 공통 제작 프롬프트
 
@@ -45,3 +45,7 @@
 One isolated production raster sprite for DRAFT ORDER. Perfect horizontal right-facing side profile: stock left, muzzle right. Realistic recognizable exterior firearm structure and proportions, illustrated tactical weapon mod quality. Bold continuous near-black outline, charcoal metal with 2–3 large flat gray highlight planes, low-saturation military polymer furniture. Purposeful receiver/controls/rail/magazine details at the quality of detailed RimWorld gun mods, never crude geometric icon shapes. Crisp cel shaded hand-drawn illustration, NO photographic textures, gradient noise, stippling or glossy 3D rendering. Exactly ONE whole gun, clear margins, large landscape image. Genuine transparent PNG alpha around it and through open trigger guard/stock spaces. No checkerboard, solid background, text, logo, watermark, hands, person, detached parts or shadow.
 
 각 호출에는 위 표의 총종별 대상 문장을 덧붙였습니다. 기본 제공 이미지 생성 도구를 사용했으며 별도 API 키·유료 CLI는 사용하지 않았습니다.
+
+## 국소 편집 프롬프트 — 이번 작업
+
+대상 L119A2 / HK416 각 개별 원본. precise-object-edit. 현재 승인된 측면 게임 PNG를 그대로 유지하고 리시버의 열린 배출구 덮개만 닫힌 상태로 변경한다. 약실 내부가 드러나 보이지 않게 하되 리시버 전체를 새로 디자인하지 않는다. 총구, 개머리판, 탄창, 손잡이, 조준경, 색상, 외곽, 여백, 원본 크기와 투명 알파를 보존한다. 한 자루, 배경·체크무늬·그림자·텍스트 없음. 편집 결과의 알파/구도/기준점이 깨지면 연결하지 않는다. 다른 총종은 열린 덮개와 닫힌 노리쇠가 보이는 배출구를 혼동해 일괄 덮지 않는다.
