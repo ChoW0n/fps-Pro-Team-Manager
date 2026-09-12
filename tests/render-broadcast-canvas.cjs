@@ -16,14 +16,16 @@ const decoded=path.join(output,'.canvas-decoded');fs.mkdirSync(decoded,{recursiv
 // Skia 바인딩이 일부 정상 PNG/WebP를 거부해 테스트에서만 재인코딩합니다. 배포 원본은 수정하지 않습니다.
 execFileSync('python3',['-c',`from PIL import Image\nfrom pathlib import Path\ns=Path(${JSON.stringify(app+'/public/operators')});d=Path(${JSON.stringify(decoded)})\nfor p in s.glob('minimal-*.png'):\n Image.open(p).verify()\n Image.open(p).save(d/(p.stem+'.png'))`]);
 // 디코드한 파일명도 기록하여 새 자세의 실제 drawImage 호출을 검증합니다.
-class LocalImage extends Image {set src(url){const name=url.split('/').at(-1),png=path.join(decoded,name.replace(/\.webp$/,'.png'));this.assetName=name;super.src=fs.readFileSync(fs.existsSync(png)?png:app+'/public/operators/'+name);}}
+class LocalImage extends Image {set src(url){const name=url.split('/').at(-1),png=path.join(decoded,name.replace(/\.webp$/,'.png'));this.assetName=name;super.src=fs.existsSync(png)?png:app+'/public/operators/'+(url.includes('/weapons/')?'weapons/':'')+name;}}
 global.Image=LocalImage;global.window={devicePixelRatio:1,matchMedia:()=>({matches:false})};global.document={createElement:()=>createCanvas(1,1)};
 let callback;global.requestAnimationFrame=fn=>{callback=fn;return 1;};global.cancelAnimationFrame=()=>{};
+const weaponRenderer=require(app+'/src/components/weaponParts.ts'),paintWeapon=weaponRenderer.paintWeaponPart;let weaponDraws=0;weaponRenderer.paintWeaponPart=(...args)=>{const drawn=paintWeapon(...args);if(drawn)weaponDraws++;return drawn;};
 const minimal=require(app+'/src/components/minimalOperator.ts'),paintOperator=minimal.paintMinimalOperator;let recordOperator=()=>{};minimal.paintMinimalOperator=(...args)=>{const result=paintOperator(...args);recordOperator(args[0],args[1]);return result;};
 const {BroadcastCanvas}=require(app+'/src/components/BroadcastCanvas.tsx');const rows=[];
 const {operatorStateVisual}=require(app+'/src/domain/operatorVisuals.ts');
 // Skia의 이미지 디코드 콜백이 끝난 뒤 실제 인물 픽셀까지 포함해 프레임 시간을 잽니다.
 (async()=>{for(const [name,width,height] of [['desktop',1280,720],['phone',390,844],['phone-landscape',844,390],['downed',1280,720],['collier-downed',1280,720],['collier-crawl',1280,720],['walk',1280,720],['crouch',1280,720],['team-visibility',1280,720],['tactical',1280,720],['phone-touch',390,844]]){
+ weaponDraws=0;
  const touch=name==='phone-touch';global.window={devicePixelRatio:touch?3:1,matchMedia:query=>({matches:touch&&query.includes('pointer: coarse')})};let pointer;const centers=[];let selected=null;
  const canvas=createCanvas(width,height);canvas.getBoundingClientRect=()=>({width,height,left:0,top:0});canvas.addEventListener=(type,fn)=>{if(type==='pointerup')pointer=fn;};canvas.removeEventListener=()=>{};
  const context=canvas.getContext('2d');let operatorDraws=0;const drawnIds=new Set();
@@ -47,6 +49,9 @@ const {operatorStateVisual}=require(app+'/src/domain/operatorVisuals.ts');
  // 첫 프레임에서 이미지 요청이 시작됩니다. 그 전에 기다리면 빈 스프라이트를 검사하게 됩니다.
  callback(stamp+=16.67);await new Promise(resolve=>setTimeout(resolve,50));
  for(let frame=0;frame<45;frame++){const started=performance.now();callback(stamp+=16.67);if(frame>=15)times.push(performance.now()-started);}
+ const armedVisible=renderedTick.snapshot.units.some(unit=>drawnIds.has(unit.id)&&unit.alive&&!unit.downed);
+ if(armedVisible)assert(weaponDraws>0,`${name}: 새 PNG 총기가 실제로 그려져야 합니다`);
+ else assert.equal(weaponDraws,0,`${name}: 다운 선수에게 파지 총기를 표시하지 않음`);
  assert(operatorDraws>0,`${name}: 실제 인물 합성기가 호출되어야 합니다`);
  const pixels=context.getImageData(0,0,canvas.width,canvas.height).data;assert(new Set(pixels).size>20,'비어 있는 지도나 단색 화면을 통과시키지 않습니다');
  if(name==='team-visibility'){assert(operatorDraws>=45*5,'아군 다섯 명이 매 프레임 표시되어야 합니다');for(const unit of renderedTick.snapshot.units.filter(u=>u.side==='공격'))assert(drawnIds.has(unit.id));}

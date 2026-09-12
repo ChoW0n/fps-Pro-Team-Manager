@@ -1,0 +1,22 @@
+{
+  "method": "Built-in image generation; individual raster sprites; original PNG copied unchanged",
+  "files": {
+    "l119": "b499d6a4-c598-4042-864c-ee3f7c2cce92",
+    "mp5sd": "f3d76b27-8dbc-44b9-81cb-ef29521b5bc9",
+    "hk416": "0065bf96-b421-4f52-bef5-81f274b256e4",
+    "x95": "45c794e3-0a89-4187-aaf8-be4dc6c9df66",
+    "mpx": "823b9e6c-fa0f-4a0c-8d6f-5a2d84f5de68",
+    "val": "a2f4d2c9-ee09-4d7e-9ed5-1778dfb837d2",
+    "hk417": "62587275-9acc-4eab-8275-34d8356d9056",
+    "psg": "926802be-30e7-4d2b-864f-4de616ef1b01",
+    "p90": "f6b524d5-f26e-402a-9db3-cd48c088fcb0",
+    "c14": "3160a433-69cc-4125-8f29-ef20bd3426e3",
+    "k1a": "5e76e9d9-6e90-413d-9d1d-9e7cab1b28d6",
+    "arx": "a5bf7f0b-9130-42d2-a46c-988b8ca8a903"
+  },
+  "rejected": [
+    "exec-e84cdb71-ce7c-47d6-9e84-2b822979716c.png: RGB checkerboard",
+    "exec-9129b2dc-3799-4fa2-bcdf-646527e98664.png: RGB checkerboard"
+  ],
+  "limits": "Illustrated weapon likenesses, not certified manufacturer-exact variant models"
+}

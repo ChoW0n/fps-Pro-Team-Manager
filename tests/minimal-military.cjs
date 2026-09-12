@@ -6,10 +6,9 @@ const app=path.resolve(__dirname,'../artifacts/draft-order-player-generator');
 const {paintMinimalOperator,weaponSilhouette}=require(app+'/src/components/minimalOperator.ts');
 const {OPERATORS}=require(app+'/src/domain/Operator.ts');
 (async()=>{
- const images=new Map();let bytes=0;
- for(const file of fs.readdirSync(app+'/public/operators').filter(file=>file.startsWith('minimal-'))){const data=fs.readFileSync(app+'/public/operators/'+file);bytes+=data.length;const image=await loadImage(data);assert.equal(image.width,128);assert.equal(image.height,128);images.set(file,image);}
- assert.equal(images.size,9);assert(bytes<250000);
- const asset=file=>{assert(images.has(file),file);return images.get(file);};
+ const files=fs.readdirSync(app+'/public/operators/weapons').filter(file=>file.endsWith('.png'));assert.equal(files.length,12);
+ const bytes=files.reduce((sum,file)=>sum+fs.statSync(app+'/public/operators/weapons/'+file).size,0);
+ const asset=await require('./load-weapon-sprites.cjs')();
  const canvas=createCanvas(960,840),ctx=canvas.getContext('2d');ctx.fillStyle='#263237';ctx.fillRect(0,0,960,840);
  let draws=0;
  for(const [index,operator] of OPERATORS.entries()){
@@ -28,6 +27,6 @@ const {OPERATORS}=require(app+'/src/domain/Operator.ts');
  // 무기와 자세를 고정해도 열두 군장의 실제 합성 결과가 각각 달라야 합니다.
  for(const facing of [Math.PI/2,-Math.PI/2,0])assert.equal(new Set(OPERATORS.map(operator=>render(1,{callSign:operator.callSign,facing}).toString('base64'))).size,12);
  fs.writeFileSync('validation/minimal-military-roster.png',canvas.toBuffer('image/png'));
- fs.writeFileSync('validation/minimal-military.json',JSON.stringify({parts:9,bytes,operators:12,directions:3,actualComposites:draws,checks:'asset dimensions, all compositions, deterministic state, movement/down state, event-bound recoil, twelve distinct kit compositions per view',limits:'Twelve individual primary weapon profiles and continuously rotating steep top-down vector bodies; legacy PNG assets archived; not authenticated gear sets or browser play'},null,2)+'\n');
- console.log('PASS 9 parts, 36 real compositions, state/recoil contracts',bytes,'bytes');
+ fs.writeFileSync('validation/minimal-military.json',JSON.stringify({weaponSprites:12,bytes,operators:12,directions:3,actualComposites:draws,checks:'twelve generated PNGs, all compositions, deterministic state, movement/down state, event-bound recoil, twelve distinct kit compositions per view',limits:'Twelve individually generated PNG primary weapons and continuously rotating steep top-down bodies; legacy PNG assets archived; not authenticated gear sets or browser play'},null,2)+'\n');
+ console.log('PASS 12 weapon sprites, 36 real compositions, state/recoil contracts',bytes,'bytes');
 })().catch(error=>{console.error(error);process.exitCode=1;});

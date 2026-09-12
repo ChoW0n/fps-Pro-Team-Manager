@@ -37,6 +37,13 @@ export function weaponSilhouette(name:string):'carbine'|'suppressed'|'bullpup'|'
   return 'carbine';
 }
 
+/** 실제 투척 직후부터 회복까지의 관절 회전. 팔 길이는 고정입니다. */
+export function throwArmPose(progress:number):{elbow:{x:number;y:number};hand:{x:number;y:number}}{
+ const p=Math.max(0,Math.min(1,progress)),a=-.4+p*1.2,b=-.65-p*.7;
+ const elbow={x:2+Math.cos(a)*9,y:10+Math.sin(a)*9};
+ return {elbow,hand:{x:elbow.x+Math.cos(b)*8,y:elbow.y+Math.sin(b)*8}};
+}
+
 export interface OperatorMotion { reloadStartedAt?:number; thrown?:RealtimeGadget; }
 
 /** 가파른 탑뷰의 한 로컬 좌표계를 머리·군장·팔·총기가 연속적으로 공유합니다. */
@@ -54,7 +61,7 @@ export function paintMinimalOperator(ctx:CanvasRenderingContext2D,unit:RealtimeU
   const throwAge=thrown?.thrownAt===undefined?-1:time-thrown.thrownAt;
   // 이미 발사된 투척물의 후속 팔 동작만 표시합니다. 가짜 수류탄을 손에 생성하지 않습니다.
   const throwing=!down&&!reload&&!installing&&throwAge>=0&&throwAge<.45;
-  const throwReach=throwing?(reducedMotion?8:15*(1-throwAge/.45)):0;
+  const throwProgress=throwing?(reducedMotion?.6:Math.min(1,throwAge/.45)):0;
   const moving=Math.hypot(unit.velocity.x,unit.velocity.y)>1&&unit.alive;
   const step=!reducedMotion&&moving&&!down?Math.sin(time*(unit.locomotion==='sprint'?15:10)):0;
   const age=shotAt===undefined?1:time-shotAt,kick=!reducedMotion&&age>0&&age<.14?Math.sin(age/.14*Math.PI)*1.2:0;
@@ -90,24 +97,33 @@ export function paintMinimalOperator(ctx:CanvasRenderingContext2D,unit:RealtimeU
   box(-9,-12,8,3,light);box(-8,4,6,3,shade);
   ctx.fillStyle=unit.side==='공격'?'#2FD4C4':'#F0873C';ctx.fillRect(-18,-5,2,5);
   if(!down){
-    const magX=(part.mag[0][0]+part.mag[1][0])/2;
-    const support=travel>0?[magX,(part.id==='P90'?-7-travel:6+travel)]:[part.support,2];
-    for(const [index,[x,y]] of [[part.grip-kick,5],[support[0]-kick,support[1]]].entries()){
-      if(installing||throwing&&index===1)continue;
-      const hand={x:tip.x+x*.75,y:tip.y+y*.75},shoulder={x:2,y:index?10:-10};
-      ctx.strokeStyle=ink;ctx.lineWidth=7;ctx.beginPath();ctx.moveTo(shoulder.x,shoulder.y);ctx.lineTo(hand.x,hand.y);ctx.stroke();ctx.strokeStyle=kit.color;ctx.lineWidth=3;ctx.stroke();
-    }
-    // 무기는 언제나 전방에 그립니다. 270도도 별도 가림·거울 반전 분기가 없습니다.
-    ctx.save();ctx.translate(tip.x,tip.y);if(installing){ctx.translate(-9,14);ctx.rotate(-.25);}ctx.scale(.75,.75);ctx.translate(-kick,0);paintWeaponPart(ctx,unit.weaponName??'',kit.color,outline/.75,{hands:!installing&&!throwing,magazineTravel:travel});
+    const gunStowed=installing||throwing;
+    const grip=part.gripPoint,support=part.supportPoint;
+    // 탄창은 원본에 포함되어 있습니다. 장전은 손의 접근 동작으로 표시하고 가짜 탄창은 덧그리지 않습니다.
+    const reach=travel/9;
+    const workHand={x:support[0]+(part.magazinePoint[0]-support[0])*reach,y:support[1]+(part.magazinePoint[1]-support[1])*reach};
+    const hands=gunStowed?[]:[{x:tip.x+(grip[0]-kick),y:tip.y+grip[1]},{x:tip.x+(workHand.x-kick),y:tip.y+workHand.y}];
+    // 팔꿈치를 가진 두 구간으로 연결합니다. 투척에서도 팔 길이를 확대하지 않습니다.
+    const arm=(side:number,elbow:{x:number;y:number},hand:{x:number;y:number})=>{
+      ctx.strokeStyle=ink;ctx.lineWidth=7;ctx.beginPath();ctx.moveTo(2,side*10);ctx.lineTo(elbow.x,elbow.y);ctx.lineTo(hand.x,hand.y);ctx.stroke();ctx.strokeStyle=kit.color;ctx.lineWidth=3;ctx.stroke();
+    };
+    hands.forEach((hand,i)=>arm(i?1:-1,{x:hand.x*.5,y:(i?10:-10)+3},hand));
+    // 총기 원화 전체를 그대로 조립합니다. 실제 발사 시 총구는 엔진 위치에 정렬합니다.
+    ctx.save();ctx.translate(tip.x,tip.y);if(gunStowed){const lower=installing?1:1-throwProgress;ctx.translate(-7*lower,9*lower);}ctx.translate(-kick,0);
+    paintWeaponPart(ctx,unit.weaponName??'',_asset);
     if(unit.shieldRaised){ctx.fillStyle=shade;ctx.strokeStyle=ink;ctx.lineWidth=outline/.75;ctx.fillRect(-5,-18,7,36);ctx.strokeRect(-5,-18,7,36);ctx.fillStyle=light;ctx.fillRect(-4,-9,5,9);}ctx.restore();
-    if(installing||throwing){
-      const hands=installing?[[13,-6],[13,7]]:[[tip.x+(part.grip-kick)*.75,tip.y+3.75],[15+throwReach,13]];
-      for(const [index,[x,y]] of hands.entries()){
-        ctx.strokeStyle=ink;ctx.lineWidth=7;ctx.beginPath();ctx.moveTo(2,index?10:-10);ctx.lineTo(x,y);ctx.stroke();ctx.strokeStyle=kit.color;ctx.lineWidth=3;ctx.stroke();
-        ctx.fillStyle=kit.color;ctx.strokeStyle=ink;ctx.lineWidth=outline;ctx.beginPath();ctx.ellipse(x,y,2.7,2.2,0,0,Math.PI*2);ctx.fill();ctx.stroke();
-      }
-      // 작업 자세만 표현합니다. 설치물 생성·진행률·성공 판정은 엔진에 남깁니다.
+    if(installing){
+      hands.push({x:13,y:-6},{x:13,y:7});
+      hands.forEach((hand,i)=>arm(i?1:-1,{x:7,y:i?13:-12},hand));
+    }else if(throwing){
+      // 상완 9, 전완 8의 길이를 보존하며 회전합니다. 발사체 위치/피해 판정은 바꾸지 않습니다.
+      const pose=throwArmPose(throwProgress);
+      arm(1,pose.elbow,pose.hand);hands.push(pose.hand);
+      const resting={x:2,y:-1};arm(-1,{x:-3,y:-8},resting);hands.push(resting);
     }
+    ctx.strokeStyle=ink;ctx.lineWidth=outline;ctx.fillStyle=kit.color;
+    for(const hand of hands){ctx.beginPath();ctx.ellipse(hand.x,hand.y,2.5,2.1,0,0,Math.PI*2);ctx.fill();ctx.stroke();}
+
   }
   ctx.restore();return true;
 }

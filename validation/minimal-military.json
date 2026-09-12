@@ -1,9 +1,9 @@
 {
-  "parts": 9,
-  "bytes": 159494,
+  "weaponSprites": 12,
+  "bytes": 8757853,
   "operators": 12,
   "directions": 3,
   "actualComposites": 36,
-  "checks": "asset dimensions, all compositions, deterministic state, movement/down state, event-bound recoil, twelve distinct kit compositions per view",
-  "limits": "Twelve individual primary weapon profiles and continuously rotating steep top-down vector bodies; legacy PNG assets archived; not authenticated gear sets or browser play"
+  "checks": "twelve generated PNGs, all compositions, deterministic state, movement/down state, event-bound recoil, twelve distinct kit compositions per view",
+  "limits": "Twelve individually generated PNG primary weapons and continuously rotating steep top-down bodies; legacy PNG assets archived; not authenticated gear sets or browser play"
 }

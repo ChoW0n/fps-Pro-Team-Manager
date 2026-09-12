@@ -7,32 +7,32 @@
       "name": "desktop",
       "width": 1280,
       "height": 720,
-      "medianMs": 3.81,
-      "p95Ms": 4.54,
+      "medianMs": 4.91,
+      "p95Ms": 7.86,
       "file": "broadcast-canvas-desktop.png"
     },
     {
       "name": "phone",
       "width": 390,
       "height": 844,
-      "medianMs": 26.24,
-      "p95Ms": 27.83,
+      "medianMs": 28.95,
+      "p95Ms": 31.04,
       "file": "broadcast-canvas-phone.png"
     },
     {
       "name": "phone-landscape",
       "width": 844,
       "height": 390,
-      "medianMs": 25.01,
-      "p95Ms": 26.24,
+      "medianMs": 1.56,
+      "p95Ms": 2.09,
       "file": "broadcast-canvas-phone-landscape.png"
     },
     {
       "name": "downed",
       "width": 1280,
       "height": 720,
-      "medianMs": 25.1,
-      "p95Ms": 27.12,
+      "medianMs": 1.5,
+      "p95Ms": 1.66,
       "file": "broadcast-canvas-downed.png"
     },
     {
@@ -40,7 +40,7 @@
       "width": 1280,
       "height": 720,
       "medianMs": 0.86,
-      "p95Ms": 0.95,
+      "p95Ms": 0.94,
       "file": "broadcast-canvas-collier-downed.png"
     },
     {
@@ -48,47 +48,47 @@
       "width": 1280,
       "height": 720,
       "medianMs": 0.82,
-      "p95Ms": 1.15,
+      "p95Ms": 2,
       "file": "broadcast-canvas-collier-crawl.png"
     },
     {
       "name": "walk",
       "width": 1280,
       "height": 720,
-      "medianMs": 1.21,
-      "p95Ms": 1.46,
+      "medianMs": 1.14,
+      "p95Ms": 1.26,
       "file": "broadcast-canvas-walk.png"
     },
     {
       "name": "crouch",
       "width": 1280,
       "height": 720,
-      "medianMs": 1.48,
-      "p95Ms": 1.72,
+      "medianMs": 1.4,
+      "p95Ms": 1.81,
       "file": "broadcast-canvas-crouch.png"
     },
     {
       "name": "team-visibility",
       "width": 1280,
       "height": 720,
-      "medianMs": 1.31,
-      "p95Ms": 1.53,
+      "medianMs": 1.11,
+      "p95Ms": 1.23,
       "file": "broadcast-canvas-team-visibility.png"
     },
     {
       "name": "tactical",
       "width": 1280,
       "height": 720,
-      "medianMs": 1.64,
-      "p95Ms": 1.75,
+      "medianMs": 1.6,
+      "p95Ms": 1.87,
       "file": "broadcast-canvas-tactical.png"
     },
     {
       "name": "phone-touch",
       "width": 390,
       "height": 844,
-      "medianMs": 1.55,
-      "p95Ms": 1.79,
+      "medianMs": 1.51,
+      "p95Ms": 1.87,
       "file": "broadcast-canvas-phone-touch.png"
     }
   ]

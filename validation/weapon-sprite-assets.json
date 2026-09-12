@@ -1,0 +1,104 @@
+{
+  "count": 12,
+  "totalBytes": 8757853,
+  "source": "Individual built-in generated PNGs, copied without repainting or alpha substitution",
+  "checks": "RGBA, meaningful transparent pixels and visible foreground, all 12 files",
+  "rows": [
+    {
+      "file": "arx-v1.png",
+      "width": 1881,
+      "height": 836,
+      "bytes": 921237,
+      "transparentFraction": 0.608,
+      "sha256": "4f731bdb60e0330e4e5fe8deae86c794e87be7a3c5358bbe40e4f92ce0c98285"
+    },
+    {
+      "file": "c14-v1.png",
+      "width": 2172,
+      "height": 724,
+      "bytes": 578368,
+      "transparentFraction": 0.759,
+      "sha256": "f4ef1ee4309d3ef8774360a243884f5cc7e29daab522783bc655fd2149972399"
+    },
+    {
+      "file": "hk416-v1.png",
+      "width": 1774,
+      "height": 887,
+      "bytes": 743241,
+      "transparentFraction": 0.71,
+      "sha256": "201893edc95b7971acca5bcf81b74873ad0dd87773e87753f87e216d037aa9db"
+    },
+    {
+      "file": "hk417-v1.png",
+      "width": 2172,
+      "height": 724,
+      "bytes": 883470,
+      "transparentFraction": 0.66,
+      "sha256": "1f12612300cfcc7b94f86ec7e094aa73a3885f6dc8e80049963c44fd76f9b0fc"
+    },
+    {
+      "file": "k1a-v1.png",
+      "width": 1920,
+      "height": 819,
+      "bytes": 606141,
+      "transparentFraction": 0.752,
+      "sha256": "c112d0c71d2dc3748f605e2fafecf44e963f8a91eba2c0f3692b0ab836471a22"
+    },
+    {
+      "file": "l119-v1.png",
+      "width": 1774,
+      "height": 887,
+      "bytes": 692994,
+      "transparentFraction": 0.741,
+      "sha256": "6ee519360d5784313bef8aef1de32f5dc9a24ed9c3f1f4a9114d7dee15385f6d"
+    },
+    {
+      "file": "mp5sd-v1.png",
+      "width": 1983,
+      "height": 793,
+      "bytes": 612808,
+      "transparentFraction": 0.721,
+      "sha256": "bc542f3982497ea6b0a890afc63bbf66c371a81e4bc5019e06bef3da7c92111a"
+    },
+    {
+      "file": "mpx-v1.png",
+      "width": 1774,
+      "height": 887,
+      "bytes": 739470,
+      "transparentFraction": 0.699,
+      "sha256": "b3cce9c640fd3aef7adc34c5bda7fa70fd806f007774b953dd5ce255e9ae45c4"
+    },
+    {
+      "file": "p90-v1.png",
+      "width": 1774,
+      "height": 887,
+      "bytes": 1070579,
+      "transparentFraction": 0.49,
+      "sha256": "8a1fa5a476834bfe48e905dc29baa4249cff8304c8259208f65cbbdd1fca9550"
+    },
+    {
+      "file": "psg-v1.png",
+      "width": 2023,
+      "height": 777,
+      "bytes": 539137,
+      "transparentFraction": 0.752,
+      "sha256": "44fc159c6b43ea0ae3d4a28fd4c412a95113c9a0cd2ceb0faaaa10dc8a1c04fe"
+    },
+    {
+      "file": "val-v1.png",
+      "width": 1774,
+      "height": 887,
+      "bytes": 411391,
+      "transparentFraction": 0.836,
+      "sha256": "5df2c7d9d0833121dfcd6178cb4da14a7ad9079d9bc4cc5356ab3c442b3533e6"
+    },
+    {
+      "file": "x95-v1.png",
+      "width": 1774,
+      "height": 887,
+      "bytes": 959017,
+      "transparentFraction": 0.566,
+      "sha256": "5363a89b7ed2600627ac69f6f3c8a1dba130618afc5ad1587c9fc238b643458f"
+    }
+  ]
+}
