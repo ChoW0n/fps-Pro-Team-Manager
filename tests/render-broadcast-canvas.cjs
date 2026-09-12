@@ -18,7 +18,7 @@ const decoded=path.join(output,'.canvas-decoded');fs.mkdirSync(decoded,{recursiv
 // Skia 바인딩이 일부 정상 PNG/WebP를 거부해 테스트에서만 재인코딩합니다. 배포 원본은 수정하지 않습니다.
 execFileSync('python3',['-c',`from PIL import Image\nfrom pathlib import Path\ns=Path(${JSON.stringify(app+'/public/operators')});d=Path(${JSON.stringify(decoded)})\nfor p in s.glob('minimal-*.png'):\n Image.open(p).verify()\n Image.open(p).save(d/(p.stem+'.png'))`]);
 // 디코드한 파일명도 기록하여 새 자세의 실제 drawImage 호출을 검증합니다.
-class LocalImage extends Image {set src(url){const name=url.split('/').at(-1),png=path.join(decoded,name.replace(/\.webp$/,'.png'));this.assetName=name;super.src=fs.existsSync(png)?png:app+'/public/operators/'+(url.includes('/weapons/top/')?'weapons/top/':url.includes('/weapons/')?'weapons/':'')+name;}}
+class LocalImage extends Image {set src(url){const name=url.split('/').at(-1),png=path.join(decoded,name.replace(/\.webp$/,'.png'));this.assetName=name;super.src=url.includes('/effects/')?app+'/public/effects/'+name:fs.existsSync(png)?png:app+'/public/operators/'+(url.includes('/weapons/top/')?'weapons/top/':url.includes('/weapons/')?'weapons/':'')+name;}}
 global.Image=LocalImage;global.window={devicePixelRatio:1,matchMedia:()=>({matches:false})};global.document={createElement:()=>createCanvas(1,1)};
 let callback;global.requestAnimationFrame=fn=>{callback=fn;return 1;};global.cancelAnimationFrame=()=>{};
 const weaponRenderer=require(app+'/src/components/weaponParts.ts'),paintWeapon=weaponRenderer.paintWeaponPart;let weaponDraws=0;weaponRenderer.paintWeaponPart=(...args)=>{const drawn=paintWeapon(...args);if(drawn)weaponDraws++;return drawn;};

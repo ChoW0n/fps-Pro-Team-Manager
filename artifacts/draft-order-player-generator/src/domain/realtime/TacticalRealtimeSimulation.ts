@@ -86,7 +86,7 @@ export interface RealtimeUnitState {
   alive: boolean;
   downed?: DownedState; reviving?: ReviveState; hasBeenDowned?: boolean; lastDamageAt?: number;
 }
-export interface RealtimeGadget { floor?:number; id:string; kind:'smoke'|'grenade'|'camera'|'probe'|'power'|'interceptor'|'emp'; side:OperatorSide; owner:string; position:TacticalPoint; from?:TacticalPoint; thrownAt?:number; landedAt?:number; activeAt:number; until:number; radius:number; revealsOwner?:boolean; disabledUntil?:number; charges?:number; wallId?:string; }
+export interface RealtimeGadget { facing?:number; floor?:number; id:string; kind:'smoke'|'grenade'|'camera'|'probe'|'power'|'interceptor'|'emp'; side:OperatorSide; owner:string; position:TacticalPoint; from?:TacticalPoint; thrownAt?:number; landedAt?:number; activeAt:number; until:number; radius:number; revealsOwner?:boolean; disabledUntil?:number; charges?:number; wallId?:string; }
 export interface RealtimeBreach {wallId:string;position:TacticalPoint;width:number;hard?:boolean}
 export interface RealtimeSnapshot {
   openedHatches?: string[];
@@ -907,7 +907,7 @@ export class TacticalRealtimeSimulation {
         if(!unit.specialUsed&&!unit.traversal&&unit.reloadRemaining<=0&&now>.2&&(unit.side==='수비'||!preparationLocked)){
           if(unit.callSign==='해동'&&unit.side==='공격'&&gadgets.some(device=>electronic(device)&&(device.floor??0)===(unit.floor??0)&&device.side!==unit.side&&gadgetActive(device,now)&&distance(device.position,unit.position)<=240)){
             // 탐지되는 전자 신호에 반응해 자기 쪽에 던집니다. 벽 너머로 투척물을 관통시키지 않습니다.
-            gadgets.push({floor:unit.floor??0,id:unit.id+':emp',kind:'emp',side:unit.side,owner:unit.id,position:{...unit.position},from:{...unit.position},thrownAt:now,landedAt:now+.6,activeAt:now+.6,until:now+1,radius:280});
+            gadgets.push({facing:unit.facing,floor:unit.floor??0,id:unit.id+':emp',kind:'emp',side:unit.side,owner:unit.id,position:{...unit.position},from:{...unit.position},thrownAt:now,landedAt:now+.6,activeAt:now+.6,until:now+1,radius:280});
             unit.specialUsed=true;unit.action='utility';unit.goal='전자 신호 탐지 · EMP 투척';
             log({time:now,type:'utility',actor:unit.id,position:{...unit.position},goal:'emp-thrown',message:unit.goal,side:unit.side});continue;
           }
@@ -923,7 +923,7 @@ export class TacticalRealtimeSimulation {
               unit.action='approach';unit.goal='외곽 반향 표식 설치 위치 접근';
               this.move(unit,surveyPoint,me,map,now,units,navigationNodes,pathCache,yieldUntil,blockedUntil,log,portalReservations,openedPortals);continue;
             }
-            gadgets.push({floor:unit.floor??0,id:unit.id+':probe',kind:'probe',side:unit.side,owner:unit.id,position:{...unit.position},activeAt:now+1,until:now+35,radius:720,revealsOwner:true});
+            gadgets.push({facing:unit.facing,floor:unit.floor??0,id:unit.id+':probe',kind:'probe',side:unit.side,owner:unit.id,position:{...unit.position},activeAt:now+1,until:now+35,radius:720,revealsOwner:true});
             unit.specialUsed=true;unit.action='utility';unit.goal='반향 표식 설치 · 적 움직임과 설치음 탐문';
             log({time:now,type:'utility',actor:unit.id,position:{...unit.position},goal:'probe-deployed',message:unit.goal,side:unit.side});continue;
           }
@@ -947,7 +947,7 @@ export class TacticalRealtimeSimulation {
                 unit.action='utility';unit.goal=job.wallId?'전력 노드 설치':'투척물 요격기 설치';
                 if(distance(unit.position,job.point)>20){unit.action='approach';this.move(unit,job.point,me,map,now,units,navigationNodes,pathCache,yieldUntil,blockedUntil,log,portalReservations,openedPortals);}
                 else{job.ready??=now+2;if(now>=job.ready){const kind=job.wallId?'power':'interceptor';
-                  gadgets.push({floor:unit.floor??0,id:unit.id+':'+kind,kind,side:unit.side,owner:unit.id,position:{...unit.position},activeAt:now,until:actionSeconds+53,radius:kind==='power'?0:220,wallId:job.wallId,charges:kind==='interceptor'?2:undefined,revealsOwner:true});
+                  gadgets.push({facing:unit.facing,floor:unit.floor??0,id:unit.id+':'+kind,kind,side:unit.side,owner:unit.id,position:{...unit.position},activeAt:now,until:actionSeconds+53,radius:kind==='power'?0:220,wallId:job.wallId,charges:kind==='interceptor'?2:undefined,revealsOwner:true});
                   unit.specialUsed=true;specialJobs.delete(unit.id);
                   log({time:now,type:'utility',actor:unit.id,position:{...unit.position},goal:kind+'-deployed',message:unit.goal+' 완료',side:unit.side});
                 }}
@@ -961,7 +961,7 @@ export class TacticalRealtimeSimulation {
         if(camera){gadgets.splice(gadgets.indexOf(camera),1);unit.action='utility';unit.cooldown=.7;log({time:now,type:'utility',actor:unit.id,position:{...camera.position},message:'발견한 '+GADGET_LABELS[camera.kind]+' 제거',goal:camera.kind+'-destroyed',side:unit.side});continue;}
         if(unit.reloadRemaining<=0&&!unit.traversal&&now>.2) {
           if(unit.utility.camera>0&&!seen&&now<18) {
-            gadgets.push({floor:unit.floor??0,id:unit.id+':camera',kind:'camera',side:unit.side,owner:unit.id,position:{...unit.position},activeAt:now+1,until:actionSeconds+50,radius:480});
+            gadgets.push({facing:unit.facing,floor:unit.floor??0,id:unit.id+':camera',kind:'camera',side:unit.side,owner:unit.id,position:{...unit.position},activeAt:now+1,until:actionSeconds+50,radius:480});
             unit.utility.camera--;unit.action='utility';unit.goal='관측 카메라 설치 · 거점 접근 감시';
             log({time:now,type:'utility',actor:unit.id,position:{...unit.position},message:unit.goal,goal:'camera-deployed',side:unit.side});continue;
           }
@@ -970,12 +970,12 @@ export class TacticalRealtimeSimulation {
             const smoke=unit.utility.smoke>0;
             if(smoke&&gap>200&&!gadgets.some(gadget=>gadget.kind==='smoke'&&(gadget.floor??0)===(unit.floor??0)&&gadget.side===unit.side&&distance(gadget.position,unit.position)<230)) {
               const amount=Math.min(.6,110/gap),position=floorPoint({x:unit.position.x+(seen.position.x-unit.position.x)*amount,y:unit.position.y+(seen.position.y-unit.position.y)*amount},unit.floor??0);
-              gadgets.push({floor:unit.floor??0,id:unit.id+':smoke',kind:'smoke',side:unit.side,owner:unit.id,position,from:{...unit.position},thrownAt:now,landedAt:now+.35,activeAt:now+.35,until:now+10,radius:95});
+              gadgets.push({facing:unit.facing,floor:unit.floor??0,id:unit.id+':smoke',kind:'smoke',side:unit.side,owner:unit.id,position,from:{...unit.position},thrownAt:now,landedAt:now+.35,activeAt:now+.35,until:now+10,radius:95});
               unit.utility.smoke--;unit.action='utility';unit.goal='연막 투척 · 긴 사선 차단 후 전진';
               log({time:now,type:'utility',actor:unit.id,position,message:unit.goal,goal:'smoke-thrown',side:unit.side});continue;
             }
             if(unit.utility.grenade>0&&(seen?.floor??0)===(unit.floor??0)&&gap>160&&gap<440&&this.hasLineOfSight(unit.position,seen.position,map)&&living(unit.side).every(friend=>(friend.floor??0)!==(unit.floor??0)||distance(friend.position,seen.position)>150)) {
-              gadgets.push({floor:unit.floor??0,id:unit.id+':grenade',kind:'grenade',side:unit.side,owner:unit.id,position:{...seen.position},from:{...unit.position},thrownAt:now,landedAt:now+gap/360,activeAt:now+gap/360+1.2,until:now+gap/360+1.3,radius:145});
+              gadgets.push({facing:unit.facing,floor:unit.floor??0,id:unit.id+':grenade',kind:'grenade',side:unit.side,owner:unit.id,position:{...seen.position},from:{...unit.position},thrownAt:now,landedAt:now+gap/360,activeAt:now+gap/360+1.2,until:now+gap/360+1.3,radius:145});
               unit.utility.grenade--;unit.action='utility';unit.goal='수류탄으로 확인한 엄폐 위치 압박';
               log({time:now,type:'utility',actor:unit.id,position:{...seen.position},message:unit.goal,goal:'grenade-thrown',side:unit.side});continue;
             }

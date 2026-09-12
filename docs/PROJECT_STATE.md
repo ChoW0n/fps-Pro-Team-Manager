@@ -1,3 +1,13 @@
+# 현재 작업 — 사운드·탑뷰 복구 후속 (2026-09-12)
+
+GitHub `88eedfe3` 위에 로컬 `567bb0b` 수정과 손상된 이펙트 PNG 2장을 복구했다. 음소거 저장·예약음 취소·발소리 제한·관전 층 필터와 세로 조작 배치를 보완했다. 6총기 오디오 계약, 준비 20경기, 총기 12종×8방향, Canvas 16종, UI 계약과 타입·빌드가 통과했다. 실제 청음은 미완료다. ElevenLabs 50크레딧 시제품 1개와 저역 비교본은 검수용이며 경기 기본 음원에는 넣지 않았다.
+
+캐릭터 가이드는 재첨부 ZIP과 일치한다. 3포즈 시제품은 대기/앉기 구분과 무기 접점이 미완성이므로 기본 캐릭터 적용·12명 복장 고증 완료가 아니다. 상세 근거: `docs/presentation-and-sound-qa-current.md`. GitHub/Replit 전달 결과는 아래 동기화 기록을 따른다.
+
+---
+
+> 2026-09-12 추가 QA: 총성 oscillator 제거·총기 데이터 연결, 가젯 탑뷰 v4 및 설치 방향 고정. 캐릭터 빈손 3포즈는 검수용 시제품만 추가. 실총 녹음 고증·캐릭터 접점·브라우저 청음은 미완료. 상세: docs/presentation-and-sound-qa-current.md, docs/OPERATOR_SPRITE_GUIDE.md.
+
 # 최신 QA — 연출·사운드·적 접촉 (2026-09-12)
 
 `presentation-and-sound-qa.md`를 현행 `main`의 실제 준비 입력 20시드로 재측정했다. 경기당 사건 2,341개 중 현재 중계 코드가 직접 처리하는 사건은 3.0%이며, 공격팀이 살아 있는 적을 직접 보는 시간은 5.2%다. 숨은 적의 현재 좌표를 공개하지 않고 실제 직접 관측·3초 마지막 목격·실제 소리/정보 접촉으로 적 존재감을 전달하는 후속안을 확정했다. 근거는 `docs/presentation-and-sound-qa-current.md`, `tests/presentation-audit.cjs`, `validation/presentation-audit.json`이다. 스프라이트·오디오 구현과 브라우저 검증은 아직 하지 않았다.

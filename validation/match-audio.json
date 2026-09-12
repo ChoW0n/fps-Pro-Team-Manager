@@ -1,0 +1,18 @@
+{
+  "weaponProfiles": 6,
+  "footstepVoiceLimit": 3,
+  "totalVoiceLimit": 12,
+  "checks": [
+    "gesture gate",
+    "buffer data",
+    "no oscillator",
+    "pan/delay clamp",
+    "mute persistence",
+    "stop scheduled audio",
+    "footstep cadence",
+    "polyphony limit",
+    "actual objective event names",
+    "storage/resume rejection"
+  ],
+  "browserListening": false
+}

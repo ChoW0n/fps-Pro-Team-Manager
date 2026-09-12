@@ -1,0 +1,17 @@
+{
+  "status": "review-only, not used in match",
+  "generator": "ElevenLabs eleven_text_to_sound_v2",
+  "flowId": "74y7we9ZpiJkWRQHTpPx",
+  "generationId": "iv9G41B6m8PklpIUdMYF",
+  "credits": 50,
+  "priceCents": 0.5,
+  "rawSeconds": 2,
+  "rawEnergyBelow40Hz": 0.9302,
+  "processing": "70 Hz highpass, fade-out from 0.7 to 0.9 s, crop at 0.9 s, mp3 128 kbps",
+  "listeningApproved": false,
+  "realFirearmRecording": false,
+  "files": {
+    "carbine-556-elevenlabs-v1.mp3": "3b4e6ea083dffced028277c86a354e1055f28d05f098cf545f6e9c523cfafd9c",
+    "carbine-556-filtered-v1.mp3": "5fb1c79a0e48ef423d287d4a043a2717f285b0fb4da1574b0ff7a8bbafb22bfe"
+  }
+}

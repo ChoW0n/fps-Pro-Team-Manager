@@ -7,7 +7,7 @@ import { NAMSAN_MAP, type TacticalMapDefinition } from '../domain/tacticalMaps';
 import { BroadcastCanvas } from './BroadcastCanvas';
 import { OperatorEmblem } from './OperatorEmblem';
 import { OperatorArt } from './TacticalBattlefield';
-import { playMatchAudio } from './matchAudio';
+import { isMatchAudioMuted, playMatchAudio, setMatchAudioMuted, stopMatchAudio, unlockMatchAudio } from './matchAudio';
 import './matchBroadcast.css';
 
 export interface TacticalRoundLiveProps { input:TacticalRealtimeSimulationInput; map?:TacticalMapDefinition; roundNumber?:number; directorSide?:OperatorSide; score?:[number,number]; onComplete?:(result:TacticalRealtimeResult)=>void }
@@ -21,6 +21,7 @@ export function TacticalRoundLive({input,map=NAMSAN_MAP,roundNumber=1,directorSi
   const [selectedId,setSelectedId]=useState<string|null>(null),[mode,setMode]=useState<'broadcast'|'follow'|'full'>('broadcast');
   const [focusedId,setFocusedId]=useState<string|null>(null);
   const [paused,setPaused]=useState(false),[speed,setSpeed]=useState(1),[error,setError]=useState('');
+  const [muted,setMuted]=useState(isMatchAudioMuted);
   const [viewFloor,setViewFloor]=useState<number|undefined>(undefined);
   const workerRef=useRef<Worker|null>(null),controls=useRef({paused,speed});controls.current={paused,speed};
   const heardEvents=useRef(new Set<string>());
@@ -38,10 +39,34 @@ export function TacticalRoundLive({input,map=NAMSAN_MAP,roundNumber=1,directorSi
       worker.onerror=()=>setError('경기 계산을 불러오지 못했습니다. 새로고침 후 다시 시작해 주세요.');
       worker.postMessage({type:'start',input,map,controls:controls.current});
     }else fallbackStop=startRoundPlayback(new TacticalRealtimeSimulation(map).createSession(input),()=>controls.current,receiveTick,receiveResult,()=>undefined);
-    return()=>{stopped=true;fallbackStop?.();workerRef.current?.terminate();workerRef.current=null;};
+    return()=>{stopped=true;stopMatchAudio();fallbackStop?.();workerRef.current?.terminate();workerRef.current=null;};
   },[input,map,directorSide,participants]);
   useEffect(()=>{workerRef.current?.postMessage({type:'controls',controls:{paused,speed}});},[paused,speed]);
-  useEffect(()=>{for(const event of events){const key=`${event.time}:${event.actor}:${event.goal}:${event.type}`;if(heardEvents.current.has(key))continue;heardEvents.current.add(key);playMatchAudio(event);}if(heardEvents.current.size>180)heardEvents.current=new Set([...heardEvents.current].slice(-120));},[events]);
+  useEffect(()=>{
+    if(paused||speed!==1||result)stopMatchAudio();
+    const hide=()=>{if(document.hidden)stopMatchAudio();};
+    document.addEventListener('visibilitychange',hide);
+    return()=>document.removeEventListener('visibilitychange',hide);
+  },[paused,speed,result]);
+  useEffect(()=>{
+    const snapshot=tick?.snapshot;if(!snapshot)return;
+    const listener=snapshot.units.find(unit=>unit.id===(mode==='broadcast'?focusedId??selectedId:selectedId)&&unit.side===directorSide&&unit.alive)
+      ??snapshot.units.find(unit=>unit.side===directorSide&&unit.alive);
+    for(const event of events){
+      const key=`${event.time}:${event.actor}:${event.target}:${event.goal}:${event.type}:${event.position?.x}:${event.position?.y}`;
+      if(heardEvents.current.has(key))continue;
+      heardEvents.current.add(key);
+      // 음소거 중 사건도 소비해 소리를 다시 켰을 때 과거 총성이 몰리지 않게 합니다.
+      if(muted||paused||result||speed!==1||document.hidden||tick.time-event.time>.25||event.time>tick.time||!listener)continue;
+      if(event.side!==directorSide&&!event.seenBy?.includes(directorSide))continue;
+      const actor=snapshot.units.find(unit=>unit.id===event.actor);
+      if((event.position?.floor??actor?.floor??listener.floor??0)!==(listener.floor??0))continue;
+      const distance=event.position?Math.hypot(event.position.x-listener.position.x,event.position.y-listener.position.y):0;
+      const pan=event.position?(event.position.x-listener.position.x)/700:0;
+      playMatchAudio(event,actor?.weaponName??'',pan,1/(1+distance/320),Math.max(0,event.time-(tick.time-.1)));
+    }
+    if(heardEvents.current.size>180)heardEvents.current=new Set([...heardEvents.current].slice(-120));
+  },[events,tick,paused,speed,muted,result,mode,directorSide,focusedId,selectedId]);
   const units=tick?.snapshot.units??[],time=tick?.time??0,own=units.filter(unit=>unit.side===directorSide);
   // 자동 중계 카드도 실제 카메라 선수의 이름·체력·탄약을 표시합니다.
   const viewedId=mode==='broadcast'?focusedId??selectedId:selectedId;
@@ -71,7 +96,7 @@ export function TacticalRoundLive({input,map=NAMSAN_MAP,roundNumber=1,directorSi
     {selected?.downed&&<div className="cast-injury" role="status"><strong>DOWN · {selected.downed.mode==='crawl'?'엄폐로 이동':'지혈 중'}</strong><span>동료 구조 필요</span>{selected.downed.progress>0&&<progress aria-label="소생 진행" max="1" value={selected.downed.progress}/>}</div>}
     {selected?.reviving&&<div className="cast-injury" role="status"><strong>동료 소생 중</strong><span>{playerName(selected.reviving.targetId)}</span></div>}
     <div className="cast-player" aria-label="관전 선수"><div className="cast-portrait">{selected&&<OperatorArt callSign={selected.callSign}/>}</div><div><small>{selected?.callSign}</small><strong>{source?.player.nickname??'입장 중'}</strong><progress aria-label="체력" max="100" value={selected?.hp??100}/></div></div>
-    <nav className="cast-controls" aria-label="중계 조작"><select aria-label="관전 층" value={viewFloor??'auto'} onChange={event=>setViewFloor(event.target.value==='auto'?undefined:Number(event.target.value))}><option value="auto">선수 층 자동</option>{map.floors?.map(floor=><option key={floor.id} value={floor.id}>{floor.label}</option>)}</select><button aria-pressed={mode==='broadcast'} onClick={()=>setMode('broadcast')}><span>자동 중계</span><b>CAST</b></button><button title="격자 한 칸 2m · 선택 아군의 전방 시야" aria-pressed={mode==='full'} onClick={()=>setMode(mode==='full'?'broadcast':'full')}><span>전술 보기</span><b>MAP</b></button><button aria-label={paused?'재생':'일시 정지'} disabled={Boolean(result)} onClick={()=>setPaused(value=>!value)}>{paused?'▶':'Ⅱ'}</button><select aria-label="중계 속도" value={speed} onChange={event=>setSpeed(Number(event.target.value))}><option value="1">1×</option><option value="2">2×</option><option value="4">4×</option></select></nav>
+    <nav className="cast-controls" aria-label="중계 조작"><select aria-label="관전 층" value={viewFloor??'auto'} onChange={event=>setViewFloor(event.target.value==='auto'?undefined:Number(event.target.value))}><option value="auto">선수 층 자동</option>{map.floors?.map(floor=><option key={floor.id} value={floor.id}>{floor.label}</option>)}</select><button aria-pressed={mode==='broadcast'} onClick={()=>setMode('broadcast')}><span>자동 중계</span><b>CAST</b></button><button title="격자 한 칸 2m · 선택 아군의 전방 시야" aria-pressed={mode==='full'} onClick={()=>setMode(mode==='full'?'broadcast':'full')}><span>전술 보기</span><b>MAP</b></button><button aria-label={paused?'재생':'일시 정지'} disabled={Boolean(result)} onClick={()=>setPaused(value=>!value)}>{paused?'▶':'Ⅱ'}</button><button aria-label={muted?'경기 소리 켜기':'경기 음소거'} aria-pressed={muted} onClick={()=>{setMatchAudioMuted(!muted);setMuted(!muted);if(muted)unlockMatchAudio();}}>{muted?'소리 끔':'소리 켬'}</button><select aria-label="중계 속도" value={speed} onChange={event=>setSpeed(Number(event.target.value))}><option value="1">1×</option><option value="2">2×</option><option value="4">4×</option></select></nav>
     <nav className="cast-lineup" aria-label="우리 팀 선수 선택">{own.map((unit,index)=>{const participant=participants.get(unit.id);return <button key={unit.id} className={unit.alive?'':'is-out'} aria-pressed={selectedId===unit.id} onClick={()=>select(unit.id)}><OperatorEmblem callSign={unit.callSign}/><small>{index+1}</small><strong>{playerName(unit.id)}</strong><span>{unit.callSign} · {(unit.floor??0)+1}F</span><progress max="100" value={unit.hp}/></button>;})}</nav>
   </section>;
 }
