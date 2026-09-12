@@ -19,15 +19,15 @@ execFileSync('python3',['-c',`from PIL import Image\nfrom pathlib import Path\ns
 class LocalImage extends Image {set src(url){const name=url.split('/').at(-1),png=path.join(decoded,name.replace(/\.webp$/,'.png'));this.assetName=name;super.src=fs.readFileSync(fs.existsSync(png)?png:app+'/public/operators/'+name);}}
 global.Image=LocalImage;global.window={devicePixelRatio:1,matchMedia:()=>({matches:false})};global.document={createElement:()=>createCanvas(1,1)};
 let callback;global.requestAnimationFrame=fn=>{callback=fn;return 1;};global.cancelAnimationFrame=()=>{};
+const minimal=require(app+'/src/components/minimalOperator.ts'),paintOperator=minimal.paintMinimalOperator;let recordOperator=()=>{};minimal.paintMinimalOperator=(...args)=>{const result=paintOperator(...args);recordOperator(args[0],args[1]);return result;};
 const {BroadcastCanvas}=require(app+'/src/components/BroadcastCanvas.tsx');const rows=[];
 const {operatorStateVisual}=require(app+'/src/domain/operatorVisuals.ts');
 // Skia의 이미지 디코드 콜백이 끝난 뒤 실제 인물 픽셀까지 포함해 프레임 시간을 잽니다.
 (async()=>{for(const [name,width,height] of [['desktop',1280,720],['phone',390,844],['phone-landscape',844,390],['downed',1280,720],['collier-downed',1280,720],['collier-crawl',1280,720],['walk',1280,720],['crouch',1280,720],['team-visibility',1280,720],['tactical',1280,720],['phone-touch',390,844]]){
  const touch=name==='phone-touch';global.window={devicePixelRatio:touch?3:1,matchMedia:query=>({matches:touch&&query.includes('pointer: coarse')})};let pointer;const centers=[];let selected=null;
  const canvas=createCanvas(width,height);canvas.getBoundingClientRect=()=>({width,height,left:0,top:0});canvas.addEventListener=(type,fn)=>{if(type==='pointerup')pointer=fn;};canvas.removeEventListener=()=>{};
- const context=canvas.getContext('2d'),originalDraw=context.drawImage.bind(context);let spriteDraws=0,downedPoseDraws=0,crawlPoseDraws=0,walkPoseDraws=0,crouchPoseDraws=0;const drawnSprites=new Set();
- // 실제 인물 drawImage가 호출되지 않으면 빈 화면을 통과시키지 않습니다.
- context.drawImage=(source,...args)=>{if(source instanceof LocalImage){spriteDraws++;drawnSprites.add(source.assetName);if(source.assetName.startsWith('minimal-body-')){const t=context.getTransform();centers.push({x:t.e*width/canvas.width,y:t.f*height/canvas.height});}if(source.assetName==='collier-downed-v3.webp')downedPoseDraws++;if(source.assetName==='collier-downed-crawl-v1.webp')crawlPoseDraws++;if(source.assetName.endsWith('-walk-v1.webp'))walkPoseDraws++;if(source.assetName.endsWith('-crouch-v1.webp'))crouchPoseDraws++;const transform=context.getTransform();assert(Math.abs(Math.hypot(transform.a,transform.b)-Math.hypot(transform.c,transform.d))<1e-6,'전신 원화의 비균등 압축 금지');}return originalDraw(source,...args);};
+ const context=canvas.getContext('2d');let operatorDraws=0;const drawnIds=new Set();
+ recordOperator=(ctx,unit)=>{operatorDraws++;drawnIds.add(unit.id);const t=ctx.getTransform();centers.push({x:(t.a*unit.position.x+t.c*unit.position.y+t.e)*width/canvas.width,y:(t.b*unit.position.x+t.d*unit.position.y+t.f)*height/canvas.height});};
  const effects=[],refs=[];let index=0;
  React.useRef=value=>{const ref={current:index++===0?canvas:value};refs.push(ref);return ref;};React.useEffect=fn=>effects.push(fn);
  const casualty=u=>u.side==='공격'&&u.downed&&(!name.startsWith('collier-')||u.callSign==='COLLIER')
@@ -47,10 +47,9 @@ const {operatorStateVisual}=require(app+'/src/domain/operatorVisuals.ts');
  // 첫 프레임에서 이미지 요청이 시작됩니다. 그 전에 기다리면 빈 스프라이트를 검사하게 됩니다.
  callback(stamp+=16.67);await new Promise(resolve=>setTimeout(resolve,50));
  for(let frame=0;frame<45;frame++){const started=performance.now();callback(stamp+=16.67);if(frame>=15)times.push(performance.now()-started);}
- assert(spriteDraws>0,`${name}: 인물 이미지가 실제로 그려져야 합니다`);
- assert([...drawnSprites].every(file=>file.startsWith('minimal-')),'주 중계는 공통 파츠만 사용합니다');
- if(name==='team-visibility')assert(spriteDraws>=45*5*2,'선택 선수 뒤를 포함한 아군 5명의 몸체·머리가 매 프레임 그려져야 합니다');
- assert([...drawnSprites].some(file=>file.startsWith('minimal-body-'))&&[...drawnSprites].some(file=>file.startsWith('minimal-head-')),'실제 상태에서 몸체와 머리 조립이 필요합니다');
+ assert(operatorDraws>0,`${name}: 실제 인물 합성기가 호출되어야 합니다`);
+ const pixels=context.getImageData(0,0,canvas.width,canvas.height).data;assert(new Set(pixels).size>20,'비어 있는 지도나 단색 화면을 통과시키지 않습니다');
+ if(name==='team-visibility'){assert(operatorDraws>=45*5,'아군 다섯 명이 매 프레임 표시되어야 합니다');for(const unit of renderedTick.snapshot.units.filter(u=>u.side==='공격'))assert(drawnIds.has(unit.id));}
  if(touch){
   // 실제 pointerup 경로를 검사합니다. DPR=3이어도 빈 곳 60~100 CSS px 바깥은 선택하지 않습니다.
   let blank;

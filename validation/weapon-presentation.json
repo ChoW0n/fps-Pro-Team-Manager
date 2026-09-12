@@ -1,0 +1,6 @@
+{
+  "primaryWeapons": 12,
+  "directionalRenders": 96,
+  "checks": "distinct rendered weapons; muzzle/stock direction; upright magazine; actual vector composition without legacy PNG; eight-direction visual sheet",
+  "limits": "Not a manufacturer-accurate model or real device test."
+}

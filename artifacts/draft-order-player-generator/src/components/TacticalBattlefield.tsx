@@ -7,7 +7,7 @@ import type { Operator } from '../domain/Operator';
 import type { RealtimeEvent, RealtimeSnapshot, RealtimeGadget, RealtimeBreach } from '../domain/realtime/TacticalRealtimeSimulation';
 import type { TacticalMapDefinition } from '../domain/tacticalMaps';
 import { operatorVisual, operatorStateVisual, OPERATOR_SCALE, TEMPORARY_OPERATOR_SCALE } from '../domain/operatorVisuals';
-import { minimalHeadFile } from './minimalOperator';
+import { minimalPortrait } from './minimalOperator';
 
 export const SIDE_COLOR = { 공격: '#2FD4C4', 수비: '#F0873C' };
 const ASSET_ROOT = `${import.meta.env.BASE_URL}operators/`;
@@ -15,7 +15,7 @@ export type BattleUnit = RealtimeSnapshot['units'][number];
 
 /** 배포 하위 경로에서도 같은 정적 인물 파일을 읽습니다. */
 export function portraitUrl(callSign: string): string | undefined {
-  return ASSET_ROOT + minimalHeadFile(callSign);
+  return minimalPortrait(callSign);
 }
 
 /** 편성과 선수 카드에서도 전장과 같은 미니멀 머리 파츠를 재사용합니다. */

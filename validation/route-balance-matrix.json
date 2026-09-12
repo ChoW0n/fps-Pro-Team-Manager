@@ -1,0 +1,501 @@
+{
+  "summary": [
+    {
+      "site": "A",
+      "games": 24,
+      "attackWins": 20,
+      "defenseWins": 4,
+      "planted": 20
+    },
+    {
+      "site": "B",
+      "games": 24,
+      "attackWins": 17,
+      "defenseWins": 7,
+      "planted": 20
+    }
+  ],
+  "rows": [
+    {
+      "seed": 211,
+      "targetSite": "A",
+      "siteApproach": 0,
+      "composition": 0,
+      "winner": "공격",
+      "reason": "bombs-defused",
+      "duration": 109,
+      "planted": true
+    },
+    {
+      "seed": 211,
+      "targetSite": "A",
+      "siteApproach": 0,
+      "composition": 1,
+      "winner": "수비",
+      "reason": "device-disabled",
+      "duration": 101.6,
+      "planted": true
+    },
+    {
+      "seed": 211,
+      "targetSite": "A",
+      "siteApproach": 1,
+      "composition": 0,
+      "winner": "공격",
+      "reason": "bombs-defused",
+      "duration": 115.3,
+      "planted": true
+    },
+    {
+      "seed": 211,
+      "targetSite": "A",
+      "siteApproach": 1,
+      "composition": 1,
+      "winner": "공격",
+      "reason": "defenders-eliminated",
+      "duration": 29.9,
+      "planted": false
+    },
+    {
+      "seed": 211,
+      "targetSite": "A",
+      "siteApproach": 2,
+      "composition": 0,
+      "winner": "공격",
+      "reason": "bombs-defused",
+      "duration": 116.2,
+      "planted": true
+    },
+    {
+      "seed": 211,
+      "targetSite": "A",
+      "siteApproach": 2,
+      "composition": 1,
+      "winner": "공격",
+      "reason": "defenders-eliminated",
+      "duration": 90.7,
+      "planted": true
+    },
+    {
+      "seed": 211,
+      "targetSite": "B",
+      "siteApproach": 0,
+      "composition": 0,
+      "winner": "공격",
+      "reason": "bombs-defused",
+      "duration": 108.1,
+      "planted": true
+    },
+    {
+      "seed": 211,
+      "targetSite": "B",
+      "siteApproach": 0,
+      "composition": 1,
+      "winner": "공격",
+      "reason": "defenders-eliminated",
+      "duration": 91.4,
+      "planted": true
+    },
+    {
+      "seed": 211,
+      "targetSite": "B",
+      "siteApproach": 1,
+      "composition": 0,
+      "winner": "수비",
+      "reason": "device-disabled",
+      "duration": 89.4,
+      "planted": true
+    },
+    {
+      "seed": 211,
+      "targetSite": "B",
+      "siteApproach": 1,
+      "composition": 1,
+      "winner": "공격",
+      "reason": "defenders-eliminated",
+      "duration": 89.7,
+      "planted": true
+    },
+    {
+      "seed": 211,
+      "targetSite": "B",
+      "siteApproach": 2,
+      "composition": 0,
+      "winner": "수비",
+      "reason": "device-disabled",
+      "duration": 98.9,
+      "planted": true
+    },
+    {
+      "seed": 211,
+      "targetSite": "B",
+      "siteApproach": 2,
+      "composition": 1,
+      "winner": "수비",
+      "reason": "time-expired",
+      "duration": 180,
+      "planted": false
+    },
+    {
+      "seed": 317,
+      "targetSite": "A",
+      "siteApproach": 0,
+      "composition": 0,
+      "winner": "공격",
+      "reason": "bombs-defused",
+      "duration": 109,
+      "planted": true
+    },
+    {
+      "seed": 317,
+      "targetSite": "A",
+      "siteApproach": 0,
+      "composition": 1,
+      "winner": "공격",
+      "reason": "defenders-eliminated",
+      "duration": 96.6,
+      "planted": true
+    },
+    {
+      "seed": 317,
+      "targetSite": "A",
+      "siteApproach": 1,
+      "composition": 0,
+      "winner": "공격",
+      "reason": "bombs-defused",
+      "duration": 115.3,
+      "planted": true
+    },
+    {
+      "seed": 317,
+      "targetSite": "A",
+      "siteApproach": 1,
+      "composition": 1,
+      "winner": "공격",
+      "reason": "defenders-eliminated",
+      "duration": 34.5,
+      "planted": false
+    },
+    {
+      "seed": 317,
+      "targetSite": "A",
+      "siteApproach": 2,
+      "composition": 0,
+      "winner": "공격",
+      "reason": "bombs-defused",
+      "duration": 126.4,
+      "planted": true
+    },
+    {
+      "seed": 317,
+      "targetSite": "A",
+      "siteApproach": 2,
+      "composition": 1,
+      "winner": "공격",
+      "reason": "defenders-eliminated",
+      "duration": 90.7,
+      "planted": true
+    },
+    {
+      "seed": 317,
+      "targetSite": "B",
+      "siteApproach": 0,
+      "composition": 0,
+      "winner": "공격",
+      "reason": "defenders-eliminated",
+      "duration": 99.9,
+      "planted": true
+    },
+    {
+      "seed": 317,
+      "targetSite": "B",
+      "siteApproach": 0,
+      "composition": 1,
+      "winner": "공격",
+      "reason": "defenders-eliminated",
+      "duration": 88.3,
+      "planted": true
+    },
+    {
+      "seed": 317,
+      "targetSite": "B",
+      "siteApproach": 1,
+      "composition": 0,
+      "winner": "공격",
+      "reason": "bombs-defused",
+      "duration": 101.9,
+      "planted": true
+    },
+    {
+      "seed": 317,
+      "targetSite": "B",
+      "siteApproach": 1,
+      "composition": 1,
+      "winner": "공격",
+      "reason": "defenders-eliminated",
+      "duration": 89.9,
+      "planted": true
+    },
+    {
+      "seed": 317,
+      "targetSite": "B",
+      "siteApproach": 2,
+      "composition": 0,
+      "winner": "수비",
+      "reason": "device-disabled",
+      "duration": 105.1,
+      "planted": true
+    },
+    {
+      "seed": 317,
+      "targetSite": "B",
+      "siteApproach": 2,
+      "composition": 1,
+      "winner": "수비",
+      "reason": "time-expired",
+      "duration": 180,
+      "planted": false
+    },
+    {
+      "seed": 419,
+      "targetSite": "A",
+      "siteApproach": 0,
+      "composition": 0,
+      "winner": "공격",
+      "reason": "defenders-eliminated",
+      "duration": 121.1,
+      "planted": true
+    },
+    {
+      "seed": 419,
+      "targetSite": "A",
+      "siteApproach": 0,
+      "composition": 1,
+      "winner": "수비",
+      "reason": "device-disabled",
+      "duration": 101.6,
+      "planted": true
+    },
+    {
+      "seed": 419,
+      "targetSite": "A",
+      "siteApproach": 1,
+      "composition": 0,
+      "winner": "공격",
+      "reason": "bombs-defused",
+      "duration": 115.5,
+      "planted": true
+    },
+    {
+      "seed": 419,
+      "targetSite": "A",
+      "siteApproach": 1,
+      "composition": 1,
+      "winner": "공격",
+      "reason": "defenders-eliminated",
+      "duration": 34.3,
+      "planted": false
+    },
+    {
+      "seed": 419,
+      "targetSite": "A",
+      "siteApproach": 2,
+      "composition": 0,
+      "winner": "공격",
+      "reason": "defenders-eliminated",
+      "duration": 114.6,
+      "planted": true
+    },
+    {
+      "seed": 419,
+      "targetSite": "A",
+      "siteApproach": 2,
+      "composition": 1,
+      "winner": "공격",
+      "reason": "defenders-eliminated",
+      "duration": 90.7,
+      "planted": true
+    },
+    {
+      "seed": 419,
+      "targetSite": "B",
+      "siteApproach": 0,
+      "composition": 0,
+      "winner": "공격",
+      "reason": "bombs-defused",
+      "duration": 108.1,
+      "planted": true
+    },
+    {
+      "seed": 419,
+      "targetSite": "B",
+      "siteApproach": 0,
+      "composition": 1,
+      "winner": "공격",
+      "reason": "defenders-eliminated",
+      "duration": 90.8,
+      "planted": true
+    },
+    {
+      "seed": 419,
+      "targetSite": "B",
+      "siteApproach": 1,
+      "composition": 0,
+      "winner": "공격",
+      "reason": "defenders-eliminated",
+      "duration": 66.8,
+      "planted": true
+    },
+    {
+      "seed": 419,
+      "targetSite": "B",
+      "siteApproach": 1,
+      "composition": 1,
+      "winner": "공격",
+      "reason": "defenders-eliminated",
+      "duration": 81.8,
+      "planted": true
+    },
+    {
+      "seed": 419,
+      "targetSite": "B",
+      "siteApproach": 2,
+      "composition": 0,
+      "winner": "공격",
+      "reason": "defenders-eliminated",
+      "duration": 106.7,
+      "planted": true
+    },
+    {
+      "seed": 419,
+      "targetSite": "B",
+      "siteApproach": 2,
+      "composition": 1,
+      "winner": "수비",
+      "reason": "time-expired",
+      "duration": 180,
+      "planted": false
+    },
+    {
+      "seed": 523,
+      "targetSite": "A",
+      "siteApproach": 0,
+      "composition": 0,
+      "winner": "수비",
+      "reason": "device-disabled",
+      "duration": 157.5,
+      "planted": true
+    },
+    {
+      "seed": 523,
+      "targetSite": "A",
+      "siteApproach": 0,
+      "composition": 1,
+      "winner": "수비",
+      "reason": "device-disabled",
+      "duration": 102,
+      "planted": true
+    },
+    {
+      "seed": 523,
+      "targetSite": "A",
+      "siteApproach": 1,
+      "composition": 0,
+      "winner": "공격",
+      "reason": "defenders-eliminated",
+      "duration": 102.6,
+      "planted": true
+    },
+    {
+      "seed": 523,
+      "targetSite": "A",
+      "siteApproach": 1,
+      "composition": 1,
+      "winner": "공격",
+      "reason": "defenders-eliminated",
+      "duration": 29.9,
+      "planted": false
+    },
+    {
+      "seed": 523,
+      "targetSite": "A",
+      "siteApproach": 2,
+      "composition": 0,
+      "winner": "공격",
+      "reason": "defenders-eliminated",
+      "duration": 116.5,
+      "planted": true
+    },
+    {
+      "seed": 523,
+      "targetSite": "A",
+      "siteApproach": 2,
+      "composition": 1,
+      "winner": "공격",
+      "reason": "defenders-eliminated",
+      "duration": 90.7,
+      "planted": true
+    },
+    {
+      "seed": 523,
+      "targetSite": "B",
+      "siteApproach": 0,
+      "composition": 0,
+      "winner": "공격",
+      "reason": "bombs-defused",
+      "duration": 108.1,
+      "planted": true
+    },
+    {
+      "seed": 523,
+      "targetSite": "B",
+      "siteApproach": 0,
+      "composition": 1,
+      "winner": "공격",
+      "reason": "defenders-eliminated",
+      "duration": 91.8,
+      "planted": true
+    },
+    {
+      "seed": 523,
+      "targetSite": "B",
+      "siteApproach": 1,
+      "composition": 0,
+      "winner": "공격",
+      "reason": "defenders-eliminated",
+      "duration": 73,
+      "planted": true
+    },
+    {
+      "seed": 523,
+      "targetSite": "B",
+      "siteApproach": 1,
+      "composition": 1,
+      "winner": "공격",
+      "reason": "defenders-eliminated",
+      "duration": 89.7,
+      "planted": true
+    },
+    {
+      "seed": 523,
+      "targetSite": "B",
+      "siteApproach": 2,
+      "composition": 0,
+      "winner": "공격",
+      "reason": "defenders-eliminated",
+      "duration": 110.5,
+      "planted": true
+    },
+    {
+      "seed": 523,
+      "targetSite": "B",
+      "siteApproach": 2,
+      "composition": 1,
+      "winner": "수비",
+      "reason": "time-expired",
+      "duration": 180,
+      "planted": false
+    }
+  ],
+  "limits": "48 deterministic cases, one map, equal player stats, two compositions, three approach choices, four new seeds; not production balance approval."
+}

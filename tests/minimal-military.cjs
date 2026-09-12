@@ -29,6 +29,6 @@ const {OPERATORS}=require(app+'/src/domain/Operator.ts');
  // 무기와 자세를 고정해도 열두 군장의 실제 합성 결과가 각각 달라야 합니다.
  for(const facing of [Math.PI/2,-Math.PI/2,0])assert.equal(new Set(OPERATORS.map(operator=>render(1,{callSign:operator.callSign,facing}).toString('base64'))).size,12);
  fs.writeFileSync('validation/minimal-military-roster.png',canvas.toBuffer('image/png'));
- fs.writeFileSync('validation/minimal-military.json',JSON.stringify({parts:9,bytes,operators:12,directions:3,actualComposites:draws,checks:'asset dimensions, all compositions, deterministic state, movement/down state, event-bound recoil, twelve distinct kit compositions per view',limits:'Two shared head families, six weapon silhouettes, twelve fictional vector kit profiles; not authenticated gear sets or browser play'},null,2)+'\n');
+ fs.writeFileSync('validation/minimal-military.json',JSON.stringify({parts:9,bytes,operators:12,directions:3,actualComposites:draws,checks:'asset dimensions, all compositions, deterministic state, movement/down state, event-bound recoil, twelve distinct kit compositions per view',limits:'Twelve individual primary weapon profiles and angular vector bodies; legacy PNG assets archived; not authenticated gear sets or browser play'},null,2)+'\n');
  console.log('PASS 9 parts, 36 real compositions, state/recoil contracts',bytes,'bytes');
 })().catch(error=>{console.error(error);process.exitCode=1;});

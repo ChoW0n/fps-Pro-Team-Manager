@@ -1,4 +1,5 @@
 import type { RealtimeUnitState } from '../domain/realtime/TacticalRealtimeSimulation';
+import { paintWeaponPart, weaponPart, weaponUp } from './weaponParts';
 import { muzzlePosition } from '../domain/operatorVisuals';
 
 export type PartLoader = (file:string) => HTMLImageElement;
@@ -50,8 +51,12 @@ function paintKit(ctx:CanvasRenderingContext2D,callSign:string,view:'front'|'bac
   else{box(x,-14,5,7,'#293B40');box(x+1,-13,3,2,kit.tool==='optic'?'#829D97':'#B6B59B');}
 }
 
-/** 선수 카드와 전장에서 같은 공통 머리 파츠를 표시합니다. */
-export function minimalHeadFile(callSign:string):string {return `minimal-head-${MASKED.has(callSign)?1:0}-front.png`;}
+/** 편성 카드도 같은 각진 헬멧·바이저와 개인 군장색을 사용합니다. */
+export function minimalPortrait(callSign:string):string {
+ const color=(KITS[callSign]??KITS.MAGPIE).color;
+ const svg=`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><g stroke="#101A1D" stroke-width="2.5" stroke-linejoin="round"><path fill="${color}" d="M9 62V46L22 39H43L56 46V62Z"/><path fill="#69796F" d="M16 18L22 9H43L49 20L46 37L36 43L23 39L17 30Z"/><path fill="${color}" d="M12 23L17 9L28 3L43 5L51 16L49 24L32 20Z"/><path fill="#15282D" d="M16 23H48L45 31H20Z"/><path fill="#293B3E" d="M24 33H40L42 40L25 41Z"/><path fill="#303F42" d="M12 25H18V38H12Z"/></g><path stroke="#92AAA2" stroke-width="2" d="M21 25H28"/><path fill="#263639" d="M23 49H30V60H23ZM34 49H41V60H34Z"/></svg>`;
+ return 'data:image/svg+xml;charset=utf-8,'+encodeURIComponent(svg);
+}
 
 /** 기존 총기 이름을 바꾸지 않고 작은 화면에서 식별할 형태만 분리합니다. 제조사 실측 도면은 아닙니다. */
 export function weaponSilhouette(name:string):'carbine'|'suppressed'|'bullpup'|'p90'|'precision'|'bolt' {
@@ -68,49 +73,51 @@ export function operatorDirection(facing:number):{view:'front'|'back'|'side';mir
   return Math.abs(Math.sin(facing))>.72?{view:Math.sin(facing)>0?'front':'back',mirror:1}:{view:'side',mirror:Math.cos(facing)<0?-1:1};
 }
 
-/** 양손을 총기 레이어에 붙여 파지점이 따로 흔들리지 않게 합니다. */
-function paintWeapon(ctx:CanvasRenderingContext2D,name:string):void {
-  const kind=weaponSilhouette(name),long=kind==='precision'||kind==='bolt',length=long?38:30;
-  ctx.fillStyle='#263237';ctx.strokeStyle='#090E11';ctx.lineWidth=1.5;ctx.lineJoin='round';
-  ctx.beginPath();ctx.moveTo(-length,-2);ctx.lineTo(-length+8,-2);ctx.lineTo(-length+10,-5);ctx.lineTo(-7,-5);ctx.lineTo(-7,-2);ctx.lineTo(0,-2);ctx.lineTo(0,1);ctx.lineTo(-8,1);ctx.lineTo(-11,4);ctx.lineTo(-length+8,4);ctx.lineTo(-length,7);ctx.closePath();ctx.fill();ctx.stroke();
-  if(kind==='suppressed'){ctx.fillStyle='#171F23';ctx.fillRect(-11,-3,11,5);ctx.strokeRect(-11,-3,11,5);}
-  if(kind==='p90'){ctx.fillStyle='#777E73';ctx.fillRect(-25,-7,18,3);ctx.strokeRect(-25,-7,18,3);}
-  else{const magazine=kind==='bullpup'?-24:-16;ctx.fillStyle='#51594F';ctx.beginPath();ctx.moveTo(magazine,3);ctx.lineTo(magazine+5,3);ctx.lineTo(magazine+3,10);ctx.lineTo(magazine-2,9);ctx.closePath();ctx.fill();ctx.stroke();}
-  if(long){ctx.fillStyle='#10181D';ctx.fillRect(-28,-10,15,4);ctx.fillRect(-24,-6,2,2);}
-  // 단순 장갑 덩어리 두 개가 권총손잡이와 핸드가드를 잡습니다.
-  ctx.fillStyle='#69654D';for(const [x,y] of [[-length+10,5],[-10,2]]){ctx.beginPath();ctx.ellipse(x,y,3.3,2.8,-.3,0,Math.PI*2);ctx.fill();ctx.stroke();}
-}
-
 /** 실제 이동·자세·사격 사건으로만 파츠를 움직이며 엔진의 총구 좌표를 그대로 사용합니다. */
-export function paintMinimalOperator(ctx:CanvasRenderingContext2D,unit:RealtimeUnitState,time:number,shotAt:number|undefined,asset:PartLoader,reducedMotion=false):boolean {
-  const direction=operatorDirection(unit.facing),body=asset(`minimal-body-0-${direction.view}.png`),head=asset(`minimal-head-${MASKED.has(unit.callSign)?1:0}-${direction.view}.png`);
-  if(!(body.naturalWidth??body.width)||!(head.naturalWidth??head.width))return false;
-  const speed=Math.hypot(unit.velocity.x,unit.velocity.y),moving=speed>1&&unit.alive;
+export function paintMinimalOperator(ctx:CanvasRenderingContext2D,unit:RealtimeUnitState,time:number,shotAt:number|undefined,_asset:PartLoader,reducedMotion=false):boolean {
+  const direction=operatorDirection(unit.facing),kit=KITS[unit.callSign]??KITS.MAGPIE;
+  const moving=Math.hypot(unit.velocity.x,unit.velocity.y)>1&&unit.alive;
   const down=Boolean(unit.downed)||!unit.alive,crouch=unit.locomotion==='crouch';
-  const bob=!reducedMotion&&moving&&!down?Math.sin(time*(unit.locomotion==='sprint'?15:10))*.65:0;
-  const size=down?30:crouch?29:34,headSize=24;
-  ctx.save();ctx.translate(unit.position.x,unit.position.y);ctx.globalAlpha=unit.alive?1:.4;
-  ctx.fillStyle='#04090C55';ctx.beginPath();ctx.ellipse(0,11,14,6,0,0,Math.PI*2);ctx.fill();
-  ctx.save();if(down)ctx.rotate(unit.facing+Math.PI/2);ctx.scale(direction.mirror,1);
-  ctx.drawImage(body,-size/2,-size*.45+bob,size,size);
-  ctx.save();ctx.translate(0,bob);ctx.scale(size/34,size/34);paintKit(ctx,unit.callSign,direction.view);ctx.restore();
-  ctx.drawImage(head,-headSize/2,-size*.45-headSize*.72+bob,headSize,headSize);
-  // 작은 식별 띠에만 팀 색을 사용합니다.
-  ctx.fillStyle=unit.side==='공격'?'#2FD4C4':'#F0873C';ctx.fillRect(-size*.29,-3+bob,3,2);
-  ctx.restore();ctx.restore();
-  if(!down){
-    const muzzle=muzzlePosition(unit.callSign,unit.position,unit.facing),age=shotAt===undefined?1:time-shotAt;
-    const kick=!reducedMotion&&age>0&&age<.14?Math.sin(age/.14*Math.PI)*1.2:0;
-    const kind=weaponSilhouette(unit.weaponName??''),length=kind==='precision'||kind==='bolt'?38:30;
-    // 어깨에서 실제 파지점까지 짧은 소매를 연결합니다. 무기·양손의 상대 위치는 고정입니다.
-    for(const [index,[x,y]] of [[-length+10-kick,5],[-10-kick,2]].entries()){
-      const hand={x:muzzle.x+x*Math.cos(unit.facing)-y*Math.sin(unit.facing),y:muzzle.y+x*Math.sin(unit.facing)+y*Math.cos(unit.facing)};
-      ctx.strokeStyle='#090E11';ctx.lineWidth=7;ctx.lineCap='round';ctx.beginPath();ctx.moveTo(unit.position.x+(index?-7:7),unit.position.y-4+bob);ctx.lineTo(hand.x,hand.y);ctx.stroke();ctx.strokeStyle='#35454E';ctx.lineWidth=4;ctx.stroke();
+  const step=!reducedMotion&&moving&&!down?Math.sin(time*(unit.locomotion==='sprint'?15:10)):0;
+  const bob=step*.5,age=shotAt===undefined?1:time-shotAt;
+  const kick=!reducedMotion&&age>0&&age<.14?Math.sin(age/.14*Math.PI)*1.2:0;
+  const muzzle=muzzlePosition(unit.callSign,unit.position,unit.facing),up=weaponUp(unit.facing),part=weaponPart(unit.weaponName??'');
+  const weapon=()=>{
+    if(down)return;
+    // 총기와 손, 소매가 같은 좌우 보정과 파지점을 공유합니다.
+    for(const [index,[x,y]] of [[part.grip-kick,5],[part.support-kick,2]].entries()){
+      const px=x*.75,py=y*.75*up;
+      const hand={x:muzzle.x+px*Math.cos(unit.facing)-py*Math.sin(unit.facing),y:muzzle.y+px*Math.sin(unit.facing)+py*Math.cos(unit.facing)};
+      ctx.strokeStyle='#111B1E';ctx.lineWidth=6;ctx.lineCap='round';ctx.beginPath();ctx.moveTo(unit.position.x+(index?-8:8),unit.position.y-10+bob);ctx.lineTo(hand.x,hand.y);ctx.stroke();ctx.strokeStyle=kit.color;ctx.lineWidth=3.5;ctx.stroke();
     }
-    ctx.save();ctx.translate(muzzle.x,muzzle.y);ctx.rotate(unit.facing);ctx.translate(-kick,0);
-    paintWeapon(ctx,unit.weaponName??'');
-    if(unit.shieldRaised){ctx.fillStyle='#56666B';ctx.strokeStyle='#0B1115';ctx.lineWidth=2;ctx.fillRect(-6,-16,6,32);ctx.strokeRect(-6,-16,6,32);ctx.fillStyle='#839AA0';ctx.fillRect(-5,-10,4,8);}
-    ctx.restore();
+    ctx.save();ctx.translate(muzzle.x,muzzle.y);ctx.rotate(unit.facing);ctx.scale(.75,.75*up);ctx.translate(-kick,0);paintWeaponPart(ctx,unit.weaponName??'');
+    if(unit.shieldRaised){ctx.fillStyle='#56666B';ctx.strokeStyle='#0B1115';ctx.lineWidth=2;ctx.fillRect(-6,-16,6,32);ctx.strokeRect(-6,-16,6,32);ctx.fillStyle='#839AA0';ctx.fillRect(-5,-10,4,8);}ctx.restore();
+  };
+  ctx.save();ctx.globalAlpha=unit.alive?1:.4;
+  ctx.fillStyle='#04090C55';ctx.beginPath();ctx.ellipse(unit.position.x,unit.position.y+19,14,5,0,0,Math.PI*2);ctx.fill();
+  // 북쪽 사격은 몸 뒤로 가립니다. 총기 전체를 머리 위에 덧그리지 않습니다.
+  if(direction.view==='back')weapon();
+  ctx.save();ctx.translate(unit.position.x,unit.position.y+bob);if(down)ctx.rotate(unit.facing+Math.PI/2);ctx.scale(direction.mirror,crouch?.83:1);
+  const poly=(points:number[][],fill:string)=>{ctx.fillStyle=fill;ctx.strokeStyle='#101A1D';ctx.lineWidth=1.4;ctx.lineJoin='round';ctx.beginPath();points.forEach(([x,y],i)=>i?ctx.lineTo(x,y):ctx.moveTo(x,y));ctx.closePath();ctx.fill();ctx.stroke();};
+  // 각진 어깨, 분리된 허벅지·무릎·부츠로 작은 머리와 연결된 실루엣을 만듭니다.
+  for(const side of [-1,1]){const x=side*(direction.view==='side'?3:5),stride=side*step*2;
+    poly([[x-4,4],[x+4,4],[x+3,16+stride],[x-3,16+stride]],kit.color);
+    poly([[x-3,11+stride],[x+3,11+stride],[x+3,15+stride],[x-3,16+stride]],'#384547');
+    poly([[x-3,17+stride],[x+3,17+stride],[x+4,22+stride],[x-4,22+stride]],'#253235');
   }
-  return true;
+  poly([[-12,-15],[-7,-19],[7,-19],[12,-15],[10,5],[6,8],[-7,8],[-10,4]],kit.color);
+  ctx.save();ctx.scale(direction.view==='side'?.85:1,1);paintKit(ctx,unit.callSign,direction.view);ctx.restore();
+  ctx.save();ctx.translate(0,12*Math.max(0,-Math.sin(unit.facing)));
+  poly([[-4,-22],[4,-22],[4,-17],[-4,-17]],'#6D756A');
+  poly([[-9,-30],[-6,-35],[5,-35],[9,-30],[8,-23],[4,-20],[-5,-21],[-9,-25]],MASKED.has(unit.callSign)?'#414D50':'#777F72');
+  poly([[-10,-29],[-8,-35],[-3,-38],[6,-37],[10,-32],[9,-28],[3,-29],[-6,-27]],kit.color);
+  if(direction.view!=='back'){
+    poly(direction.view==='side'?[[0,-29],[10,-29],[10,-25],[1,-24]]:[[-8,-29],[8,-29],[7,-25],[-7,-25]],'#15282D');
+    ctx.fillStyle='#92AAA2';ctx.fillRect(direction.view==='side'?6:-6,-28,3,1);
+    if(MASKED.has(unit.callSign)){poly([[-4,-24],[4,-24],[5,-20],[-3,-20]],'#27373C');ctx.fillStyle='#657570';ctx.fillRect(-2,-23,3,2);}
+  }else{ctx.fillStyle='#323F41';ctx.fillRect(-6,-29,12,3);ctx.fillRect(-3,-34,6,4);}
+  ctx.fillStyle='#354548';ctx.fillRect(direction.view==='side'?-8:-10,-28,3,7);
+  ctx.restore();
+  ctx.fillStyle=unit.side==='공격'?'#2FD4C4':'#F0873C';ctx.fillRect(-11,-11,2,4);
+  ctx.restore();if(direction.view!=='back')weapon();ctx.restore();return true;
 }

@@ -59,7 +59,6 @@ export function BroadcastCanvas(props: Props): ReactElement {
     const smokeTexture=createSmokeTexture();
     /** 인물 원화는 한 번만 읽고 디코드된 이미지를 재사용합니다. */
     const asset=(file:string):HTMLImageElement=>{let image=images.get(file);if(!image){image=new Image();image.src=ROOT+file;images.set(file,image);}return image;};
-    for(const view of ['front','back','side']){asset(`minimal-body-0-${view}.png`);asset(`minimal-head-0-${view}.png`);asset(`minimal-head-1-${view}.png`);}
     const touchMedia=window.matchMedia('(hover: none) and (pointer: coarse)'),motionMedia=window.matchMedia('(prefers-reduced-motion: reduce)');
     let frame=0,scene:HTMLCanvasElement|null=null,sceneKey='',visionKey='';
     let cachedVision:RealtimeUnitState[]=[];let cachedVisibleIds=new Set<string>(),camera={x:0,y:0,width:430,height:260};
