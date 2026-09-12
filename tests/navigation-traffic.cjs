@@ -29,3 +29,12 @@ for(let tick=0;tick<600;tick++){
 const report={finishedAt,minimum,positions:units.map(unit=>unit.position),reservations:events.filter(event=>event.goal.includes('문 통과')).length};
 fs.writeFileSync(require('node:path').join(__dirname,'../validation/navigation-traffic-results.json'),JSON.stringify(report,null,2)+'\n');
 console.log(report);assert(finishedAt!==null,'양방향 통과가 60초 안에 끝나야 합니다');
+
+// 통과 도중 다른 임무로 이탈해 경로가 끝나면 사격 금지 상태가 남지 않아야 합니다.
+for(const downed of [undefined,{mode:'stabilize'}]){
+ const unit={...makeUnit('interrupted',70),downed,traversal:{portalId:'door',kind:'window',until:1},locomotion:'vault'};
+ engine.move(unit,unit.position,me,map,2,[unit],nodes,new Map(),new Map(),new Map(),()=>{});
+ assert.equal(unit.traversal,undefined,'완료된 경로의 통과 상태 해제');
+ assert.equal(unit.locomotion,downed?'crawl':'walk','다운 이동 제약 보존');
+}
+console.log('PASS interrupted traversal releases movement and firing lock');

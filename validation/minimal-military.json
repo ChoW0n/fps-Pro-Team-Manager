@@ -4,6 +4,6 @@
   "operators": 12,
   "directions": 3,
   "actualComposites": 36,
-  "checks": "asset dimensions, all compositions, deterministic state, movement/down state, event-bound recoil",
-  "limits": "Two shared head families, six simplified weapon silhouettes; not twelve individually authenticated gear sets or browser play"
+  "checks": "asset dimensions, all compositions, deterministic state, movement/down state, event-bound recoil, twelve distinct kit compositions per view",
+  "limits": "Two shared head families, six weapon silhouettes, twelve fictional vector kit profiles; not authenticated gear sets or browser play"
 }

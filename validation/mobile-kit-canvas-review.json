@@ -1,0 +1,99 @@
+{
+  "kind": "Actual Canvas renderer in local Skia; not browser or iPhone performance validation",
+  "seed": 41,
+  "time": 18.8,
+  "rows": [
+    {
+      "name": "desktop",
+      "width": 1280,
+      "height": 720,
+      "medianMs": 7.05,
+      "p95Ms": 30.01,
+      "file": "broadcast-canvas-desktop.png"
+    },
+    {
+      "name": "phone",
+      "width": 390,
+      "height": 844,
+      "medianMs": 27.47,
+      "p95Ms": 28.98,
+      "file": "broadcast-canvas-phone.png"
+    },
+    {
+      "name": "phone-landscape",
+      "width": 844,
+      "height": 390,
+      "medianMs": 1.1,
+      "p95Ms": 1.26,
+      "file": "broadcast-canvas-phone-landscape.png"
+    },
+    {
+      "name": "downed",
+      "width": 1280,
+      "height": 720,
+      "medianMs": 1.24,
+      "p95Ms": 1.87,
+      "file": "broadcast-canvas-downed.png"
+    },
+    {
+      "name": "collier-downed",
+      "width": 1280,
+      "height": 720,
+      "medianMs": 0.98,
+      "p95Ms": 1.2,
+      "file": "broadcast-canvas-collier-downed.png"
+    },
+    {
+      "name": "collier-crawl",
+      "width": 1280,
+      "height": 720,
+      "medianMs": 3.16,
+      "p95Ms": 3.92,
+      "file": "broadcast-canvas-collier-crawl.png"
+    },
+    {
+      "name": "walk",
+      "width": 1280,
+      "height": 720,
+      "medianMs": 0.87,
+      "p95Ms": 1.08,
+      "file": "broadcast-canvas-walk.png"
+    },
+    {
+      "name": "crouch",
+      "width": 1280,
+      "height": 720,
+      "medianMs": 1.01,
+      "p95Ms": 1.23,
+      "file": "broadcast-canvas-crouch.png"
+    },
+    {
+      "name": "team-visibility",
+      "width": 1280,
+      "height": 720,
+      "medianMs": 0.86,
+      "p95Ms": 1.01,
+      "file": "broadcast-canvas-team-visibility.png"
+    },
+    {
+      "name": "tactical",
+      "width": 1280,
+      "height": 720,
+      "medianMs": 1.18,
+      "p95Ms": 1.63,
+      "file": "broadcast-canvas-tactical.png"
+    },
+    {
+      "name": "phone-touch",
+      "width": 390,
+      "height": 844,
+      "medianMs": 2.89,
+      "p95Ms": 4.26,
+      "file": "broadcast-canvas-phone-touch.png"
+    }
+  ],
+  "checks": [
+    "11 Canvas scenes",
+    "DPR 3 pointerup: center selected, blank at 60–100 CSS pixels not selected"
+  ]
+}

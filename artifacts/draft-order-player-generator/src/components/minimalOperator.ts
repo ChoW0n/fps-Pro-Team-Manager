@@ -4,6 +4,49 @@ import { muzzlePosition } from '../domain/operatorVisuals';
 export type PartLoader = (file:string) => HTMLImageElement;
 const MASKED = new Set(['COLLIER','MEDVED','REUSS','MARCHAND','성곽','SAVELLI']);
 
+// 창작 군장의 식별용 조합입니다. 실부대 지급품이나 미구현 가젯 효과를 뜻하지 않습니다.
+const KITS:Record<string,{color:string;pouches:number;pack:number;tool:'shells'|'radio'|'optic'|'probe'|'case'|'charge'|'plate'|'roll'|'coil'|'lamp'}>={
+  MAGPIE:{color:'#706B50',pouches:3,pack:9,tool:'shells'},
+  COLLIER:{color:'#39484B',pouches:4,pack:8,tool:'radio'},
+  '해동':{color:'#526052',pouches:3,pack:10,tool:'optic'},
+  ARBEL:{color:'#817858',pouches:2,pack:8,tool:'probe'},
+  AUBERT:{color:'#455360',pouches:2,pack:13,tool:'case'},
+  MEDVED:{color:'#66644C',pouches:3,pack:14,tool:'charge'},
+  REUSS:{color:'#46534C',pouches:2,pack:15,tool:'plate'},
+  BRANDT:{color:'#56605A',pouches:2,pack:9,tool:'roll'},
+  MARCHAND:{color:'#3E4B57',pouches:4,pack:11,tool:'coil'},
+  HALLORAN:{color:'#7B795C',pouches:3,pack:12,tool:'roll'},
+  '성곽':{color:'#586352',pouches:3,pack:17,tool:'plate'},
+  SAVELLI:{color:'#434E48',pouches:2,pack:10,tool:'lamp'},
+};
+
+/** 몸체 위에 조끼·파우치·운반 장비를 같은 축척으로 조립합니다. 양쪽 장비는 대칭입니다. */
+function paintKit(ctx:CanvasRenderingContext2D,callSign:string,view:'front'|'back'|'side'):void {
+  const kit=KITS[callSign];if(!kit)return;
+  const box=(x:number,y:number,w:number,h:number,color=kit.color)=>{ctx.fillStyle=color;ctx.fillRect(x,y,w,h);ctx.strokeRect(x,y,w,h);};
+  ctx.strokeStyle='#11191A';ctx.lineWidth=1.2;ctx.lineJoin='round';
+  if(view==='side'){
+    box(-13,-12,kit.pack*.45,17);box(2,-10,5,15);
+    box(4,-3,4,6,'#8A856A');
+  }else if(view==='back'){
+    box(-kit.pack/2,-13,kit.pack,19);box(-kit.pack/2+2,-10,kit.pack-4,7,'#697365');
+    for(const x of [-kit.pack/2+1,kit.pack/2-3])box(x,-13,2,19,'#303C37');
+  }else{
+    box(-9,-13,18,19);box(-7,-15,3,8);box(4,-15,3,8);
+    for(let i=0;i<kit.pouches;i++)box(-8+i*16/kit.pouches,-2,16/kit.pouches-1,7,'#777861');
+  }
+  // 어깨 바깥 장비를 남겨 축소된 중계에서도 각 인물의 윤곽이 구별되게 합니다.
+  const x=view==='side'?-12:-kit.pack/2-3;
+  if(kit.tool==='plate'){box(x,-16,3,24,'#8B9386');box(x+4,-17,2,23,'#5D6966');}
+  else if(kit.tool==='charge'){for(const dx of [0,4])box(x+dx,-17,3,20,'#90896E');}
+  else if(kit.tool==='roll'){box(x-2,-9,6,19,'#8A8970');box(x-2,-4,6,2,'#343E35');}
+  else if(kit.tool==='probe'||kit.tool==='radio'){box(x,-12,5,10,'#303C3D');ctx.beginPath();ctx.moveTo(x+2,-12);ctx.lineTo(x+(kit.tool==='probe'?5:2),-24);ctx.stroke();}
+  else if(kit.tool==='case'){box(x-2,-10,7,14,'#677981');box(x,-12,3,2,'#242F35');}
+  else if(kit.tool==='coil'){ctx.fillStyle='#67777A';ctx.beginPath();ctx.arc(x+2,-5,5,0,Math.PI*2);ctx.fill();ctx.stroke();ctx.beginPath();ctx.arc(x+2,-5,2,0,Math.PI*2);ctx.stroke();}
+  else if(kit.tool==='shells'){for(let i=0;i<3;i++)box(x+i*3,-12,2,7,'#9A8764');}
+  else{box(x,-14,5,7,'#293B40');box(x+1,-13,3,2,kit.tool==='optic'?'#829D97':'#B6B59B');}
+}
+
 /** 선수 카드와 전장에서 같은 공통 머리 파츠를 표시합니다. */
 export function minimalHeadFile(callSign:string):string {return `minimal-head-${MASKED.has(callSign)?1:0}-front.png`;}
 
@@ -47,6 +90,7 @@ export function paintMinimalOperator(ctx:CanvasRenderingContext2D,unit:RealtimeU
   ctx.fillStyle='#04090C55';ctx.beginPath();ctx.ellipse(0,11,14,6,0,0,Math.PI*2);ctx.fill();
   ctx.save();if(down)ctx.rotate(unit.facing+Math.PI/2);ctx.scale(direction.mirror,1);
   ctx.drawImage(body,-size/2,-size*.45+bob,size,size);
+  ctx.save();ctx.translate(0,bob);ctx.scale(size/34,size/34);paintKit(ctx,unit.callSign,direction.view);ctx.restore();
   ctx.drawImage(head,-headSize/2,-size*.45-headSize*.72+bob,headSize,headSize);
   // 작은 식별 띠에만 팀 색을 사용합니다.
   ctx.fillStyle=unit.side==='공격'?'#2FD4C4':'#F0873C';ctx.fillRect(-size*.29,-3+bob,3,2);

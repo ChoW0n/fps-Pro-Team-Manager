@@ -58,6 +58,8 @@ export function BroadcastCanvas(props: Props): ReactElement {
     const smokeTexture=createSmokeTexture();
     /** 인물 원화는 한 번만 읽고 디코드된 이미지를 재사용합니다. */
     const asset=(file:string):HTMLImageElement=>{let image=images.get(file);if(!image){image=new Image();image.src=ROOT+file;images.set(file,image);}return image;};
+    for(const view of ['front','back','side']){asset(`minimal-body-0-${view}.png`);asset(`minimal-head-0-${view}.png`);asset(`minimal-head-1-${view}.png`);}
+    const touchMedia=window.matchMedia('(hover: none) and (pointer: coarse)'),motionMedia=window.matchMedia('(prefers-reduced-motion: reduce)');
     let frame=0,scene:HTMLCanvasElement|null=null,sceneKey='',visionKey='';
     let cachedVision:RealtimeUnitState[]=[];let cachedVisibleIds=new Set<string>(),camera={x:0,y:0,width:430,height:260};
     let focusId:string|null=null,holdUntil=0,lastStamp=0,cameraReady=false;
@@ -65,33 +67,33 @@ export function BroadcastCanvas(props: Props): ReactElement {
     let contactView='',fanKey='';let fan:Array<{x:number;y:number}>=[];
     let hitTargets:Array<{id:string;x:number;y:number}>=[];
     const observer=new TacticalRealtimeSimulation(props.map);
-    /** 캔버스 좌표를 실제 월드 좌표로 되돌려 우리 선수만 선택합니다. */
-    const select=(event:PointerEvent):void=>{const rect=canvas.getBoundingClientRect(),x=(event.clientX-rect.left)/rect.width*canvas.width,y=(event.clientY-rect.top)/rect.height*canvas.height;const nearest=hitTargets.map(target=>({...target,distance:Math.hypot(x-target.x,y-target.y)})).sort((a,b)=>a.distance-b.distance)[0];if(nearest&&nearest.distance<45*(window.devicePixelRatio||1))latest.current.onSelect(nearest.id);};
+    /** 실제 CSS 픽셀로 거리를 재어 화면 밀도와 무관하게 우리 선수만 선택합니다. */
+    const select=(event:PointerEvent):void=>{const rect=canvas.getBoundingClientRect();const nearest=hitTargets.map(target=>({...target,distance:Math.hypot(event.clientX-rect.left-target.x*rect.width/canvas.width,event.clientY-rect.top-target.y*rect.height/canvas.height)})).sort((a,b)=>a.distance-b.distance)[0];if(nearest&&nearest.distance<45)latest.current.onSelect(nearest.id);};
     canvas.addEventListener('pointerup',select);
     /** 실제 틱 사이의 이동만 표시하고 발사·탄착은 그 사건의 기록 위치와 시각으로 그립니다. */
     const draw=(stamp:number):void=>{
       frame=requestAnimationFrame(draw);const state=timeline.current,p=latest.current;if(!state)return;
-      const rect=canvas.getBoundingClientRect(),touchScreen=window.matchMedia('(hover: none) and (pointer: coarse)').matches,dpr=Math.min(touchScreen||rect.height<520?1:1.5,window.devicePixelRatio||1),w=Math.max(1,Math.round(rect.width*dpr)),h=Math.max(1,Math.round(rect.height*dpr));
+      const rect=canvas.getBoundingClientRect(),dpr=Math.min(touchMedia.matches||rect.height<520?1:1.5,window.devicePixelRatio||1),w=Math.max(1,Math.round(rect.width*dpr)),h=Math.max(1,Math.round(rect.height*dpr));
       if(canvas.width!==w||canvas.height!==h){canvas.width=w;canvas.height=h;}
       const amount=p.paused?1:Math.min(1,Math.max(0,(stamp-state.received)/(100/p.speed)));
       const time=state.previous.time+(state.next.time-state.previous.time)*amount;
       const nextUnits=new Map(state.next.snapshot.units.map(unit=>[unit.id,unit]));
       const units=state.previous.snapshot.units.map(unit=>interpolateUnit(unit,nextUnits.get(unit.id),amount));
-      // 아홉 개 공통 128px 파츠만 재사용하며 실사형 전신 행동 시트를 더 이상 선행 로드하지 않습니다.
-      for(const view of ['front','back','side']){asset(`minimal-body-0-${view}.png`);asset(`minimal-head-0-${view}.png`);asset(`minimal-head-1-${view}.png`);}
       const snapshot=amount>=1?state.next.snapshot:state.previous.snapshot,breaches=snapshot.breaches??[];
       const map=battlefieldMap(p.map,breaches,snapshot.fortifications);
       // 카메라의 최대 기억은 8초입니다. 오래된 발소리까지 매 프레임 시야 검사하지 않습니다.
-      const events=p.events.filter(event=>event.time<=time&&time-event.time<8&&event.seenBy?.includes(p.side));
+      const events:RealtimeEvent[]=[];
+      for(let i=p.events.findLastIndex(event=>event.time<=time);i>=0&&time-p.events[i].time<8;i--){const event=p.events[i];if(event.seenBy?.includes(p.side))events.push(event);}
+      events.reverse();
       const teamVisible=units.filter(unit=>unit.side===p.side||snapshot.visibleTo?.[p.side].includes(unit.id));
       const framing=combatCamera(teamVisible,events,p.side,time,p.selectedId,p.mode==='follow',time<holdUntil?focusId:undefined);
       if(framing.focusId!==focusId)p.onFocus?.(framing.focusId);
       if(framing.focusId!==focusId||time>=holdUntil){focusId=framing.focusId;holdUntil=time+3.5;}
-      const focus=snapshot.units.find(unit=>unit.id===focusId&&unit.side===p.side);
       // 중계는 우리 팀의 실제 관측을 합칩니다. 카메라가 고개를 돌려도 동료의 접촉은 유지됩니다.
       const currentVision=snapshot.units.filter(unit=>unit.side===p.side&&unit.alive);
-      const nextVisionKey=snapshot.time+':'+p.mode+':'+(focus?.id??'none')+':'+breaches.length;
-      if(nextVisionKey!==visionKey){visionKey=nextVisionKey;cachedVision=currentVision;cachedVisibleIds=new Set(snapshot.units.filter(unit=>unit.side===p.side||currentVision.some(friend=>(!snapshot.observedBy||snapshot.observedBy[friend.id]?.includes(unit.id))&&observer.canObserve(friend,unit.position,map,snapshot.gadgets,snapshot.time))).map(unit=>unit.id));}
+      const nextVisionKey=snapshot.time+':'+p.side;
+      // 엔진이 이미 식별·차폐를 검사한 현재 틱의 목록을 사용합니다. 옛 기록만 기존 시야 검사로 보완합니다.
+      if(nextVisionKey!==visionKey){visionKey=nextVisionKey;cachedVision=currentVision;cachedVisibleIds=new Set(snapshot.visibleTo?.[p.side]??snapshot.units.filter(unit=>unit.side===p.side||currentVision.some(friend=>(!snapshot.observedBy||snapshot.observedBy[friend.id]?.includes(unit.id))&&observer.canObserve(friend,unit.position,map,snapshot.gadgets,snapshot.time))).map(unit=>unit.id));}
       const vision=cachedVision,visible=units.filter(unit=>cachedVisibleIds.has(unit.id));
       // 목격 좌표의 사본만 저장하며 카메라 전환으로 팀의 마지막 목격 기록을 지우지 않습니다.
       const view=p.side;
@@ -104,7 +106,7 @@ export function BroadcastCanvas(props: Props): ReactElement {
       // 기기 화면 비율을 반영해 넓은 화면의 교전과 세로 화면의 인물이 모두 잘리지 않게 합니다.
       if(p.mode!=='full'){viewport.height=Math.min(map.height,viewport.width*h/w);viewport.y=Math.max(0,Math.min(map.height-viewport.height,actualFrame.y-viewport.height/2));}
       const elapsed=Math.min(.05,(stamp-lastStamp)/1000||.016);lastStamp=stamp;
-      const reducedMotion=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      const reducedMotion=motionMedia.matches;
       const blend=reducedMotion||!cameraReady?1:1-Math.exp(-elapsed*9);
       for(const key of ['x','y','width','height'] as const)camera[key]+=(viewport[key]-camera[key])*blend;
       cameraReady=true;

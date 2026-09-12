@@ -22,11 +22,12 @@ let callback;global.requestAnimationFrame=fn=>{callback=fn;return 1;};global.can
 const {BroadcastCanvas}=require(app+'/src/components/BroadcastCanvas.tsx');const rows=[];
 const {operatorStateVisual}=require(app+'/src/domain/operatorVisuals.ts');
 // Skia의 이미지 디코드 콜백이 끝난 뒤 실제 인물 픽셀까지 포함해 프레임 시간을 잽니다.
-(async()=>{for(const [name,width,height] of [['desktop',1280,720],['phone',390,844],['phone-landscape',844,390],['downed',1280,720],['collier-downed',1280,720],['collier-crawl',1280,720],['walk',1280,720],['crouch',1280,720],['team-visibility',1280,720],['tactical',1280,720]]){
- const canvas=createCanvas(width,height);canvas.getBoundingClientRect=()=>({width,height,left:0,top:0});canvas.addEventListener=()=>{};canvas.removeEventListener=()=>{};
+(async()=>{for(const [name,width,height] of [['desktop',1280,720],['phone',390,844],['phone-landscape',844,390],['downed',1280,720],['collier-downed',1280,720],['collier-crawl',1280,720],['walk',1280,720],['crouch',1280,720],['team-visibility',1280,720],['tactical',1280,720],['phone-touch',390,844]]){
+ const touch=name==='phone-touch';global.window={devicePixelRatio:touch?3:1,matchMedia:query=>({matches:touch&&query.includes('pointer: coarse')})};let pointer;const centers=[];let selected=null;
+ const canvas=createCanvas(width,height);canvas.getBoundingClientRect=()=>({width,height,left:0,top:0});canvas.addEventListener=(type,fn)=>{if(type==='pointerup')pointer=fn;};canvas.removeEventListener=()=>{};
  const context=canvas.getContext('2d'),originalDraw=context.drawImage.bind(context);let spriteDraws=0,downedPoseDraws=0,crawlPoseDraws=0,walkPoseDraws=0,crouchPoseDraws=0;const drawnSprites=new Set();
  // 실제 인물 drawImage가 호출되지 않으면 빈 화면을 통과시키지 않습니다.
- context.drawImage=(source,...args)=>{if(source instanceof LocalImage){spriteDraws++;drawnSprites.add(source.assetName);if(source.assetName==='collier-downed-v3.webp')downedPoseDraws++;if(source.assetName==='collier-downed-crawl-v1.webp')crawlPoseDraws++;if(source.assetName.endsWith('-walk-v1.webp'))walkPoseDraws++;if(source.assetName.endsWith('-crouch-v1.webp'))crouchPoseDraws++;const transform=context.getTransform();assert(Math.abs(Math.hypot(transform.a,transform.b)-Math.hypot(transform.c,transform.d))<1e-6,'전신 원화의 비균등 압축 금지');}return originalDraw(source,...args);};
+ context.drawImage=(source,...args)=>{if(source instanceof LocalImage){spriteDraws++;drawnSprites.add(source.assetName);if(source.assetName.startsWith('minimal-body-')){const t=context.getTransform();centers.push({x:t.e*width/canvas.width,y:t.f*height/canvas.height});}if(source.assetName==='collier-downed-v3.webp')downedPoseDraws++;if(source.assetName==='collier-downed-crawl-v1.webp')crawlPoseDraws++;if(source.assetName.endsWith('-walk-v1.webp'))walkPoseDraws++;if(source.assetName.endsWith('-crouch-v1.webp'))crouchPoseDraws++;const transform=context.getTransform();assert(Math.abs(Math.hypot(transform.a,transform.b)-Math.hypot(transform.c,transform.d))<1e-6,'전신 원화의 비균등 압축 금지');}return originalDraw(source,...args);};
  const effects=[],refs=[];let index=0;
  React.useRef=value=>{const ref={current:index++===0?canvas:value};refs.push(ref);return ref;};React.useEffect=fn=>effects.push(fn);
  const casualty=u=>u.side==='공격'&&u.downed&&(!name.startsWith('collier-')||u.callSign==='COLLIER')
@@ -41,7 +42,7 @@ const {operatorStateVisual}=require(app+'/src/domain/operatorVisuals.ts');
  const selectedSnapshot=name==='team-visibility'?result.snapshots[0]:walkSnapshot??injurySnapshot;
  const renderedTick=selectedSnapshot?{time:selectedSnapshot.time,snapshot:selectedSnapshot,events:[]}:tick;
  const viewed=name==='team-visibility'?result.snapshots[0].units[0].id:walkSnapshot?.units.find(u=>walking(u,walkSnapshot.time))?.id??injurySnapshot?.units.find(casualty)?.id??shot.actor;
- BroadcastCanvas({tick:renderedTick,events:result.events,map,side:'공격',selectedId:viewed,mode:name==='tactical'?'full':'follow',speed:1,paused:true,onSelect:()=>{}});
+ BroadcastCanvas({tick:renderedTick,events:result.events,map,side:'공격',selectedId:viewed,mode:name==='tactical'?'full':'follow',speed:1,paused:true,onSelect:id=>{selected=id;}});
  const cleanup=effects.map(fn=>fn());const times=[];let stamp=performance.now();
  // 첫 프레임에서 이미지 요청이 시작됩니다. 그 전에 기다리면 빈 스프라이트를 검사하게 됩니다.
  callback(stamp+=16.67);await new Promise(resolve=>setTimeout(resolve,50));
@@ -50,6 +51,13 @@ const {operatorStateVisual}=require(app+'/src/domain/operatorVisuals.ts');
  assert([...drawnSprites].every(file=>file.startsWith('minimal-')),'주 중계는 공통 파츠만 사용합니다');
  if(name==='team-visibility')assert(spriteDraws>=45*5*2,'선택 선수 뒤를 포함한 아군 5명의 몸체·머리가 매 프레임 그려져야 합니다');
  assert([...drawnSprites].some(file=>file.startsWith('minimal-body-'))&&[...drawnSprites].some(file=>file.startsWith('minimal-head-')),'실제 상태에서 몸체와 머리 조립이 필요합니다');
+ if(touch){
+  // 실제 pointerup 경로를 검사합니다. DPR=3이어도 빈 곳 60~100 CSS px 바깥은 선택하지 않습니다.
+  let blank;
+  for(let x=10;x<width&&!blank;x+=10)for(let y=10;y<height;y+=10){const distance=Math.min(...centers.map(p=>Math.hypot(x-p.x,y-p.y)));if(distance>60&&distance<100){blank={x,y};break;}}
+  assert(blank,'선수 주변의 빈 터치 지점 필요');pointer({clientX:blank.x,clientY:blank.y});assert.equal(selected,null,'DPR 때문에 멀리 있는 선수를 선택하면 안 됩니다');
+  const center=centers.find(p=>p.x>0&&p.x<width&&p.y>0&&p.y<height);assert(center);pointer({clientX:center.x,clientY:center.y});assert(selected,'선수 중심 터치로 선택해야 합니다');
+ }
  const file=path.join(output,`broadcast-canvas-${name}.png`);fs.writeFileSync(file,canvas.toBuffer('image/png'));cleanup.forEach(fn=>fn?.());times.sort((a,b)=>a-b);
  rows.push({name,width,height,medianMs:+times[Math.floor(times.length/2)].toFixed(2),p95Ms:+times[Math.floor(times.length*.95)].toFixed(2),file:path.basename(file)});
 }

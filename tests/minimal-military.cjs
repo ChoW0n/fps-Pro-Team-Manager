@@ -26,7 +26,9 @@ const {OPERATORS}=require(app+'/src/domain/Operator.ts');
  const sample={id:'sample',callSign:'MAGPIE',side:'공격',weaponName:'L119A2',position:{x:64,y:72},velocity:{x:0,y:0},facing:0,alive:true,action:'hold'};
  const render=(time,changes={},shotAt)=>{const c=createCanvas(128,128);paintMinimalOperator(c.getContext('2d'),{...sample,...changes},time,shotAt,asset);return c.toBuffer('image/png');};
  assert.deepEqual(render(1),render(1));assert.notDeepEqual(render(1),render(1,{velocity:{x:10,y:0}}));assert.notDeepEqual(render(1),render(1,{downed:{mode:'stabilize'}}));assert.deepEqual(render(1),render(1,{},1));assert.notDeepEqual(render(1.07),render(1.07,{},1));
+ // 무기와 자세를 고정해도 열두 군장의 실제 합성 결과가 각각 달라야 합니다.
+ for(const facing of [Math.PI/2,-Math.PI/2,0])assert.equal(new Set(OPERATORS.map(operator=>render(1,{callSign:operator.callSign,facing}).toString('base64'))).size,12);
  fs.writeFileSync('validation/minimal-military-roster.png',canvas.toBuffer('image/png'));
- fs.writeFileSync('validation/minimal-military.json',JSON.stringify({parts:9,bytes,operators:12,directions:3,actualComposites:draws,checks:'asset dimensions, all compositions, deterministic state, movement/down state, event-bound recoil',limits:'Two shared head families, six simplified weapon silhouettes; not twelve individually authenticated gear sets or browser play'},null,2)+'\n');
+ fs.writeFileSync('validation/minimal-military.json',JSON.stringify({parts:9,bytes,operators:12,directions:3,actualComposites:draws,checks:'asset dimensions, all compositions, deterministic state, movement/down state, event-bound recoil, twelve distinct kit compositions per view',limits:'Two shared head families, six weapon silhouettes, twelve fictional vector kit profiles; not authenticated gear sets or browser play'},null,2)+'\n');
  console.log('PASS 9 parts, 36 real compositions, state/recoil contracts',bytes,'bytes');
 })().catch(error=>{console.error(error);process.exitCode=1;});

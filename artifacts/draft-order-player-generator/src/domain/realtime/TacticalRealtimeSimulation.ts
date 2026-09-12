@@ -1452,6 +1452,8 @@ export class TacticalRealtimeSimulation {
     while (plan.index < plan.points.length && distance(unit.position, plan.points[plan.index]) <= 2) plan.index += 1;
     const waypoint = plan.points[plan.index];
     if (!waypoint) {
+      // 통과 중 피격·이탈로 경로가 끝나도 상태를 풀어 다음 임무와 사격을 재개합니다.
+      if (unit.traversal) { unit.traversal = undefined; unit.locomotion = unit.downed ? 'crawl' : 'walk'; }
       unit.velocity = { x: 0, y: 0 };
       if (distance(unit.position, goal) <= 24 && unit.action !== 'reload') {
         unit.action = 'hold';
