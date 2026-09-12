@@ -20,36 +20,20 @@ export const WEAPON_PARTS:WeaponPart[]=[
  w('ARX',42,[[-33,-5],[-15,-5],[-10,-2],[-11,3],[-25,4],[-33,1]],[[-42,-3],[-33,-3],[-30,0],[-36,2],[-39,7],[-42,6]],mag,-30,-12,9,'dot','#726F5C'),
 ];
 export function weaponPart(name:string):WeaponPart{return WEAPON_PARTS.find(part=>name.includes(part.id))??WEAPON_PARTS[0];}
-// 왼쪽으로 돌 때 총기 위아래를 복원합니다. 총구 방향과 개머리판 방향은 바꾸지 않습니다.
-export function weaponUp(facing:number):number{return Math.cos(facing)<0?-1:1;}
-export function paintWeaponPart(ctx:CanvasRenderingContext2D,name:string):void{
- const part=weaponPart(name);ctx.strokeStyle='#0C1215';ctx.lineWidth=1.5;ctx.lineJoin='round';
+// 전장에서는 이 도형을 몸체와 함께 회전합니다. 화면 기준 좌우 반전은 하지 않습니다.
+export function paintWeaponPart(ctx:CanvasRenderingContext2D,name:string,accent?:string,outline=2):void{
+ const part=weaponPart(name),ink='#10191C',base='#475456',shade='#29373A',tint=accent??part.color;
+ ctx.strokeStyle=ink;ctx.lineWidth=outline;ctx.lineJoin='round';
  const poly=(points:Point[],fill:string)=>{ctx.fillStyle=fill;ctx.beginPath();points.forEach(([x,y],i)=>i?ctx.lineTo(x,y):ctx.moveTo(x,y));ctx.closePath();ctx.fill();ctx.stroke();};
- poly(part.stock,part.color);poly(part.body,part.color);poly(part.mag,'#343E40');
- poly([[part.grip,1],[part.grip+4,2],[part.grip+2,9],[part.grip-2,8]],'#303A3B');
- ctx.fillStyle=part.suppressor?'#303B3C':'#242E31';ctx.fillRect(-part.barrel,-(part.suppressor?3:1.3),part.barrel,part.suppressor?6:2.6);ctx.strokeRect(-part.barrel,-(part.suppressor?3:1.3),part.barrel,part.suppressor?6:2.6);
- ctx.strokeStyle='#929C91';ctx.lineWidth=.65;ctx.beginPath();ctx.moveTo(-part.length*.65,-2);ctx.lineTo(-part.barrel-2,-2);ctx.stroke();
- ctx.strokeStyle='#182326';ctx.lineWidth=1;for(let x=-part.barrel-3;x>-part.barrel-12;x-=3){ctx.beginPath();ctx.moveTo(x,-3);ctx.lineTo(x,-.2);ctx.stroke();}
- if(part.optic==='scope'){ctx.fillStyle='#253033';ctx.strokeStyle='#10181B';ctx.fillRect(-part.length*.72,-10,17,4);ctx.strokeRect(-part.length*.72,-10,17,4);ctx.fillRect(-part.length*.65,-6,2,3);ctx.fillRect(-part.length*.45,-6,2,3);}
- if(part.optic==='dot'){poly([[-25,-4],[-25,-9],[-20,-9],[-18,-4]],'#253438');ctx.fillStyle='#819C92';ctx.fillRect(-23,-8,2,2);}
- if(part.id==='P90'){ctx.fillStyle='#9A9D76';ctx.fillRect(-27,-8,15,1);ctx.fillStyle='#162226';ctx.beginPath();ctx.ellipse(-19,2,3,2,0,0,Math.PI*2);ctx.fill();}
- if(part.id==='C14'||part.id==='PSG'){ctx.strokeStyle='#192529';ctx.lineWidth=1.5;ctx.beginPath();ctx.moveTo(-16,2);ctx.lineTo(-14,7);ctx.stroke();}
- // 확대된 편성 화면에서도 개머리판·노리쇠·탄창·레일을 구분하는 면 분할입니다.
- const receiver=-part.length*.65;
- ctx.fillStyle='#88928A';ctx.fillRect(receiver,-2.5,6,1);ctx.fillStyle='#1B292C';ctx.fillRect(receiver+2,-1,5,1.5);
- ctx.fillStyle='#9CA397';ctx.fillRect(receiver+5,-2.5,1,1);
- ctx.strokeStyle='#788175';ctx.lineWidth=.5;
- for(let x=receiver;x<receiver+12;x+=2){ctx.beginPath();ctx.moveTo(x,-4);ctx.lineTo(x,-5);ctx.stroke();}
- const rear=part.stock[0][0];ctx.strokeStyle='#18262A';ctx.lineWidth=1.8;ctx.beginPath();ctx.moveTo(rear+.5,-2);ctx.lineTo(rear+.5,5);ctx.stroke();
- if(['MP5SD','AS Val','K1A','MPX'].includes(part.id)){ctx.strokeStyle='#8B9487';ctx.lineWidth=.7;ctx.beginPath();ctx.moveTo(rear+2,-2);ctx.lineTo(part.stock[1][0]-1,-2);ctx.stroke();}
- else{ctx.fillStyle='#28383C';ctx.beginPath();ctx.moveTo(rear+3,-1);ctx.lineTo(rear+8,-1);ctx.lineTo(rear+4,3);ctx.closePath();ctx.fill();}
- if(part.id!=='P90'){
-  const mx=(part.mag[0][0]+part.mag[1][0])/2;ctx.strokeStyle='#758074';ctx.lineWidth=.6;
-  for(const dx of [-1,1]){ctx.beginPath();ctx.moveTo(mx+dx,5);ctx.lineTo(mx+dx+.5,8);ctx.stroke();}
- }
- if(part.suppressor){ctx.strokeStyle='#65716E';ctx.lineWidth=.6;for(const x of [-part.barrel+2,-2]){ctx.beginPath();ctx.moveTo(x,-2);ctx.lineTo(x,2);ctx.stroke();}}
- ctx.strokeStyle='#142327';ctx.lineWidth=.8;ctx.strokeRect(part.grip+3,3,3,3);
- ctx.fillStyle='#9E6E55';ctx.fillRect(receiver,1,1,.6);
- // 파지점은 총기별 권총손잡이·핸드가드에 고정합니다.
- ctx.strokeStyle='#111B1C';ctx.lineWidth=1;ctx.fillStyle='#86816B';for(const [x,y] of [[part.grip,5],[part.support,2]]){ctx.beginPath();ctx.ellipse(x,y,2.8,2.3,0,0,Math.PI*2);ctx.fill();ctx.stroke();}
+ const box=(x:number,y:number,w:number,h:number,fill:string)=>{ctx.fillStyle=fill;ctx.fillRect(x,y,w,h);ctx.strokeRect(x,y,w,h);};
+ poly(part.stock,tint);poly(part.body,base);poly(part.mag,tint);
+ poly([[part.grip,1],[part.grip+4,2],[part.grip+2,9],[part.grip-2,8]],shade);
+ box(-part.barrel,-(part.suppressor?3:1.5),part.barrel,part.suppressor?6:3,shade);
+ // 잔선 대신 리시버 상면과 광학 장치만 큰 면으로 남깁니다.
+ ctx.fillStyle='#7C8883';ctx.fillRect(-part.length*.65,-3,8,2);
+ if(part.optic==='scope'){box(-part.length*.72,-9,17,4,shade);}
+ if(part.optic==='dot')poly([[-25,-4],[-25,-8],[-20,-8],[-18,-4]],shade);
+ if(part.id==='P90'){ctx.fillStyle='#8E957E';ctx.fillRect(-28,-8,16,2);ctx.fillStyle=shade;ctx.beginPath();ctx.ellipse(-19,2,3,2,0,0,Math.PI*2);ctx.fill();}
+ // 손도 군장과 같은 저채도 강조색을 사용합니다.
+ ctx.fillStyle=tint;for(const [x,y] of [[part.grip,5],[part.support,2]]){ctx.beginPath();ctx.ellipse(x,y,2.8,2.3,0,0,Math.PI*2);ctx.fill();ctx.stroke();}
 }

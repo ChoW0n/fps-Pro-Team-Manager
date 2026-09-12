@@ -3,7 +3,7 @@ const fs=require('node:fs'),path=require('node:path'),assert=require('node:asser
 require.extensions['.ts']=(m,f)=>m._compile(ts.transpileModule(fs.readFileSync(f,'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022,esModuleInterop:true}}).outputText,f);
 const {createCanvas,loadImage}=require('@napi-rs/canvas');
 const app=path.resolve(__dirname,'../artifacts/draft-order-player-generator');
-const {paintMinimalOperator,operatorDirection,weaponSilhouette}=require(app+'/src/components/minimalOperator.ts');
+const {paintMinimalOperator,weaponSilhouette}=require(app+'/src/components/minimalOperator.ts');
 const {OPERATORS}=require(app+'/src/domain/Operator.ts');
 (async()=>{
  const images=new Map();let bytes=0;
@@ -20,7 +20,6 @@ const {OPERATORS}=require(app+'/src/domain/Operator.ts');
    ctx.save();ctx.translate(x+40+i*78,y+155);ctx.scale(1.7,1.7);assert(paintMinimalOperator(ctx,unit,1,undefined,asset));ctx.restore();draws++;
   }
  }
- assert.equal(operatorDirection(-Math.PI/2).view,'back');assert.equal(operatorDirection(Math.PI/2).view,'front');assert.equal(operatorDirection(Math.PI).mirror,-1);
  assert.equal(weaponSilhouette('타보르 X95'),'bullpup');assert.equal(weaponSilhouette('FN P90'),'p90');assert.equal(weaponSilhouette('C14'),'bolt');
  // 같은 경기 상태는 같은 픽셀이며 이동과 다운은 다른 모습입니다.
  const sample={id:'sample',callSign:'MAGPIE',side:'공격',weaponName:'L119A2',position:{x:64,y:72},velocity:{x:0,y:0},facing:0,alive:true,action:'hold'};
@@ -29,6 +28,6 @@ const {OPERATORS}=require(app+'/src/domain/Operator.ts');
  // 무기와 자세를 고정해도 열두 군장의 실제 합성 결과가 각각 달라야 합니다.
  for(const facing of [Math.PI/2,-Math.PI/2,0])assert.equal(new Set(OPERATORS.map(operator=>render(1,{callSign:operator.callSign,facing}).toString('base64'))).size,12);
  fs.writeFileSync('validation/minimal-military-roster.png',canvas.toBuffer('image/png'));
- fs.writeFileSync('validation/minimal-military.json',JSON.stringify({parts:9,bytes,operators:12,directions:3,actualComposites:draws,checks:'asset dimensions, all compositions, deterministic state, movement/down state, event-bound recoil, twelve distinct kit compositions per view',limits:'Twelve individual primary weapon profiles and angular vector bodies; legacy PNG assets archived; not authenticated gear sets or browser play'},null,2)+'\n');
+ fs.writeFileSync('validation/minimal-military.json',JSON.stringify({parts:9,bytes,operators:12,directions:3,actualComposites:draws,checks:'asset dimensions, all compositions, deterministic state, movement/down state, event-bound recoil, twelve distinct kit compositions per view',limits:'Twelve individual primary weapon profiles and continuously rotating steep top-down vector bodies; legacy PNG assets archived; not authenticated gear sets or browser play'},null,2)+'\n');
  console.log('PASS 9 parts, 36 real compositions, state/recoil contracts',bytes,'bytes');
 })().catch(error=>{console.error(error);process.exitCode=1;});

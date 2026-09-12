@@ -1,9 +1,8 @@
 import type { RealtimeUnitState } from '../domain/realtime/TacticalRealtimeSimulation';
-import { paintWeaponPart, weaponPart, weaponUp } from './weaponParts';
+import { paintWeaponPart, weaponPart } from './weaponParts';
 import { muzzlePosition } from '../domain/operatorVisuals';
 
 export type PartLoader = (file:string) => HTMLImageElement;
-const MASKED = new Set(['COLLIER','MEDVED','REUSS','MARCHAND','성곽','SAVELLI']);
 
 // 창작 군장의 식별용 조합입니다. 실부대 지급품이나 미구현 가젯 효과를 뜻하지 않습니다.
 const KITS:Record<string,{color:string;pouches:number;pack:number;tool:'shells'|'radio'|'optic'|'probe'|'case'|'charge'|'plate'|'roll'|'coil'|'lamp'|'drone'|'battery'|'interceptor'}>={
@@ -20,36 +19,6 @@ const KITS:Record<string,{color:string;pouches:number;pack:number;tool:'shells'|
   '성곽':{color:'#586352',pouches:3,pack:17,tool:'battery'},
   SAVELLI:{color:'#434E48',pouches:2,pack:10,tool:'interceptor'},
 };
-
-/** 몸체 위에 조끼·파우치·운반 장비를 같은 축척으로 조립합니다. 양쪽 장비는 대칭입니다. */
-function paintKit(ctx:CanvasRenderingContext2D,callSign:string,view:'front'|'back'|'side'):void {
-  const kit=KITS[callSign];if(!kit)return;
-  const box=(x:number,y:number,w:number,h:number,color=kit.color)=>{ctx.fillStyle=color;ctx.fillRect(x,y,w,h);ctx.strokeRect(x,y,w,h);};
-  ctx.strokeStyle='#11191A';ctx.lineWidth=1.2;ctx.lineJoin='round';
-  if(view==='side'){
-    box(-13,-12,kit.pack*.45,17);box(2,-10,5,15);
-    box(4,-3,4,6,'#8A856A');
-  }else if(view==='back'){
-    box(-kit.pack/2,-13,kit.pack,19);box(-kit.pack/2+2,-10,kit.pack-4,7,'#697365');
-    for(const x of [-kit.pack/2+1,kit.pack/2-3])box(x,-13,2,19,'#303C37');
-  }else{
-    box(-9,-13,18,19);box(-7,-15,3,8);box(4,-15,3,8);
-    for(let i=0;i<kit.pouches;i++)box(-8+i*16/kit.pouches,-2,16/kit.pouches-1,7,'#777861');
-  }
-  // 어깨 바깥 장비를 남겨 축소된 중계에서도 각 인물의 윤곽이 구별되게 합니다.
-  const x=view==='side'?-12:-kit.pack/2-3;
-  if(kit.tool==='drone'){box(x-3,-13,9,10,'#59666B');for(const y of [-12,-6]){box(x-5,y,2,4,'#252C2B');box(x+6,y,2,4,'#252C2B');}box(x,-11,3,3,'#899B91');}
-  else if(kit.tool==='battery'){box(x-3,-13,9,15,'#65715A');box(x-1,-16,5,3,'#303C37');ctx.beginPath();ctx.moveTo(x+6,-10);ctx.lineTo(x+9,-10);ctx.lineTo(x+9,5);ctx.lineTo(x+3,5);ctx.stroke();}
-  else if(kit.tool==='interceptor'){box(x-2,-16,7,6,'#718078');for(const dx of [0,4])box(x+dx,-9,2,15,'#343E3B');box(x,-18,3,2,'#879991');}
-  else if(kit.tool==='plate'){box(x,-16,3,24,'#8B9386');box(x+4,-17,2,23,'#5D6966');}
-  else if(kit.tool==='charge'){for(const dx of [0,4])box(x+dx,-17,3,20,'#90896E');}
-  else if(kit.tool==='roll'){box(x-2,-9,6,19,'#8A8970');box(x-2,-4,6,2,'#343E35');}
-  else if(kit.tool==='probe'||kit.tool==='radio'){box(x,-12,5,10,'#303C3D');ctx.beginPath();ctx.moveTo(x+2,-12);ctx.lineTo(x+(kit.tool==='probe'?5:2),-24);ctx.stroke();}
-  else if(kit.tool==='case'){box(x-2,-10,7,14,'#677981');box(x,-12,3,2,'#242F35');}
-  else if(kit.tool==='coil'){ctx.fillStyle='#67777A';ctx.beginPath();ctx.arc(x+2,-5,5,0,Math.PI*2);ctx.fill();ctx.stroke();ctx.beginPath();ctx.arc(x+2,-5,2,0,Math.PI*2);ctx.stroke();}
-  else if(kit.tool==='shells'){for(let i=0;i<3;i++)box(x+i*3,-12,2,7,'#9A8764');}
-  else{box(x,-14,5,7,'#293B40');box(x+1,-13,3,2,kit.tool==='optic'?'#829D97':'#B6B59B');}
-}
 
 /** 편성 카드도 같은 각진 헬멧·바이저와 개인 군장색을 사용합니다. */
 export function minimalPortrait(callSign:string):string {
@@ -68,56 +37,52 @@ export function weaponSilhouette(name:string):'carbine'|'suppressed'|'bullpup'|'
   return 'carbine';
 }
 
-/** 세 방향 파츠는 화면 위로 서 있고, 무기는 실제 월드 방향을 따릅니다. */
-export function operatorDirection(facing:number):{view:'front'|'back'|'side';mirror:number} {
-  return Math.abs(Math.sin(facing))>.72?{view:Math.sin(facing)>0?'front':'back',mirror:1}:{view:'side',mirror:Math.cos(facing)<0?-1:1};
-}
-
-/** 실제 이동·자세·사격 사건으로만 파츠를 움직이며 엔진의 총구 좌표를 그대로 사용합니다. */
+/** 가파른 탑뷰의 한 로컬 좌표계를 머리·군장·팔·총기가 연속적으로 공유합니다. */
 export function paintMinimalOperator(ctx:CanvasRenderingContext2D,unit:RealtimeUnitState,time:number,shotAt:number|undefined,_asset:PartLoader,reducedMotion=false):boolean {
-  const direction=operatorDirection(unit.facing),kit=KITS[unit.callSign]??KITS.MAGPIE;
-  const moving=Math.hypot(unit.velocity.x,unit.velocity.y)>1&&unit.alive;
+  const kit=KITS[unit.callSign]??KITS.MAGPIE,part=weaponPart(unit.weaponName??'');
   const down=Boolean(unit.downed)||!unit.alive,crouch=unit.locomotion==='crouch';
+  const moving=Math.hypot(unit.velocity.x,unit.velocity.y)>1&&unit.alive;
   const step=!reducedMotion&&moving&&!down?Math.sin(time*(unit.locomotion==='sprint'?15:10)):0;
-  const bob=step*.5,age=shotAt===undefined?1:time-shotAt;
-  const kick=!reducedMotion&&age>0&&age<.14?Math.sin(age/.14*Math.PI)*1.2:0;
-  const muzzle=muzzlePosition(unit.callSign,unit.position,unit.facing),up=weaponUp(unit.facing),part=weaponPart(unit.weaponName??'');
-  const weapon=()=>{
-    if(down)return;
-    // 총기와 손, 소매가 같은 좌우 보정과 파지점을 공유합니다.
-    for(const [index,[x,y]] of [[part.grip-kick,5],[part.support-kick,2]].entries()){
-      const px=x*.75,py=y*.75*up;
-      const hand={x:muzzle.x+px*Math.cos(unit.facing)-py*Math.sin(unit.facing),y:muzzle.y+px*Math.sin(unit.facing)+py*Math.cos(unit.facing)};
-      ctx.strokeStyle='#111B1E';ctx.lineWidth=6;ctx.lineCap='round';ctx.beginPath();ctx.moveTo(unit.position.x+(index?-8:8),unit.position.y-10+bob);ctx.lineTo(hand.x,hand.y);ctx.stroke();ctx.strokeStyle=kit.color;ctx.lineWidth=3.5;ctx.stroke();
-    }
-    ctx.save();ctx.translate(muzzle.x,muzzle.y);ctx.rotate(unit.facing);ctx.scale(.75,.75*up);ctx.translate(-kick,0);paintWeaponPart(ctx,unit.weaponName??'');
-    if(unit.shieldRaised){ctx.fillStyle='#56666B';ctx.strokeStyle='#0B1115';ctx.lineWidth=2;ctx.fillRect(-6,-16,6,32);ctx.strokeRect(-6,-16,6,32);ctx.fillStyle='#839AA0';ctx.fillRect(-5,-10,4,8);}ctx.restore();
-  };
+  const age=shotAt===undefined?1:time-shotAt,kick=!reducedMotion&&age>0&&age<.14?Math.sin(age/.14*Math.PI)*1.2:0;
+  const muzzle=muzzlePosition(unit.callSign,unit.position,unit.facing),c=Math.cos(unit.facing),s=Math.sin(unit.facing);
+  const dx=muzzle.x-unit.position.x,dy=muzzle.y-unit.position.y;
+  const tip={x:dx*c+dy*s,y:-dx*s+dy*c};
+  const ink='#10191C',shade='#29373A',light='#859080',outline=2;
   ctx.save();ctx.globalAlpha=unit.alive?1:.4;
-  ctx.fillStyle='#04090C55';ctx.beginPath();ctx.ellipse(unit.position.x,unit.position.y+19,14,5,0,0,Math.PI*2);ctx.fill();
-  // 북쪽 사격은 몸 뒤로 가립니다. 총기 전체를 머리 위에 덧그리지 않습니다.
-  if(direction.view==='back')weapon();
-  ctx.save();ctx.translate(unit.position.x,unit.position.y+bob);if(down)ctx.rotate(unit.facing+Math.PI/2);ctx.scale(direction.mirror,crouch?.83:1);
-  const poly=(points:number[][],fill:string)=>{ctx.fillStyle=fill;ctx.strokeStyle='#101A1D';ctx.lineWidth=1.4;ctx.lineJoin='round';ctx.beginPath();points.forEach(([x,y],i)=>i?ctx.lineTo(x,y):ctx.moveTo(x,y));ctx.closePath();ctx.fill();ctx.stroke();};
-  // 각진 어깨, 분리된 허벅지·무릎·부츠로 작은 머리와 연결된 실루엣을 만듭니다.
-  for(const side of [-1,1]){const x=side*(direction.view==='side'?3:5),stride=side*step*2;
-    poly([[x-4,4],[x+4,4],[x+3,16+stride],[x-3,16+stride]],kit.color);
-    poly([[x-3,11+stride],[x+3,11+stride],[x+3,15+stride],[x-3,16+stride]],'#384547');
-    poly([[x-3,17+stride],[x+3,17+stride],[x+4,22+stride],[x-4,22+stride]],'#253235');
+  ctx.fillStyle='#04090C55';ctx.beginPath();ctx.ellipse(unit.position.x,unit.position.y+3,19,15,0,0,Math.PI*2);ctx.fill();
+  ctx.translate(unit.position.x,unit.position.y);ctx.rotate(unit.facing);
+  ctx.strokeStyle=ink;ctx.lineWidth=outline;ctx.lineJoin='round';ctx.lineCap='round';
+  const poly=(points:number[][],fill:string)=>{ctx.fillStyle=fill;ctx.beginPath();points.forEach(([x,y],i)=>i?ctx.lineTo(x,y):ctx.moveTo(x,y));ctx.closePath();ctx.fill();ctx.stroke();};
+  const box=(x:number,y:number,w:number,h:number,fill=kit.color)=>{ctx.fillStyle=fill;ctx.fillRect(x,y,w,h);ctx.strokeRect(x,y,w,h);};
+  // 전신을 세우지 않고 어깨·배낭·뒤로 짧게 보이는 부츠를 위에서 읽게 합니다.
+  for(const side of [-1,1]){
+    const rear=down?-29:crouch?-17:-22+side*step*2;
+    poly([[rear,side*4],[rear+10,side*4],[rear+9,side*10],[rear-2,side*9]],shade);
   }
-  poly([[-12,-15],[-7,-19],[7,-19],[12,-15],[10,5],[6,8],[-7,8],[-10,4]],kit.color);
-  ctx.save();ctx.scale(direction.view==='side'?.85:1,1);paintKit(ctx,unit.callSign,direction.view);ctx.restore();
-  ctx.save();ctx.translate(0,12*Math.max(0,-Math.sin(unit.facing)));
-  poly([[-4,-22],[4,-22],[4,-17],[-4,-17]],'#6D756A');
-  poly([[-9,-30],[-6,-35],[5,-35],[9,-30],[8,-23],[4,-20],[-5,-21],[-9,-25]],MASKED.has(unit.callSign)?'#414D50':'#777F72');
-  poly([[-10,-29],[-8,-35],[-3,-38],[6,-37],[10,-32],[9,-28],[3,-29],[-6,-27]],kit.color);
-  if(direction.view!=='back'){
-    poly(direction.view==='side'?[[0,-29],[10,-29],[10,-25],[1,-24]]:[[-8,-29],[8,-29],[7,-25],[-7,-25]],'#15282D');
-    ctx.fillStyle='#92AAA2';ctx.fillRect(direction.view==='side'?6:-6,-28,3,1);
-    if(MASKED.has(unit.callSign)){poly([[-4,-24],[4,-24],[5,-20],[-3,-20]],'#27373C');ctx.fillStyle='#657570';ctx.fillRect(-2,-23,3,2);}
-  }else{ctx.fillStyle='#323F41';ctx.fillRect(-6,-29,12,3);ctx.fillRect(-3,-34,6,4);}
-  ctx.fillStyle='#354548';ctx.fillRect(direction.view==='side'?-8:-10,-28,3,7);
-  ctx.restore();
-  ctx.fillStyle=unit.side==='공격'?'#2FD4C4':'#F0873C';ctx.fillRect(-11,-11,2,4);
-  ctx.restore();if(direction.view!=='back')weapon();ctx.restore();return true;
+  poly([[-16,-10],[-8,-14],[2,-13],[7,-7],[6,9],[-1,14],[-14,11],[-18,3]],kit.color);
+  box(-20,-kit.pack*.42,8,kit.pack*.84,shade);
+  // 군장 식별은 외곽의 큰 물체 한두 개로 유지합니다.
+  if(kit.tool==='charge'||kit.tool==='plate'){box(-17,11,18,4,light);if(kit.tool==='charge')box(-15,16,12,3,kit.color);}
+  else if(kit.tool==='drone'){box(-17,10,12,6,shade);box(-18,9,3,3,light);box(-8,15,3,3,light);}
+  else if(kit.tool==='battery'){box(-17,10,11,8,kit.color);box(-14,9,5,2,light);}
+  else if(kit.tool==='interceptor'){box(-17,11,13,4,shade);box(-13,15,4,5,light);}
+  else if(kit.tool==='coil'){ctx.fillStyle=light;ctx.beginPath();ctx.arc(-12,14,5,0,Math.PI*2);ctx.fill();ctx.stroke();}
+  else if(kit.tool==='roll'){box(-19,10,16,6,light);}
+  else if(kit.tool==='radio'){box(-15,10,8,7,shade);ctx.beginPath();ctx.moveTo(-15,12);ctx.lineTo(-24,12);ctx.stroke();}
+  else{for(let i=0;i<Math.min(3,kit.pouches);i++)box(-17+i*5,11,4,6,light);}
+  // 같은 두 면의 헬멧이 모든 방향에서 회전하므로 특정 각도에서 높이가 바뀌지 않습니다.
+  poly([[-14,-6],[-10,-11],[-2,-12],[5,-7],[6,1],[0,6],[-10,5],[-15,0]],shade);
+  poly([[-12,-6],[-9,-10],[-2,-10],[3,-6],[3,0],[-2,3],[-10,2]],kit.color);
+  box(-9,-12,8,3,light);box(-8,4,6,3,shade);
+  ctx.fillStyle=unit.side==='공격'?'#2FD4C4':'#F0873C';ctx.fillRect(-18,-5,2,5);
+  if(!down){
+    for(const [index,[x,y]] of [[part.grip-kick,5],[part.support-kick,2]].entries()){
+      const hand={x:tip.x+x*.75,y:tip.y+y*.75},shoulder={x:2,y:index?10:-10};
+      ctx.strokeStyle=ink;ctx.lineWidth=7;ctx.beginPath();ctx.moveTo(shoulder.x,shoulder.y);ctx.lineTo(hand.x,hand.y);ctx.stroke();ctx.strokeStyle=kit.color;ctx.lineWidth=3;ctx.stroke();
+    }
+    // 무기는 언제나 전방에 그립니다. 270도도 별도 가림·거울 반전 분기가 없습니다.
+    ctx.save();ctx.translate(tip.x,tip.y);ctx.scale(.75,.75);ctx.translate(-kick,0);paintWeaponPart(ctx,unit.weaponName??'',kit.color,outline/.75);
+    if(unit.shieldRaised){ctx.fillStyle=shade;ctx.strokeStyle=ink;ctx.lineWidth=outline/.75;ctx.fillRect(-5,-18,7,36);ctx.strokeRect(-5,-18,7,36);ctx.fillStyle=light;ctx.fillRect(-4,-9,5,9);}ctx.restore();
+  }
+  ctx.restore();return true;
 }
