@@ -1,0 +1,38 @@
+{
+  "fixture": "same updated utility-encounter; no outcome injection",
+  "baseline": "190797e",
+  "before": {
+    "throws": [
+      {
+        "time": 0.9,
+        "goal": "grenade-thrown"
+      },
+      {
+        "time": 24.1,
+        "goal": "smoke-thrown"
+      },
+      {
+        "time": 28.6,
+        "goal": "grenade-thrown"
+      }
+    ],
+    "escapeTicks": 0
+  },
+  "after": {
+    "throws": [
+      {
+        "time": 15,
+        "goal": "grenade-thrown"
+      },
+      {
+        "time": 24.5,
+        "goal": "smoke-thrown"
+      },
+      {
+        "time": 29,
+        "goal": "grenade-thrown"
+      }
+    ],
+    "escapeTicks": 10
+  }
+}

@@ -2,6 +2,7 @@
   "axes": 4,
   "manualLineup": "team lineup with role-fit assignment",
   "liveDirectorCommands": false,
+  "decisionFeed": "independent latest 3, changes only",
   "removed": [
     "선수별 수치",
     "선수별 오퍼레이터 강제",

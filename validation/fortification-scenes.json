@@ -1,6 +1,6 @@
 {
   "reinforce": {
-    "time": 2,
+    "time": 11,
     "openedHatches": [],
     "reinforcementRemaining": 5,
     "openedPortals": [],
@@ -10,7 +10,7 @@
       "progress": 0
     },
     "operation": {
-      "phase": "scouting",
+      "phase": "preparing",
       "scoutIds": [
         "공격:선수0:MAGPIE:0"
       ],
@@ -51,15 +51,16 @@
         "side": "공격",
         "callSign": "MAGPIE",
         "position": {
-          "x": 762.5252832019396,
-          "y": 437.8415978729585
+          "x": 771.2010814139148,
+          "y": 594.4447224219334
         },
         "velocity": {
-          "x": 11.548823009616171,
-          "y": -3.912304863192446
+          "x": 0,
+          "y": 0
         },
-        "facing": -0.32662856448603966,
-        "hp": 100,
+        "facing": 1.389579272325225,
+        "hp": 80,
+        "maxHp": 80,
         "ammo": 30,
         "magazineSize": 30,
         "reserveAmmo": 90,
@@ -76,12 +77,13 @@
         "recoil": 0,
         "spread": 0,
         "burst": 0,
-        "lastMovedAt": 2,
+        "lastMovedAt": 4,
         "cooldown": 0,
         "suppression": 0,
         "opticMagnification": 1,
-        "goal": "선발조 저자세 수색 · 구역 1/4",
-        "action": "search",
+        "goal": "담당 구역 각 유지",
+        "decision": "사선 확보 · 진입 대기",
+        "action": "hold",
         "routeIndex": 0,
         "formationIndex": 0,
         "routeStep": 1,
@@ -90,8 +92,9 @@
         },
         "alive": true,
         "floor": 0,
-        "locomotion": "sprint",
-        "lookDirection": -0.3266285644860396,
+        "entryRole": "point",
+        "locomotion": "walk",
+        "lookDirection": 1.3968103579301352,
         "shieldRaised": false
       },
       {
@@ -100,15 +103,16 @@
         "side": "수비",
         "callSign": "REUSS",
         "position": {
-          "x": 1884,
-          "y": 1560
+          "x": 998.804228508648,
+          "y": 1335.6235588338952
         },
         "velocity": {
           "x": 0,
           "y": 0
         },
-        "facing": 3.4483727208837247,
-        "hp": 100,
+        "facing": 4.534792813101199,
+        "hp": 125,
+        "maxHp": 125,
         "ammo": 20,
         "magazineSize": 20,
         "reserveAmmo": 60,
@@ -125,11 +129,12 @@
         "recoil": 0,
         "spread": 0,
         "burst": 0,
-        "lastMovedAt": 0,
+        "lastMovedAt": 9,
         "cooldown": 0,
         "suppression": 0,
         "opticMagnification": 1,
         "goal": "외벽 보강 설치 중",
+        "decision": "가젯 사용 · 사선 차단",
         "action": "utility",
         "routeIndex": 0,
         "formationIndex": 0,
@@ -140,7 +145,7 @@
         "alive": true,
         "floor": 0,
         "locomotion": "walk",
-        "lookDirection": -2.834812586295862,
+        "lookDirection": -1.748392494078387,
         "shieldRaised": false
       }
     ],
@@ -148,14 +153,14 @@
       {
         "id": "수비:선수0:REUSS:1:fortification",
         "owner": "수비:선수0:REUSS:1",
-        "deployedAt": 2,
+        "deployedAt": 11,
         "kind": "reinforcement",
-        "wallId": "outer-east-2"
+        "wallId": "outer-west-1"
       }
     ]
   },
   "shield": {
-    "time": 3.7,
+    "time": 3.9,
     "openedHatches": [],
     "reinforcementRemaining": 6,
     "openedPortals": [],
@@ -165,7 +170,7 @@
       "progress": 0
     },
     "operation": {
-      "phase": "scouting",
+      "phase": "preparing",
       "scoutIds": [
         "공격:선수0:MAGPIE:0"
       ],
@@ -206,15 +211,16 @@
         "side": "공격",
         "callSign": "MAGPIE",
         "position": {
-          "x": 858,
-          "y": 513.5479999999998
+          "x": 771.2010814139148,
+          "y": 594.4447224219334
         },
         "velocity": {
-          "x": 0,
-          "y": 12.193499999999972
+          "x": 6.280027035347871,
+          "y": 1.8611180605482787
         },
-        "facing": 1.5707963267948966,
-        "hp": 100,
+        "facing": 0.2881095070647846,
+        "hp": 80,
+        "maxHp": 80,
         "ammo": 30,
         "magazineSize": 30,
         "reserveAmmo": 90,
@@ -231,12 +237,13 @@
         "recoil": 0,
         "spread": 0,
         "burst": 0,
-        "lastMovedAt": 3.7,
+        "lastMovedAt": 3.9,
         "cooldown": 0,
         "suppression": 0,
         "opticMagnification": 1,
-        "goal": "선발조 저자세 수색 · 구역 1/4",
-        "action": "search",
+        "goal": "실제 복귀 · 진압조와 합류",
+        "decision": "선두 진입 · 각 확인",
+        "action": "approach",
         "routeIndex": 0,
         "formationIndex": 0,
         "routeStep": 1,
@@ -245,8 +252,9 @@
         },
         "alive": true,
         "floor": 0,
-        "locomotion": "sprint",
-        "lookDirection": 1.5707963267948966,
+        "entryRole": "point",
+        "locomotion": "walk",
+        "lookDirection": 0.28810950706478583,
         "shieldRaised": false
       },
       {
@@ -255,15 +263,16 @@
         "side": "수비",
         "callSign": "REUSS",
         "position": {
-          "x": 1300,
-          "y": 1375
+          "x": 1361.440822175088,
+          "y": 1344.0679113994618
         },
         "velocity": {
           "x": 0,
           "y": 0
         },
-        "facing": 6.793788239166628,
-        "hp": 100,
+        "facing": 1.7328248895294711,
+        "hp": 125,
+        "maxHp": 125,
         "ammo": 20,
         "magazineSize": 20,
         "reserveAmmo": 60,
@@ -280,11 +289,12 @@
         "recoil": 0,
         "spread": 0,
         "burst": 0,
-        "lastMovedAt": 0.1,
+        "lastMovedAt": 1.9,
         "cooldown": 0,
         "suppression": 0,
         "opticMagnification": 1,
         "goal": "차폐 방패 설치 중",
+        "decision": "가젯 사용 · 사선 차단",
         "action": "utility",
         "routeIndex": 0,
         "formationIndex": 0,
@@ -295,7 +305,7 @@
         "alive": true,
         "floor": 0,
         "locomotion": "walk",
-        "lookDirection": 0.5106029319870417,
+        "lookDirection": 1.7328248895294711,
         "shieldRaised": false
       }
     ],
@@ -303,7 +313,7 @@
       {
         "id": "수비:선수0:REUSS:1:fortification",
         "owner": "수비:선수0:REUSS:1",
-        "deployedAt": 3.7,
+        "deployedAt": 3.9,
         "kind": "shield",
         "cover": {
           "floor": 0,
@@ -311,10 +321,10 @@
           "kind": "shield",
           "label": "배치형 차폐 방패",
           "rect": {
-            "x": 1346.556432906033,
-            "y": 1362.4549762955178,
-            "width": 16,
-            "height": 84
+            "x": 1309.4389493203003,
+            "y": 1397.2558394522785,
+            "width": 84,
+            "height": 16
           }
         }
       }

@@ -25,19 +25,15 @@ fallback.defenders=fallback.defenders.filter(u=>u.operator.callSign!=='MARCHAND'
 const fallbackResult=engine.run(fallback),cameras=fallbackResult.events.filter(e=>e.goal==='camera-deployed');
 assert.equal(cameras.length,1,'MARCHAND 부재 시 공용 카메라는 한 명에게만 지급');
 assert.equal(cameras[0].actor,fallbackResult.snapshots[0].units.at(-1).id);
-// 짧은 교전에서 전멸하기 전에 연막과 수류탄을 모두 쓰는 고정 편성입니다.
-const {Player}=require(root+'Player.ts'),{NAMSAN_MAP}=require(root+'tacticalMaps.ts');
-function member(name){const operator=OPERATORS.find(o=>o.callSign===name);return {operator,side:operator.side,teamName:operator.side,player:new Player(name,name,operator.role,20,5,70,70,70,70,[operator],10,5,90,5,70,70,70)};}
-class Arena extends TacticalRealtimeSimulation{
- startPosition(unit){return unit.side==='공격'?{x:1000,y:1000}:{x:1350,y:1000};}
- startFacing(unit){return unit.side==='공격'?0:Math.PI;}
-}
-const encounter={attackers:[member('ARBEL')],defenders:[member('BRANDT')],map:{...NAMSAN_MAP,walls:[],covers:[],portals:[]},maxSeconds:30,seed:1};
-const duel=new Arena().run(encounter);
-const throws=duel.events.filter(e=>e.goal==='smoke-thrown'||e.goal==='grenade-thrown');
+// 준비 개시 후 실제로 연막과 수류탄을 순서대로 쓰는 공통 교전 입력입니다.
+const duel=require('./fixtures/utility-encounter.cjs').utilityEncounter();
+const arbel=duel.snapshots[0].units.find(u=>u.callSign==='ARBEL').id;
+const throws=duel.events.filter(e=>e.actor===arbel&&(e.goal==='smoke-thrown'||e.goal==='grenade-thrown'));
 assert(throws.some(e=>e.goal==='smoke-thrown'),'실제 연막 투척');
 assert(throws.some(e=>e.goal==='grenade-thrown'),'연막을 쓴 뒤에도 실제 수류탄 투척');
-const initial=duel.snapshots[0].units[0],last=duel.snapshots.at(-1).units[0];
+assert(throws.every(e=>e.time>=15),'준비 중 투척 금지');
+assert(throws.find(e=>e.goal==='smoke-thrown').time<throws.find(e=>e.goal==='grenade-thrown').time);
+const initial=duel.snapshots[0].units.find(u=>u.id===arbel),last=duel.snapshots.at(-1).units.find(u=>u.id===arbel);
 assert.equal(initial.utility.smoke,1,'과거 스냅샷 잔량 보존');assert.equal(initial.utility.grenade,1);
 assert.equal(last.utility.smoke,0);assert.equal(last.utility.grenade,0);
 console.log('PASS ownership, camera fallback, smoke + grenade, immutable inventory snapshots');

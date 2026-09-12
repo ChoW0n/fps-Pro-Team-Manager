@@ -1,0 +1,20 @@
+[
+  {
+    "suite": "tactical-pressure",
+    "exitCode": 1,
+    "stdout": "PASS 거리·부분 노출이 인지 시간을 늘리고 숙련된 관측이 줄임\nPASS 예상 사격 효율은 거리·총기·제어에 연속적으로 반응하며 15m 절벽 없음\nPASS 이전 선수 데이터 호환·개별 제어값과 숨은 평정심 분리\nPASS 다섯 스폰의 5인 배치·엄폐 후 실제 입구까지 통행\nPASS reinforce 실제 이동·2초 설치·지형 변경·run/session 일치\nPASS shield 실제 이동·2초 설치·지형 변경·run/session 일치\n",
+    "stderr": "FAIL 분산 3+2는 실제 서로 다른 경로에서 출발하고 중복 경로는 거절 The expression evaluated to a falsy value:\n\n  assert(snapshot.units[0].position.y===map.attackerRoutes[0].points[0].y&&snapshot.units[4].position.y===map.attackerRoutes[2].points[0].y)\n\nFAIL 분산 선발조도 각 진입로로 복귀·합류한 뒤 함께 재진입 Expected values to be strictly deep-equal:\n+ actual - expected\n\n  [\n+   'preparing',\n    'scouting',\n-   'returning',\n-   'regrouping',\n-   'entering'\n  ]\n\nFAIL 보강은 일반 파쇄를 막고 MEDVED의 4초 관통 장약에는 실제 통로를 내줌 The expression evaluated to a falsy value:\n\n  assert(start&&done&&done.time-start.time>=3.99)\n\nFAIL 실제 탄착 압박·시야 노출 전 발사 금지·원본 지도 보존 The expression evaluated to a falsy value:\n\n  assert(result.snapshots.some(snapshot=>snapshot.units.some(unit=>(unit.suppression??0)>0)))\n\n"
+  },
+  {
+    "suite": "combat-overhaul",
+    "exitCode": 1,
+    "stdout": "PASS 추가 가젯·개인 시야 포함 run/session 전체 결과 결정론\nPASS 선수 제어 기량과 정지 조준은 탄퍼짐·회복 간격에 영향을 줌\nPASS SMG·카빈·정밀·볼트액션이 서로 다른 제어 프로필 사용\nPASS 연막은 양 팀 시야를 차단하며 총알 지형 판정은 바꾸지 않음\nPASS 관전자 공개 목록은 실제 인지 완료와 벽·연막·방향을 함께 요구\nPASS 공수 교대 후 자동 카메라는 우리 팀을 중심으로 여러 방과 교전을 함께 담음\nPASS 운반자·미관측 설치·적 무력화 진행도가 감독 HUD로 유출되지 않음\nPASS 사망자는 가젯 설치·투척을 새로 시작하지 않음\nPASS 선발조를 기다리는 진압조도 출입구 대기선까지 실제 전진\nPASS 파쇄는 실제 엔진에서 벽 절단·경로 재탐색으로 연결되고 원본 지도 보존\nPASS 목격하지 못한 진입·오퍼레이터는 다음 라운드 학습에 들어가지 않음\nPASS 이전 관측 경로·연막에 대응하며 현재 비공개 작전을 입력받지 않음\nPASS 대응 편성은 습득·공수·5인 중복 금지를 지키며 조합을 바꿀 수 있음\nPASS 예상 진입을 바꿔도 A/B 필수 앵커와 합법적·분리된 초기 배치 유지\nPASS 빠른 매치는 2승 선착·매 라운드 교대하며 정규 매치와 독립\n",
+    "stderr": "FAIL 빗나간 발사도 실제 분산 방향의 탄착 지점을 보존 The expression evaluated to a falsy value:\n\n  assert(misses.length)\n\nFAIL 실제 연막·카메라·수류탄 투척·폭발·회피가 엔진 사건에 존재 The expression evaluated to a falsy value:\n\n  assert(utilitySample.snapshots.some(snapshot=>snapshot.units.some(unit=>unit.goal.includes('수류탄 회피'))))\n\nFAIL 전방 방패 상태가 실제 접촉·방향 스냅샷에 기록됨 The expression evaluated to a falsy value:\n\n  assert(states.length)\n\nFAIL 미관측 적 추가가 접촉 중인 선수의 인원 판단·첫 발사 시점을 바꾸지 않음 The expression evaluated to a falsy value:\n\n  assert(first(one))\n\nFAIL 설치 후 4대1: 네 선수의 분담 엄호와 로머의 실제 재진입·피격 순서 The expression evaluated to a falsy value:\n\n  assert(planted)\n\n"
+  },
+  {
+    "suite": "playback-navigation",
+    "exitCode": 1,
+    "stdout": "PASS 1배속에서도 모든 틱을 각각 전달하고 최종 결과·사건 순서를 보존\nPASS 2배속에서도 모든 틱을 각각 전달하고 최종 결과·사건 순서를 보존\nPASS 4배속에서도 모든 틱을 각각 전달하고 최종 결과·사건 순서를 보존\nPASS 일시정지·배속 변경·해제 후 취소가 추가 틱이나 중복 완료를 만들지 않음\nPASS 전체 전황은 지도 네 모서리를 포함하고 확대는 지도 경계 안에 머무름\nPASS 아군 전멸 뒤에도 마지막 사망자 또는 최근 실제 사건을 관전\nPASS 동료에게 막힌 이동 시도는 위치와 몸 방향을 바꾸지 않음\n",
+    "stderr": "node:internal/assert/utils:77\n    throw err;\n    ^\n\nAssertionError [ERR_ASSERTION]: 실제 연속 회피 틱이 있어야 합니다\n    at /workspace/scratch/7f972db6d056/qa-baseline/tests/playback-navigation.cjs:85:3\n    at test (/workspace/scratch/7f972db6d056/qa-baseline/tests/playback-navigation.cjs:13:28)\n    at Object.<anonymous> (/workspace/scratch/7f972db6d056/qa-baseline/tests/playback-navigation.cjs:71:1)\n    at Module._compile (node:internal/modules/cjs/loader:1872:14)\n    at Object..js (node:internal/modules/cjs/loader:2003:10)\n    at Module.load (node:internal/modules/cjs/loader:1594:32)\n    at Module._load (node:internal/modules/cjs/loader:1396:12)\n    at wrapModuleLoad (node:internal/modules/cjs/loader:255:19)\n    at Module.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:154:5)\n    at node:internal/main/run_main_module:33:47 {\n  generatedMessage: false,\n  code: 'ERR_ASSERTION',\n  actual: false,\n  expected: true,\n  operator: '==',\n  diff: 'simple'\n}\n\nNode.js v24.19.0\n"
+  }
+]

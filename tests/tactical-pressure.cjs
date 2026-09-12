@@ -45,17 +45,19 @@ check('분산 3+2는 실제 서로 다른 경로에서 출발하고 중복 경�
   const input={attackers:team('공격'),defenders:team('수비',1),seed:41,maxSeconds:2,scoutPlan:{indices:[],seconds:25,entryRoute:0,secondaryRoute:2,secondaryIndices:[3,4]}};
   const snapshot=engine.createSession(input).step().snapshot;
   assert.deepEqual(snapshot.units.slice(0,5).map(unit=>unit.routeIndex),[0,0,0,2,2]);
-  assert(snapshot.units[0].position.y===map.attackerRoutes[0].points[0].y&&snapshot.units[4].position.y===map.attackerRoutes[2].points[0].y);
+  for(const unit of snapshot.units.slice(0,5)){const origin=map.attackerRoutes[unit.routeIndex].points[0];assert(Math.hypot(unit.position.x-origin.x,unit.position.y-origin.y)<=90,'진입로별 2m 분산과 첫 이동 틱');}
+  assert.equal(snapshot.operation.phase,'preparing');
   assert.throws(()=>engine.run({...input,scoutPlan:{...input.scoutPlan,secondaryRoute:0}}),/분산/);
 });
 check('분산 선발조도 각 진입로로 복귀·합류한 뒤 함께 재진입',()=>{
   // 닫힌 외곽 검사실의 수비는 수색 복귀 전에 교전으로 라운드를 끝내지 않습니다.
-  const box=[[3400,2140,3580,2140],[3580,2140,3580,2360],[3580,2360,3400,2360],[3400,2360,3400,2140]].map(([x,y,tx,ty],i)=>({id:'quiet-'+i,kind:'wall',from:{x,y},to:{x:tx,y:ty}}));
-  const quietMap={...map,walls:[...map.walls,...box],defenderSetups:[{id:'far',label:'먼 수비',position:{x:3500,y:2280},fallback:{x:3500,y:2200}}]};
+  const box=[[2400,2400,2800,2400],[2800,2400,2800,2800],[2800,2800,2400,2800],[2400,2800,2400,2400]].map(([x,y,tx,ty],i)=>({id:'quiet-'+i,kind:'wall',from:{x,y},to:{x:tx,y:ty}}));
+  const quietMap={...map,defenderSpawn:{x:2600,y:2600},walls:[...map.walls,...box],defenderSetups:[{id:'far',label:'먼 수비',position:{x:2600,y:2600},fallback:{x:2600,y:2600}}]};
   const result=engine.run({attackers:team('공격'),defenders:team('수비',1),map:quietMap,seed:41,maxSeconds:100,
     scoutPlan:{indices:[0,3],seconds:25,entryRoute:0,secondaryRoute:2,secondaryIndices:[3,4]}});
+  for(const u of result.snapshots[0].units)assert(engine.canStand(u.position,quietMap),'검사 배치도 합법적인 위치');
   const phases=[...new Set(result.snapshots.map(snapshot=>snapshot.operation.phase))];
-  assert.deepEqual(phases,['scouting','returning','regrouping','entering']);
+  assert.deepEqual(phases,['preparing','scouting','returning','regrouping','entering']);
   const joined=result.snapshots.find(snapshot=>snapshot.operation.phase==='entering');
   for(const unit of joined.units.filter(unit=>unit.side==='공격'&&unit.alive)){
     const point=joined.operation.rally.find(point=>point.id===unit.id).position;
@@ -90,7 +92,7 @@ check('보강은 일반 파쇄를 막고 MEDVED의 4초 관통 장약에는 실�
   }
   const terrain={...map,walls:map.walls.map(wall=>wall.id==='outer-east-2'?{...wall,reinforced:true}:wall)};
   const attackers=team('공격',1);attackers[0].operator=OPERATORS.find(operator=>operator.callSign==='MEDVED');
-  const result=new HardBreachArena().run({attackers,defenders:team('수비',1),map:terrain,seed:18,maxSeconds:12});
+  const result=new HardBreachArena().run({attackers,defenders:team('수비',1),map:terrain,seed:18,maxSeconds:35});
   const start=result.events.find(event=>event.goal==='breach-started'),done=result.events.find(event=>event.goal==='wall-breached');
   assert(start&&done&&done.time-start.time>=3.99);
   const snapshot=result.snapshots.find(snapshot=>snapshot.breaches.length),hole=snapshot.breaches[0];assert(hole.hard);
@@ -101,8 +103,8 @@ check('실제 탄착 압박·시야 노출 전 발사 금지·원본 지도 보�
     startPosition(unit){return unit.side==='공격'?{x:1000,y:1000}:{x:1950,y:1000};}
     startFacing(unit){return unit.side==='공격'?0:Math.PI;}
   }
-  const terrain={...map,walls:[],covers:[],portals:[]};
-  const result=new ContactArena().run({attackers:team('공격',1),defenders:team('수비',1),map:terrain,seed:9,maxSeconds:12});
+  const terrain={...map,walls:[],covers:[],portals:[],defenderSpawn:{x:1950,y:1000},defenderSetups:[{id:'contact',position:{x:1950,y:1000},fallback:{x:1950,y:1000}}]};
+  const result=new ContactArena().run({attackers:team('공격',1),defenders:team('수비',1),map:terrain,seed:9,maxSeconds:35});
   assert(result.snapshots.some(snapshot=>snapshot.units.some(unit=>(unit.suppression??0)>0)));
   for(const shot of result.events.filter(event=>event.type==='shot')){
     const snapshot=result.snapshots.find(snapshot=>snapshot.time===shot.time);
