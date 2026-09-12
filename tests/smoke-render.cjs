@@ -10,9 +10,9 @@ global.document = { createElement: () => createCanvas(1, 1) };
 const { createSmokeTexture, paintSmoke } = require('../artifacts/draft-order-player-generator/src/components/smokeEffect.ts');
 const texture = createSmokeTexture();
 // 같은 경기 시각은 같은 픽셀을 만들며 판정 밖과 만료 이후에는 그리지 않습니다.
-function render(age) {
+function render(age, reducedMotion = false) {
   const canvas = createCanvas(256, 256), ctx = canvas.getContext('2d');
-  paintSmoke(ctx, texture, 128, 128, 95, age, 10);
+  paintSmoke(ctx, texture, 128, 128, 95, age, 10, reducedMotion);
   assert.equal(ctx.globalAlpha, 1);
   const pixels = ctx.getImageData(0, 0, 256, 256).data;
   for (let y = 0; y < 256; y++) for (let x = 0; x < 256; x++) {
@@ -25,5 +25,7 @@ assert(render(10).pixels.every(value => value === 0));
 assert(render(0).pixels[(128 * 256 + 128) * 4 + 3] > 200);
 assert.deepEqual(render(3).pixels, render(3).pixels);
 assert.notDeepEqual(render(3).pixels, render(5).pixels);
+assert.deepEqual(render(3, true).pixels, render(5, true).pixels);
+assert(render(10, true).pixels.every(value => value === 0));
 if (process.env.DRAFT_SMOKE_IMAGE) fs.writeFileSync(process.env.DRAFT_SMOKE_IMAGE, render(3).canvas.toBuffer('image/png'));
 console.log('PASS smoke: lifetime, full initial radius, bounds, deterministic motion, context restoration');

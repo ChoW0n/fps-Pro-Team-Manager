@@ -1,3 +1,5 @@
+> 추가 QA 최신 결과: [additional-qa-current.md](additional-qa-current.md). 자동 38개 중 11개 실패·3개 보류, 회귀 14개 중 3개는 수정 전에도 실패. 전체 완료 아님.
+
 # QA 전수 대조 및 연출 누락 수정 — 2026-09-12
 
 다른 채팅의 `941eb0b`와 원격 `2576ea4`는 전체 tree `db9c9b8e1771596cef022ba60276fc099aede597`로 일치한다. 독립 브랜치 `fix/qa-complete-coverage`에서 원문 6종을 대조하고 항목별 상태를 `QA_COVERAGE.md`에 정리했다.

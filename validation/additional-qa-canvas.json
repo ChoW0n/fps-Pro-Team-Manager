@@ -1,0 +1,183 @@
+{
+  "kind": "Actual Canvas renderer in local Skia; not browser or iPhone performance validation",
+  "seed": 41,
+  "time": 41.6,
+  "rows": [
+    {
+      "name": "desktop",
+      "width": 1280,
+      "height": 720,
+      "dpr": 1,
+      "backingWidth": 1280,
+      "backingHeight": 720,
+      "medianMs": 3.18,
+      "p95Ms": 4.17,
+      "file": "broadcast-canvas-desktop.png"
+    },
+    {
+      "name": "phone",
+      "width": 390,
+      "height": 844,
+      "dpr": 1,
+      "backingWidth": 390,
+      "backingHeight": 844,
+      "medianMs": 2.02,
+      "p95Ms": 2.67,
+      "file": "broadcast-canvas-phone.png"
+    },
+    {
+      "name": "phone-landscape",
+      "width": 844,
+      "height": 390,
+      "dpr": 1,
+      "backingWidth": 844,
+      "backingHeight": 390,
+      "medianMs": 1.08,
+      "p95Ms": 1.88,
+      "file": "broadcast-canvas-phone-landscape.png"
+    },
+    {
+      "name": "downed",
+      "width": 1280,
+      "height": 720,
+      "dpr": 1,
+      "backingWidth": 1280,
+      "backingHeight": 720,
+      "medianMs": 1.32,
+      "p95Ms": 2.04,
+      "file": "broadcast-canvas-downed.png"
+    },
+    {
+      "name": "collier-downed",
+      "width": 1280,
+      "height": 720,
+      "dpr": 1,
+      "backingWidth": 1280,
+      "backingHeight": 720,
+      "medianMs": 1.33,
+      "p95Ms": 1.62,
+      "file": "broadcast-canvas-collier-downed.png"
+    },
+    {
+      "name": "collier-crawl",
+      "width": 1280,
+      "height": 720,
+      "dpr": 1,
+      "backingWidth": 1280,
+      "backingHeight": 720,
+      "medianMs": 1.95,
+      "p95Ms": 2.82,
+      "file": "broadcast-canvas-collier-crawl.png"
+    },
+    {
+      "name": "walk",
+      "width": 1280,
+      "height": 720,
+      "dpr": 1,
+      "backingWidth": 1280,
+      "backingHeight": 720,
+      "medianMs": 0.88,
+      "p95Ms": 1,
+      "file": "broadcast-canvas-walk.png"
+    },
+    {
+      "name": "crouch",
+      "width": 1280,
+      "height": 720,
+      "dpr": 1,
+      "backingWidth": 1280,
+      "backingHeight": 720,
+      "medianMs": 1.15,
+      "p95Ms": 1.32,
+      "file": "broadcast-canvas-crouch.png"
+    },
+    {
+      "name": "team-visibility",
+      "width": 1280,
+      "height": 720,
+      "dpr": 1,
+      "backingWidth": 1280,
+      "backingHeight": 720,
+      "medianMs": 0.9,
+      "p95Ms": 1.08,
+      "file": "broadcast-canvas-team-visibility.png"
+    },
+    {
+      "name": "tactical",
+      "width": 1280,
+      "height": 720,
+      "dpr": 1,
+      "backingWidth": 1280,
+      "backingHeight": 720,
+      "medianMs": 1.42,
+      "p95Ms": 1.74,
+      "file": "broadcast-canvas-tactical.png"
+    },
+    {
+      "name": "phone-touch",
+      "width": 390,
+      "height": 844,
+      "dpr": 3,
+      "backingWidth": 1170,
+      "backingHeight": 2532,
+      "medianMs": 6.96,
+      "p95Ms": 43.6,
+      "file": "broadcast-canvas-phone-touch.png"
+    },
+    {
+      "name": "phone-small",
+      "width": 360,
+      "height": 800,
+      "dpr": 2,
+      "backingWidth": 720,
+      "backingHeight": 1600,
+      "medianMs": 1.31,
+      "p95Ms": 1.87,
+      "file": "broadcast-canvas-phone-small.png"
+    },
+    {
+      "name": "phone-large",
+      "width": 430,
+      "height": 932,
+      "dpr": 3,
+      "backingWidth": 1290,
+      "backingHeight": 2796,
+      "medianMs": 6.86,
+      "p95Ms": 47.96,
+      "file": "broadcast-canvas-phone-large.png"
+    },
+    {
+      "name": "phone-android",
+      "width": 412,
+      "height": 915,
+      "dpr": 2.625,
+      "backingWidth": 1081,
+      "backingHeight": 2401,
+      "medianMs": 4.69,
+      "p95Ms": 6.12,
+      "file": "broadcast-canvas-phone-android.png"
+    },
+    {
+      "name": "phone-retina-landscape",
+      "width": 844,
+      "height": 390,
+      "dpr": 3,
+      "backingWidth": 2532,
+      "backingHeight": 1170,
+      "medianMs": 39.95,
+      "p95Ms": 51.92,
+      "file": "broadcast-canvas-phone-retina-landscape.png"
+    },
+    {
+      "name": "tablet",
+      "width": 1024,
+      "height": 1366,
+      "dpr": 2,
+      "backingWidth": 1731,
+      "backingHeight": 2309,
+      "medianMs": 2.14,
+      "p95Ms": 3.01,
+      "file": "broadcast-canvas-tablet.png"
+    }
+  ]
+}

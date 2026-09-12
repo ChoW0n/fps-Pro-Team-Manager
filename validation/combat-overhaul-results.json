@@ -1,5 +1,5 @@
 {
-  "passed": 20,
+  "passed": 15,
   "total": 20,
   "tests": [
     {
@@ -16,7 +16,8 @@
     },
     {
       "name": "빗나간 발사도 실제 분산 방향의 탄착 지점을 보존",
-      "pass": true
+      "pass": false,
+      "error": "The expression evaluated to a falsy value:\n\n  assert(misses.length)\n"
     },
     {
       "name": "연막은 양 팀 시야를 차단하며 총알 지형 판정은 바꾸지 않음",
@@ -36,7 +37,8 @@
     },
     {
       "name": "실제 연막·카메라·수류탄 투척·폭발·회피가 엔진 사건에 존재",
-      "pass": true
+      "pass": false,
+      "error": "The expression evaluated to a falsy value:\n\n  assert(utilitySample.snapshots.some(snapshot=>snapshot.units.some(unit=>unit.goal.includes('수류탄 회피'))))\n"
     },
     {
       "name": "사망자는 가젯 설치·투척을 새로 시작하지 않음",
@@ -44,7 +46,8 @@
     },
     {
       "name": "전방 방패 상태가 실제 접촉·방향 스냅샷에 기록됨",
-      "pass": true
+      "pass": false,
+      "error": "The expression evaluated to a falsy value:\n\n  assert(states.length)\n"
     },
     {
       "name": "선발조를 기다리는 진압조도 출입구 대기선까지 실제 전진",
@@ -76,11 +79,13 @@
     },
     {
       "name": "미관측 적 추가가 접촉 중인 선수의 인원 판단·첫 발사 시점을 바꾸지 않음",
-      "pass": true
+      "pass": false,
+      "error": "The expression evaluated to a falsy value:\n\n  assert(first(one))\n"
     },
     {
       "name": "설치 후 4대1: 네 선수의 분담 엄호와 로머의 실제 재진입·피격 순서",
-      "pass": true
+      "pass": false,
+      "error": "The expression evaluated to a falsy value:\n\n  assert(planted)\n"
     }
   ]
 }

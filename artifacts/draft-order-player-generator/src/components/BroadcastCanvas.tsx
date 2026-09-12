@@ -212,14 +212,18 @@ export function BroadcastCanvas(props: Props): ReactElement {
         if(focused||p.mode==='full')label((unit.side===p.side?(p.playerNames?.get(unit.id)??unit.callSign):unit.callSign)+' · '+(visibleFloor+1)+'F',unit.position.x,unit.position.y+25*cssUnit);
         // 선택 선수의 상태는 우선순위 하나만 표시해 이름·경고·행동의 중첩을 줄입니다.
       }
-      for(const event of events){const age=time-event.time,duration=eventEffectDuration(event);if(age<0||age>=duration||!event.position||!vision.some(friend=>observer.canObserve(friend,event.position!,map,snapshot.gadgets,time)))continue;
+      for(const event of events){const age=time-event.time,duration=eventEffectDuration(event),effectAge=reducedMotion?duration:age;if(age<0||age>=duration||!event.position||!vision.some(friend=>observer.canObserve(friend,event.position!,map,snapshot.gadgets,time)))continue;
         if(event.type==='shot'&&event.targetPosition&&age>=0&&age<=Math.max(.1,event.travelSeconds??.1)){
           const progress=Math.min(1,age/Math.max(.01,event.travelSeconds??.1)),start=Math.max(0,progress-.16),dx=event.targetPosition.x-event.position.x,dy=event.targetPosition.y-event.position.y;ctx.strokeStyle='#FFE1A0';ctx.lineWidth=1.5;ctx.beginPath();ctx.moveTo(event.position.x+dx*start,event.position.y+dy*start);ctx.lineTo(event.position.x+dx*progress,event.position.y+dy*progress);ctx.stroke();if(age<.045){ctx.fillStyle='#FFF1C8';ctx.beginPath();ctx.arc(event.position.x,event.position.y,3,0,Math.PI*2);ctx.fill();}
         }
-        if(event.type==='impact'){if(event.hitRegion==='head'){ctx.fillStyle='#FFF4DC';ctx.beginPath();ctx.arc(event.position.x,event.position.y,5,0,Math.PI*2);ctx.fill();}else if(!effectSprite(event.hit?5:4,event.position.x,event.position.y,42+age*35,42+age*35,1-age/duration)){const radius=3+age*18;ctx.strokeStyle=event.hit?'#E5484D':'#E3D6A3';ctx.lineWidth=1.4;ctx.beginPath();ctx.arc(event.position.x,event.position.y,radius,0,Math.PI*2);ctx.stroke();}}
-        if(event.type==='utility'&&age>=0&&age<.65&&(event.goal==='grenade-exploded'||event.goal==='wall-breached')){const power=1-age/.65;effectSprite(event.goal==='grenade-exploded'?6:7,event.position.x,event.position.y,(event.goal==='grenade-exploded'?100:76)*(1-power*.2),(event.goal==='grenade-exploded'?100:76)*(1-power*.2),power);}
-        if(event.type==='utility'&&['probe-deployed','camera-deployed','power-deployed','interceptor-deployed'].includes(event.goal??''))effectSprite(3,event.position.x,event.position.y,70+age*50,70+age*50,1-age/1.2);
-        if(event.type==='utility'&&age>=0&&age<.9&&event.goal==='emp-pulse')effectSprite(2,event.position.x,event.position.y,90+age*120,90+age*120,1-age/.9);
+        if(event.type==='impact'){if(event.hitRegion==='head'){ctx.fillStyle='#FFF4DC';ctx.beginPath();ctx.arc(event.position.x,event.position.y,5,0,Math.PI*2);ctx.fill();}else if(!effectSprite(event.hit?5:4,event.position.x,event.position.y,42+effectAge*35,42+effectAge*35,1-age/duration)){const radius=3+effectAge*18;ctx.strokeStyle=event.hit?'#E5484D':'#E3D6A3';ctx.lineWidth=1.4;ctx.beginPath();ctx.arc(event.position.x,event.position.y,radius,0,Math.PI*2);ctx.stroke();}}
+        if(event.type==='utility'&&(event.goal==='grenade-exploded'||event.goal==='wall-breached')){
+          const power=1-age/.65,size=(event.goal==='grenade-exploded'?100:76)*(reducedMotion?1:1-power*.2);
+          // 로딩 전·손상된 이미지에서도 폭발 사건 자체가 화면에서 사라지지 않게 합니다.
+          if(!effectSprite(event.goal==='grenade-exploded'?6:7,event.position.x,event.position.y,size,size,power)){ctx.save();ctx.globalAlpha=power;ctx.strokeStyle='#D8B887';ctx.lineWidth=2;ctx.beginPath();ctx.arc(event.position.x,event.position.y,size/2,0,Math.PI*2);ctx.stroke();ctx.restore();}
+        }
+        if(event.type==='utility'&&['probe-deployed','camera-deployed','power-deployed','interceptor-deployed'].includes(event.goal??''))effectSprite(3,event.position.x,event.position.y,70+effectAge*50,70+effectAge*50,1-age/1.2);
+        if(event.type==='utility'&&event.goal==='emp-pulse')effectSprite(2,event.position.x,event.position.y,90+effectAge*120,90+effectAge*120,1-age/.9);
         if(event.type==='utility'&&age>=0&&age<3&&event.goal==='breach-started')deviceSprite(10,event.position.x,event.position.y,48,48,Math.min(.85,1-age/3));
         // 확인된 사건의 기록 위치에만 결과를 남깁니다. 현재 숨은 적 위치는 따라가지 않습니다.
         if(['death','downed','revive','objective'].includes(event.type)){
@@ -229,7 +233,7 @@ export function BroadcastCanvas(props: Props): ReactElement {
         }
       }
       // 연막은 실제로 보이는 구름만 인물·탄착 위에 합성하고, 상태 글자는 그 위에 둡니다.
-      for(const smoke of visibleSmokes){const point=gadgetPosition(smoke,time);const age=time-smoke.activeAt,duration=smoke.until-smoke.activeAt;if(!effectSprite(age<.55?0:1,point.x,point.y,smoke.radius*2.35,smoke.radius*2.35,Math.min(.82,age/.55,(smoke.until-time)/.45)))paintSmoke(ctx,smokeTexture,point.x,point.y,smoke.radius,age,duration);}
+      for(const smoke of visibleSmokes){const point=gadgetPosition(smoke,time);paintSmoke(ctx,smokeTexture,point.x,point.y,smoke.radius,time-smoke.activeAt,smoke.until-smoke.activeAt,reducedMotion);}
       ctx.textAlign='center';ctx.font=`bold ${11*cssUnit}px sans-serif`;
       for(const item of annotations){ctx.lineJoin='round';ctx.lineWidth=3*cssUnit;ctx.strokeStyle='#101820';ctx.strokeText(item.text,item.x,item.y);ctx.fillStyle=item.color;ctx.fillText(item.text,item.x,item.y);}
     };

@@ -31,7 +31,7 @@ export function createSmokeTexture(): HTMLCanvasElement {
 
 /** 판정 반경을 줄이지 않고 실제 유효 기간에만 느린 연무 회전을 표시합니다. */
 export function paintSmoke(ctx: CanvasRenderingContext2D, texture: HTMLCanvasElement,
-  x: number, y: number, radius: number, age: number, duration: number): void {
+  x: number, y: number, radius: number, age: number, duration: number, reducedMotion = false): void {
   if (age < 0 || age >= duration || radius <= 0) return;
   ctx.save();
   ctx.translate(x, y);
@@ -39,7 +39,7 @@ export function paintSmoke(ctx: CanvasRenderingContext2D, texture: HTMLCanvasEle
   ctx.arc(0, 0, radius, 0, Math.PI * 2);
   ctx.clip();
   ctx.drawImage(texture, -radius, -radius, radius * 2, radius * 2);
-  ctx.rotate(age * .055);
+  if (!reducedMotion) ctx.rotate(age * .055);
   ctx.globalAlpha *= .38;
   ctx.drawImage(texture, -radius, -radius, radius * 2, radius * 2);
   ctx.restore();
