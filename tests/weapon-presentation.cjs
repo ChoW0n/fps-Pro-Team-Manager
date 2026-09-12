@@ -6,8 +6,8 @@ const {OPERATORS}=require(root+'domain/Operator.ts'),{paintMinimalOperator}=requ
 const canvas=createCanvas(1200,840),ctx=canvas.getContext('2d');ctx.fillStyle='#263237';ctx.fillRect(0,0,1200,840);
 const pixels=new Set();let checks=0;
 OPERATORS.forEach((op,i)=>{
- const c=createCanvas(240,100),p=c.getContext('2d');p.translate(215,45);p.scale(3,3);paintWeaponPart(p,op.firearms[0]);pixels.add(c.toBuffer('image/png').toString('base64'));
- const x=(i%3)*400,y=Math.floor(i/3)*210;ctx.fillStyle='#D5DEDB';ctx.font='16px sans-serif';ctx.fillText(op.firearms[0],x+15,y+24);ctx.drawImage(c,x+20,y+36);
+ const c=createCanvas(380,170),p=c.getContext('2d');p.translate(355,75);p.scale(5.6,5.6);paintWeaponPart(p,op.firearms[0],undefined,1.25,{hands:false});pixels.add(c.toBuffer('image/png').toString('base64'));
+ const x=(i%3)*400,y=Math.floor(i/3)*210;ctx.fillStyle='#D5DEDB';ctx.font='16px sans-serif';ctx.fillText(op.firearms[0],x+15,y+24);ctx.drawImage(c,x+10,y+35);
  for(let angle=0;angle<8;angle++){
   const facing=angle*Math.PI/4,part=weaponPart(op.firearms[0]);
   // 탑뷰에서는 탄창도 몸체와 함께 회전하며 화면 기준 거울 반전을 하지 않습니다.

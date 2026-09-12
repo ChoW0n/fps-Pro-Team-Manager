@@ -1,4 +1,4 @@
-import type { RealtimeUnitState } from '../domain/realtime/TacticalRealtimeSimulation';
+import type { RealtimeUnitState, RealtimeGadget } from '../domain/realtime/TacticalRealtimeSimulation';
 import { paintWeaponPart, weaponPart } from './weaponParts';
 import { muzzlePosition } from '../domain/operatorVisuals';
 
@@ -37,10 +37,24 @@ export function weaponSilhouette(name:string):'carbine'|'suppressed'|'bullpup'|'
   return 'carbine';
 }
 
+export interface OperatorMotion { reloadStartedAt?:number; thrown?:RealtimeGadget; }
+
 /** 가파른 탑뷰의 한 로컬 좌표계를 머리·군장·팔·총기가 연속적으로 공유합니다. */
-export function paintMinimalOperator(ctx:CanvasRenderingContext2D,unit:RealtimeUnitState,time:number,shotAt:number|undefined,_asset:PartLoader,reducedMotion=false):boolean {
+export function paintMinimalOperator(ctx:CanvasRenderingContext2D,unit:RealtimeUnitState,time:number,shotAt:number|undefined,_asset:PartLoader,reducedMotion=false,motion:OperatorMotion={}):boolean {
   const kit=KITS[unit.callSign]??KITS.MAGPIE,part=weaponPart(unit.weaponName??'');
-  const down=Boolean(unit.downed)||!unit.alive,crouch=unit.locomotion==='crouch';
+  const down=Boolean(unit.downed)||!unit.alive;
+  const installing=!down&&(unit.action==='plant'||unit.action==='disable'||unit.action==='utility'&&/설치/.test(unit.goal??''));
+  const crouch=unit.locomotion==='crouch'||installing;
+  // 시작 사건과 남은 시간으로 진행률을 계산하므로 정지·탐색에서도 같은 자세입니다.
+  const elapsed=motion.reloadStartedAt===undefined?0:Math.max(0,time-motion.reloadStartedAt);
+  const reload=!down&&unit.action==='reload'&&unit.reloadRemaining>0;
+  const progress=reload?elapsed/Math.max(.001,elapsed+unit.reloadRemaining):0;
+  const travel=reload&&!reducedMotion?Math.sin(Math.PI*progress)*9:0;
+  const thrown=motion.thrown;
+  const throwAge=thrown?.thrownAt===undefined?-1:time-thrown.thrownAt;
+  // 이미 발사된 투척물의 후속 팔 동작만 표시합니다. 가짜 수류탄을 손에 생성하지 않습니다.
+  const throwing=!down&&!reload&&!installing&&throwAge>=0&&throwAge<.45;
+  const throwReach=throwing?(reducedMotion?8:15*(1-throwAge/.45)):0;
   const moving=Math.hypot(unit.velocity.x,unit.velocity.y)>1&&unit.alive;
   const step=!reducedMotion&&moving&&!down?Math.sin(time*(unit.locomotion==='sprint'?15:10)):0;
   const age=shotAt===undefined?1:time-shotAt,kick=!reducedMotion&&age>0&&age<.14?Math.sin(age/.14*Math.PI)*1.2:0;
@@ -76,13 +90,24 @@ export function paintMinimalOperator(ctx:CanvasRenderingContext2D,unit:RealtimeU
   box(-9,-12,8,3,light);box(-8,4,6,3,shade);
   ctx.fillStyle=unit.side==='공격'?'#2FD4C4':'#F0873C';ctx.fillRect(-18,-5,2,5);
   if(!down){
-    for(const [index,[x,y]] of [[part.grip-kick,5],[part.support-kick,2]].entries()){
+    const magX=(part.mag[0][0]+part.mag[1][0])/2;
+    const support=travel>0?[magX,(part.id==='P90'?-7-travel:6+travel)]:[part.support,2];
+    for(const [index,[x,y]] of [[part.grip-kick,5],[support[0]-kick,support[1]]].entries()){
+      if(installing||throwing&&index===1)continue;
       const hand={x:tip.x+x*.75,y:tip.y+y*.75},shoulder={x:2,y:index?10:-10};
       ctx.strokeStyle=ink;ctx.lineWidth=7;ctx.beginPath();ctx.moveTo(shoulder.x,shoulder.y);ctx.lineTo(hand.x,hand.y);ctx.stroke();ctx.strokeStyle=kit.color;ctx.lineWidth=3;ctx.stroke();
     }
     // 무기는 언제나 전방에 그립니다. 270도도 별도 가림·거울 반전 분기가 없습니다.
-    ctx.save();ctx.translate(tip.x,tip.y);ctx.scale(.75,.75);ctx.translate(-kick,0);paintWeaponPart(ctx,unit.weaponName??'',kit.color,outline/.75);
+    ctx.save();ctx.translate(tip.x,tip.y);if(installing){ctx.translate(-9,14);ctx.rotate(-.25);}ctx.scale(.75,.75);ctx.translate(-kick,0);paintWeaponPart(ctx,unit.weaponName??'',kit.color,outline/.75,{hands:!installing&&!throwing,magazineTravel:travel});
     if(unit.shieldRaised){ctx.fillStyle=shade;ctx.strokeStyle=ink;ctx.lineWidth=outline/.75;ctx.fillRect(-5,-18,7,36);ctx.strokeRect(-5,-18,7,36);ctx.fillStyle=light;ctx.fillRect(-4,-9,5,9);}ctx.restore();
+    if(installing||throwing){
+      const hands=installing?[[13,-6],[13,7]]:[[tip.x+(part.grip-kick)*.75,tip.y+3.75],[15+throwReach,13]];
+      for(const [index,[x,y]] of hands.entries()){
+        ctx.strokeStyle=ink;ctx.lineWidth=7;ctx.beginPath();ctx.moveTo(2,index?10:-10);ctx.lineTo(x,y);ctx.stroke();ctx.strokeStyle=kit.color;ctx.lineWidth=3;ctx.stroke();
+        ctx.fillStyle=kit.color;ctx.strokeStyle=ink;ctx.lineWidth=outline;ctx.beginPath();ctx.ellipse(x,y,2.7,2.2,0,0,Math.PI*2);ctx.fill();ctx.stroke();
+      }
+      // 작업 자세만 표현합니다. 설치물 생성·진행률·성공 판정은 엔진에 남깁니다.
+    }
   }
   ctx.restore();return true;
 }

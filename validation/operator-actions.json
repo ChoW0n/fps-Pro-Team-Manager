@@ -1,0 +1,5 @@
+{
+  "cases": 18,
+  "checks": "reload progress and completion, deterministic paused frame, event-bound throw, expired/future events, down-state blocking, install posture, reduced motion, no unit mutation",
+  "limits": "Canvas state fixtures; not a real-device interaction test"
+}
