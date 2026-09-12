@@ -1,0 +1,13 @@
+{
+  "phase": "E",
+  "scope": "행동 캐스케이드에서 unitActionRules.ts 규칙 표로 추출한 직후, Phase F 추가 전 events와 snapshots 전체 JSON",
+  "algorithm": "sha256",
+  "identical": true,
+  "seeds": [
+    { "seed": 3, "before": "636fb7c2b52225a24b527f90c10b50f30605a1221d6549a5d2317326cb6e0b62", "after": "636fb7c2b52225a24b527f90c10b50f30605a1221d6549a5d2317326cb6e0b62" },
+    { "seed": 17, "before": "e8f4354a5f6cd1155acb0207413168a86a6019eac41e707ac2b7527a11bbeb6a", "after": "e8f4354a5f6cd1155acb0207413168a86a6019eac41e707ac2b7527a11bbeb6a" },
+    { "seed": 41, "before": "ad554eb76f38876c88b38c75d6c97f4593a1061597f009dc3b5809249502b266", "after": "ad554eb76f38876c88b38c75d6c97f4593a1061597f009dc3b5809249502b266" },
+    { "seed": 89, "before": "d6b2160b786f895708b8e0512615556c38e102c28c994a6c37ae0082a4275d2d", "after": "d6b2160b786f895708b8e0512615556c38e102c28c994a6c37ae0082a4275d2d" }
+  ],
+  "note": "이 기록은 규칙 추출 자체의 무변경성을 증명한다. 이후 C/D/F 동작 변경은 이 비교 다음에 적용됐다."
+}

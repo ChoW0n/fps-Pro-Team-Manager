@@ -1,0 +1,9 @@
+const fs=require('node:fs'),assert=require('node:assert/strict'),ts=require('typescript');
+require.extensions['.ts']=(module,file)=>module._compile(ts.transpileModule(fs.readFileSync(file,'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText,file);
+const {UNIT_ACTION_RULES,resolveUnitAction}=require('../artifacts/draft-order-player-generator/src/domain/realtime/unitActionRules.ts');
+const base={side:'공격',shouldReposition:false,shouldFire:false,movementBlocked:false,forcedHold:false,forcedPush:false,seen:false,guarding:false,hasUnresolvedLead:false,operationGoal:false,operationMoving:false,openingScout:false,needsObjectiveMove:false,openingSearch:false,shouldSearch:false,defenderSet:false,roamer:false};
+assert.equal(UNIT_ACTION_RULES.length,13);assert.equal(UNIT_ACTION_RULES.at(-1).id,'advance');
+const cases=[['reposition',{shouldReposition:true},'reposition'],['fire',{shouldFire:true},'fire'],['traffic',{movementBlocked:true},'hold'],['forced hold',{forcedHold:true},'hold'],['forced push',{forcedPush:true},'approach'],['aim',{seen:true},'aim'],['guard',{guarding:true},'hold'],['scout',{operationGoal:true,operationMoving:true,openingScout:true},'search'],['regroup',{operationGoal:true,operationMoving:true},'approach'],['operation hold',{operationGoal:true},'hold'],['objective',{needsObjectiveMove:true},'approach'],['search',{shouldSearch:true},'search'],['opening',{openingSearch:true},'hold'],['anchor',{side:'수비',defenderSet:true},'hold'],['roam',{side:'수비',defenderSet:true,roamer:true},'approach']];
+for(const [name,change,expected] of cases)assert.equal(resolveUnitAction({...base,...change}),expected,name);
+assert.equal(resolveUnitAction({...base,shouldReposition:true,shouldFire:true}),'reposition','규칙 앞쪽 우선순위');
+console.log('PASS 행동 규칙 13개와 기존 우선순위 계약');

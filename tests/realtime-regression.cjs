@@ -98,8 +98,13 @@ test('발사 원점 = 동일 틱의 회전된 실제 총구',()=>{
     const u=base.snapshots.find(s=>s.time===e.time).units.find(u=>u.id===e.actor);
     assert(distance(muzzlePosition(u.weaponName,u.position,u.facing),e.position)<1e-6);
     assert(engine.hasLineOfSight(u.position,e.position,NAMSAN_MAP));
-    assert(engine.hasLineOfSight(e.position,e.targetPosition,NAMSAN_MAP));
-    assert.equal(e.blocked,false);
+    if(e.goal==='wall-bang') {
+      assert.equal(e.blocked,true);
+      assert(engine.penetrableWall(e.position,e.targetPosition,NAMSAN_MAP),'월뱅은 비보강 내벽 한 장만 관통해야 한다');
+    } else {
+      assert(engine.hasLineOfSight(e.position,e.targetPosition,NAMSAN_MAP));
+      assert.equal(e.blocked,false);
+    }
   }
 });
 test('탄착은 발사 당시 기록된 지점에만 발생',()=>{

@@ -1,10 +1,10 @@
 {
-  "at": "2026-09-12T14:34:05.786Z",
-  "commit": "78e1796609257d1909c148793eadb9ec54c6ae14",
+  "at": "2026-09-12T16:19:22.157Z",
+  "commit": "f193facae80506606b551a5c009dd2f8a7dc781a",
   "populationSeed": 20260912,
-  "engineSha256": "f41ffb13c0aebd57b8b892405b046d544fb88426cf2969ddc4e8a77f68c8c99b",
-  "gamesPerGroup": 6,
-  "executions": 24,
+  "engineSha256": "35669eed4f94c038c2fd936174e633fcb7e8a8ec3e24b24f3088079af18feff9",
+  "gamesPerGroup": 40,
+  "executions": 160,
   "map": "namsan-relay-01",
   "scope": "고정 난수로 생성한 10팀, 원문 150초·5진입로 교차 입력. 현 UI 180초/전체 선택 모집단과 구별. 과거 수치와 동일 입력 아님.",
   "rows": [
@@ -12,7 +12,7 @@
       "id": "P0-01",
       "label": "선발조 2명 · 재진입 도달률",
       "base": "20%",
-      "now": "100%",
+      "now": "98%",
       "pass": true,
       "note": "재진입(entering) 국면에 도달한 경기 비율. 80% 이상이어야 통과"
     },
@@ -20,23 +20,23 @@
       "id": "P0-01b",
       "label": "선발조 2명 · 공격 승률",
       "base": "0%",
-      "now": "33%",
-      "pass": true,
+      "now": "8%",
+      "pass": false,
       "note": "승률 0%인 선택지가 없어야 한다"
     },
     {
       "id": "P0-01c",
       "label": "선발조 2명 · 시간 만료율",
       "base": "80%",
-      "now": "17%",
-      "pass": true,
+      "now": "63%",
+      "pass": false,
       "note": ""
     },
     {
       "id": "P0-02",
       "label": "공격 승률 (선발조 0명 · 진입로 선택)",
       "base": "24.2%",
-      "now": "33.3%",
+      "now": "22.5%",
       "pass": false,
       "note": "40~60% 구간이 목표"
     },
@@ -44,7 +44,7 @@
       "id": "P0-02b",
       "label": "종료 사유 · 공격 전멸",
       "base": "44%",
-      "now": "67%",
+      "now": "50%",
       "pass": false,
       "note": ""
     },
@@ -52,15 +52,15 @@
       "id": "P2-16",
       "label": "명중률",
       "base": "79.1%",
-      "now": "91.0%",
-      "pass": false,
+      "now": "50.6%",
+      "pass": true,
       "note": ""
     },
     {
       "id": "P2-16b",
       "label": "헤드샷 비율",
       "base": "16.5%",
-      "now": "9.9%",
+      "now": "9.8%",
       "pass": true,
       "note": ""
     },
@@ -68,7 +68,7 @@
       "id": "P2-16c",
       "label": "한 선수 4킬 이상 경기",
       "base": "22.9%",
-      "now": "0%",
+      "now": "8%",
       "pass": true,
       "note": ""
     },
@@ -76,7 +76,7 @@
       "id": "P2-16d",
       "label": "첫 사망 시각 중앙값",
       "base": "17.5초",
-      "now": "43.8초",
+      "now": "48.3초",
       "pass": true,
       "note": ""
     },
@@ -84,15 +84,15 @@
       "id": "P2-16e",
       "label": "라운드 길이 중앙값",
       "base": "74초",
-      "now": "82초",
-      "pass": false,
+      "now": "101초",
+      "pass": true,
       "note": ""
     },
     {
       "id": "P2-17",
       "label": "소생률 (소생/다운)",
       "base": "12.6%",
-      "now": "15.8%",
+      "now": "13.9%",
       "pass": false,
       "note": ""
     },
@@ -100,15 +100,15 @@
       "id": "P2-19",
       "label": "벽 관통 사격 총합",
       "base": "0회",
-      "now": "0회",
-      "pass": false,
+      "now": "150회",
+      "pass": true,
       "note": "0이면 미구현 또는 완전 차단. 의도 확인 필요"
     },
     {
       "id": "P2-20",
       "label": "진입 시 아군 최소 간격 중앙값",
       "base": "26.7단위",
-      "now": "76.1단위",
+      "now": "75.2단위",
       "pass": true,
       "note": "60단위(1.5m) 이상이어야 일렬 밀착이 아니다"
     },
@@ -116,7 +116,7 @@
       "id": "P0-A",
       "label": "순환 대기 발생 비율 (대기 틱 중)",
       "base": "15.0%",
-      "now": "0.3%",
+      "now": "1.4%",
       "pass": false,
       "note": "0이어야 통과. 서로를 기다리는 상태는 존재해서는 안 된다"
     },
@@ -124,15 +124,15 @@
       "id": "P0-A2",
       "label": "최장 연속 대기",
       "base": "132.9초",
-      "now": "2.8초",
-      "pass": true,
+      "now": "68.8초",
+      "pass": false,
       "note": "6초 이하. 대기 타임아웃이 동작하는지 본다"
     },
     {
       "id": "P1-D",
       "label": "한 유닛이 2종 이상 가젯을 쓴 사례",
       "base": "0건",
-      "now": "8건",
+      "now": "55건",
       "pass": true,
       "note": "utilityUsed 단일 플래그가 수량제로 바뀌었는지 본다"
     },
@@ -156,7 +156,7 @@
       "id": "P2-15",
       "label": "MEDVED 등장률",
       "base": "5%",
-      "now": "50%",
+      "now": "60%",
       "pass": true,
       "note": ""
     },

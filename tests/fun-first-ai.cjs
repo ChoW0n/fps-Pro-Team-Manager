@@ -1,7 +1,7 @@
 const fs=require('node:fs'),assert=require('node:assert/strict'),ts=require('typescript');
 require.extensions['.ts']=(module,file)=>module._compile(ts.transpileModule(fs.readFileSync(file,'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022,esModuleInterop:true,resolveJsonModule:true}}).outputText,file);
 const root='../artifacts/draft-order-player-generator/src/domain/';
-const {TacticalRealtimeSimulation,operatorSpeedTier,operatorBaseSpeed,operatorMaxHp}=require(root+'realtime/TacticalRealtimeSimulation.ts');
+const {TacticalRealtimeSimulation,operatorSpeedTier,operatorBaseSpeed,operatorMaxHp,entryRole,trailPoint,shouldTacticalReload}=require(root+'realtime/TacticalRealtimeSimulation.ts');
 const {weaponHandling,shotCone,targetAcquisitionSeconds}=require(root+'realtime/weaponHandling.ts');
 const {fixture}=require('./qa-preparation-batch.cjs');
 
@@ -29,6 +29,21 @@ test('오퍼레이터 속도·체력 계층이 명세값과 일치한다',()=>{
   for(const name of ['AUBERT','REUSS','HALLORAN','BRANDT'])assert.deepEqual([operatorSpeedTier(name),operatorBaseSpeed(name),operatorMaxHp(name)],[1,44,125]);
 });
 
+test('진입 순서가 선두·후속·엄호 역할과 좌우 대형을 결정한다',()=>{
+  const team=Array.from({length:5},(_,formationIndex)=>({id:String(formationIndex),side:'공격',formationIndex,alive:true,position:{x:0,y:0},facing:0}));
+  assert.deepEqual(team.map(unit=>entryRole(unit,team)),['point','follow','follow','cover','cover']);
+  assert.deepEqual(trailPoint({position:{x:100,y:100,floor:0},facing:0},90,45),{x:10,y:145});
+});
+
+test('잔탄 재장전은 엄폐·비노출 상태에서만 허용한다',()=>{
+  const unit={ammo:9,magazineSize:30,reserveAmmo:60,suppression:0};
+  const safe={seen:false,knownDanger:false,exposedToEnemy:false,preparationLocked:false};
+  assert.equal(shouldTacticalReload(unit,safe),true);
+  assert.equal(shouldTacticalReload(unit,{...safe,exposedToEnemy:true}),false);
+  assert.equal(shouldTacticalReload({...unit,ammo:10},safe),false);
+  assert.equal(shouldTacticalReload({...unit,ammo:0},safe),false,'빈 탄창은 별도 강제 재장전 규칙이 담당한다');
+});
+
 test('엔진 스냅샷은 판단 공백을 억제하고 주요 판단 어휘를 실제로 사용한다',()=>{
   const result=new TacticalRealtimeSimulation().run(fixture(7,0,2));
   const liveTicks=result.snapshots.flatMap(snapshot=>snapshot.units.filter(unit=>unit.alive));
@@ -36,6 +51,12 @@ test('엔진 스냅샷은 판단 공백을 억제하고 주요 판단 어휘를 
   const decisions=new Set(liveTicks.map(unit=>unit.decision).filter(Boolean));
   assert(missing/liveTicks.length<=.15,`판단 공백 ${(100*missing/liveTicks.length).toFixed(1)}%`);
   assert(decisions.size>=12,`판단 종류 ${decisions.size}: ${[...decisions].join(', ')}`);
+  const count=goal=>result.events.filter(event=>event.goal===goal).length;
+  assert(count('point-corner-check')>=8,`모서리 확인 ${count('point-corner-check')}회`);
+  assert(count('intel-reroute')>=1&&count('intel-reroute')<=3,`재경로 ${count('intel-reroute')}회`);
+  assert(count('wall-bang')>=1&&count('wall-bang')<=4,`월뱅 ${count('wall-bang')}회`);
+  assert(liveTicks.some(unit=>unit.decision==='소리 추적 · 마지막 위치 확인'));
+  assert(result.events.some(event=>event.goal==='danger-zone-avoided'));
 });
 
 process.exitCode=results.every(result=>result.pass)?0:1;
