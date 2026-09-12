@@ -103,3 +103,31 @@ Web Audio API로 총성·피격·폭발/파쇄·설치 신호를 1차 연결했�
 검증: `tests/match-audio.cjs`의 6총기/음소거/예약 취소/발소리 수/동시 재생/사건명, `preparation-operation.cjs`의 실제 20경기, `weapon-grip-contract.cjs`의 12종×8방향, `render-broadcast-canvas.cjs`의 16시나리오, `preparation-ui-contract.cjs`, `ui-render-contract.cjs` 및 타입·production build 통과. UI 검사의 폐기된 ‘기대하는 장면’ 문구는 현행 공수별 준비 항목으로 교체했다.
 
 브라우저: 현재 Work 브라우저의 로컬 URL은 `ERR_BLOCKED_BY_CLIENT`, Replit 개발 URL은 탐색 시간 초과/빈 화면으로 직접 검증하지 못했다. Replit 측은 기존 버전의 홈 화면 렌더 가능이라고 응답했다. 실제 경기 진입·오디오 재생과 인간 청음은 동기화 뒤 별도 확인해야 한다. `tests/presentation-audio-browser.cjs`는 자동재생 우회 플래그를 제거하고 클릭으로 오디오를 여는 검수 스크립트이며, 현재 Work에서 실행 완료한 결과는 아니다.
+
+
+### 원격 전송 검증
+
+GitHub 기능 커밋은 `abb4d0bede8205b5d3ad1450be0135e0db1427c5`, 로컬 검증 커밋은 `e5adba50f532be2b1f108a385a6981a1c6171387`이다. 두 커밋의 전체 트리는 `d5fb0641310dd4b233432eae8256bd3838bd6a76`로 같다. 원격을 다시 fetch한 뒤 전체 diff 0을 확인했다. 원격 작성자는 연결 계정 `ChoW0n`, 로컬 작성자는 `chow0n`이다.
+
+터미널 push는 GitHub 쓰기 인증 부재로 실패했다. 연결된 GitHub Git Data API를 사용했다. 큰 base64 도구 출력 한 번은 길이가 1,048,606자로 잘려 업로드 blob SHA 불일치가 발생했으며, 그 blob은 main에 연결하지 않았다. 이후 바이너리를 49,152바이트씩 읽어 합치고 각 조각 길이와 업로드 SHA를 검사했다. 변경 경로 39개/고유 blob 38개, 최종 tree SHA가 모두 원본과 일치한 후에만 main을 fast-forward했다. 같은 전송 방식에서는 본문을 모델이 복사·재구성하지 말고 바이트 길이와 Git 해시를 검사해야 한다.
+
+
+### Replit 확인 중 발견한 문제
+
+첫 동기화 시도는 기존 별도 커밋과 충돌했다. Replit `9c0ac5eff2ba32bd798f68708388e770606dbbe5`는 clean이지만 `abb4d0be`를 포함하지 않는 부분 반영이었다. v4 장비와 이벤트 이펙트 요청도 `HTTP 200 / text/html`이어서 정상 이미지로 판정하지 않았다. 기존본을 복구 가능하게 보존하고 GitHub 검증 게임 파일 전체와 일치시키도록 후속 요청했다. **clean·HTTP 200·홈 화면 캡처만으로 동기화 완료를 선언하지 않는다.**
+
+Replit의 현 브라우저 도구는 정적 캡처만 가능하다는 응답을 받았다. 홈 402×874·874×402가 겹치지 않는다는 결과를 경기 중 UI·실제 버튼 클릭·청음 통과로 해석하지 않는다.
+
+
+### Replit 최종 적용 확인
+
+Replit 응답 기준 최종 HEAD는 `7d0cac12f69d185c34b301d3aee41e930754186b`. `abb4d0be`와 전체 파일 차이는 `.replit` 1개뿐이며 **게임 파일 차이 0개**다. `.replit`의 기존 8080→8080, 8081→8081, 20049→80 설정을 보존했다. Git 조상에는 `abb4d0be`가 포함되지 않으므로 같은 커밋의 병합 완료라고 보고하지 않고, 내용이 일치하는 별도 로컬 반영이라고 기록한다.
+
+- 미해결 충돌 0, unmerged index 0, MERGE_HEAD 없음, 작업 트리 변경 0.
+- 게임 타입 검사 종료 코드 0.
+- 웹 `/` 200, API `/api/healthz` 200, 목업 `/` 302. 목업의 리다이렉트 응답을 기능 검증으로 확대하지 않는다.
+- `tactical-device-states-v4.png`: 200 / image/png / 1,041,758 bytes.
+- `tactical-event-effects-v3.png`: 200 / image/png / 789,730 bytes.
+- 실제 경기 진입 버튼, 음소거·정지·배속의 클릭, 경기 중 휴대폰 배치, 청음은 미검증. Replit은 정적 캡처만 지원하고 Work 브라우저는 개발 URL을 렌더하지 못했다.
+
+다음 우선순위: 실제 기기에서 클릭·청음 확인 → 총기별 음원 선정과 연사 믹스 → 캐릭터 앉기/주손·보조손·견착 접점 수정 후 부대별 복장 확장. 현재 합성음, 검수용 생성 총성, 미완성 캐릭터의 품질 승인을 서로 구분한다.
