@@ -1,0 +1,448 @@
+{
+  "scope": "현재 main의 실제 준비 입력(즉시 진입·진입로 0) 20개 고정 시드. 브라우저/기기 플레이 측정이 아닙니다.",
+  "games": 20,
+  "eventTotals": {
+    "action": 9380,
+    "sound": 34158,
+    "utility": 250,
+    "intel": 1377,
+    "shot": 674,
+    "impact": 671,
+    "downed": 139,
+    "death": 111,
+    "objective": 48,
+    "revive": 10,
+    "reload": 2
+  },
+  "renderedEventRate": 0.03013669372063221,
+  "attackerKnownEventRate": 0.8765271251601879,
+  "actionTicks": {
+    "approach": 30082,
+    "hold": 13832,
+    "utility": 277,
+    "reposition": 2037,
+    "search": 8360,
+    "aim": 1603,
+    "fire": 774,
+    "downed": 3006,
+    "plant": 344,
+    "revive": 476
+  },
+  "holdRate": 0.2275336809725124,
+  "enemyVisibleRate": 0.051781329427475986,
+  "enemyVisibleSnapshotRate": 0.1727876612964801,
+  "lastContactOneSecondRate": 0.07678886830655236,
+  "lastContactThreeSecondRate": 0.10679360703054323,
+  "rows": [
+    {
+      "seed": 1,
+      "seconds": 57.3,
+      "events": {
+        "action": 418,
+        "sound": 1628,
+        "utility": 16,
+        "intel": 77,
+        "shot": 41,
+        "impact": 41,
+        "downed": 8,
+        "death": 7,
+        "objective": 7
+      },
+      "renderedEvents": 86,
+      "enemyVisibleRate": 0.061391541609822645,
+      "enemyVisibleSnapshotRate": 0.2229965156794425,
+      "lastContactOneSecondRate": 0.08276489313324238,
+      "lastContactThreeSecondRate": 0.110050022737608
+    },
+    {
+      "seed": 2,
+      "seconds": 66.1,
+      "events": {
+        "action": 527,
+        "sound": 1691,
+        "utility": 10,
+        "intel": 72,
+        "shot": 36,
+        "impact": 36,
+        "downed": 8,
+        "death": 7,
+        "revive": 1,
+        "objective": 1
+      },
+      "renderedEvents": 75,
+      "enemyVisibleRate": 0.055946953999171156,
+      "enemyVisibleSnapshotRate": 0.2039274924471299,
+      "lastContactOneSecondRate": 0.0899295482801492,
+      "lastContactThreeSecondRate": 0.12515540820555326
+    },
+    {
+      "seed": 3,
+      "seconds": 45,
+      "events": {
+        "action": 401,
+        "sound": 1600,
+        "utility": 7,
+        "intel": 52,
+        "shot": 27,
+        "impact": 27,
+        "downed": 5,
+        "death": 3,
+        "objective": 1
+      },
+      "renderedEvents": 56,
+      "enemyVisibleRate": 0.054835493519441676,
+      "enemyVisibleSnapshotRate": 0.2017738359201774,
+      "lastContactOneSecondRate": 0.06979062811565304,
+      "lastContactThreeSecondRate": 0.09471585244267199
+    },
+    {
+      "seed": 4,
+      "seconds": 62.3,
+      "events": {
+        "action": 434,
+        "sound": 1632,
+        "utility": 16,
+        "intel": 90,
+        "shot": 44,
+        "impact": 44,
+        "downed": 9,
+        "death": 8,
+        "objective": 9
+      },
+      "renderedEvents": 92,
+      "enemyVisibleRate": 0.0717745486569793,
+      "enemyVisibleSnapshotRate": 0.25,
+      "lastContactOneSecondRate": 0.10435931307793923,
+      "lastContactThreeSecondRate": 0.13826508146191105
+    },
+    {
+      "seed": 5,
+      "seconds": 45.8,
+      "events": {
+        "action": 380,
+        "sound": 1626,
+        "utility": 7,
+        "intel": 55,
+        "shot": 23,
+        "impact": 22,
+        "downed": 4,
+        "death": 3,
+        "objective": 1
+      },
+      "renderedEvents": 47,
+      "enemyVisibleRate": 0.06330365974282888,
+      "enemyVisibleSnapshotRate": 0.2374727668845316,
+      "lastContactOneSecondRate": 0.0830860534124629,
+      "lastContactThreeSecondRate": 0.1152324431256182
+    },
+    {
+      "seed": 6,
+      "seconds": 54,
+      "events": {
+        "action": 429,
+        "sound": 1583,
+        "utility": 17,
+        "intel": 70,
+        "shot": 39,
+        "impact": 39,
+        "downed": 8,
+        "death": 6,
+        "objective": 2
+      },
+      "renderedEvents": 83,
+      "enemyVisibleRate": 0.05876993166287016,
+      "enemyVisibleSnapshotRate": 0.2255083179297597,
+      "lastContactOneSecondRate": 0.08701594533029612,
+      "lastContactThreeSecondRate": 0.1143507972665148
+    },
+    {
+      "seed": 7,
+      "seconds": 57.3,
+      "events": {
+        "action": 422,
+        "sound": 1595,
+        "utility": 16,
+        "intel": 81,
+        "shot": 44,
+        "impact": 44,
+        "downed": 9,
+        "death": 8,
+        "objective": 2
+      },
+      "renderedEvents": 92,
+      "enemyVisibleRate": 0.06343452650657,
+      "enemyVisibleSnapshotRate": 0.23170731707317074,
+      "lastContactOneSecondRate": 0.08155867693701857,
+      "lastContactThreeSecondRate": 0.1105573176257363
+    },
+    {
+      "seed": 8,
+      "seconds": 56.8,
+      "events": {
+        "action": 384,
+        "sound": 1620,
+        "utility": 15,
+        "intel": 76,
+        "shot": 43,
+        "impact": 43,
+        "downed": 8,
+        "death": 7,
+        "objective": 2
+      },
+      "renderedEvents": 90,
+      "enemyVisibleRate": 0.05711775043936731,
+      "enemyVisibleSnapshotRate": 0.20913884007029876,
+      "lastContactOneSecondRate": 0.09226713532513181,
+      "lastContactThreeSecondRate": 0.13400702987697716
+    },
+    {
+      "seed": 9,
+      "seconds": 44.3,
+      "events": {
+        "action": 385,
+        "sound": 1600,
+        "utility": 7,
+        "intel": 52,
+        "shot": 26,
+        "impact": 25,
+        "downed": 5,
+        "death": 3,
+        "objective": 1
+      },
+      "renderedEvents": 53,
+      "enemyVisibleRate": 0.059679037111334,
+      "enemyVisibleSnapshotRate": 0.21396396396396397,
+      "lastContactOneSecondRate": 0.07973921765295888,
+      "lastContactThreeSecondRate": 0.10280842527582748
+    },
+    {
+      "seed": 10,
+      "seconds": 67.3,
+      "events": {
+        "action": 484,
+        "sound": 1951,
+        "utility": 16,
+        "intel": 82,
+        "shot": 36,
+        "impact": 35,
+        "downed": 7,
+        "death": 5,
+        "revive": 1,
+        "objective": 3
+      },
+      "renderedEvents": 75,
+      "enemyVisibleRate": 0.039595248570171576,
+      "enemyVisibleSnapshotRate": 0.13353115727002968,
+      "lastContactOneSecondRate": 0.048834139903211615,
+      "lastContactThreeSecondRate": 0.062032556093268805
+    },
+    {
+      "seed": 11,
+      "seconds": 110.1,
+      "events": {
+        "action": 626,
+        "sound": 2115,
+        "utility": 12,
+        "intel": 56,
+        "shot": 19,
+        "impact": 19,
+        "downed": 4,
+        "death": 4,
+        "revive": 1,
+        "objective": 3
+      },
+      "renderedEvents": 40,
+      "enemyVisibleRate": 0.025727069351230425,
+      "enemyVisibleSnapshotRate": 0.06261343012704174,
+      "lastContactOneSecondRate": 0.039149888143176735,
+      "lastContactThreeSecondRate": 0.055182699478001494
+    },
+    {
+      "seed": 12,
+      "seconds": 69.5,
+      "events": {
+        "action": 536,
+        "sound": 1708,
+        "utility": 11,
+        "intel": 73,
+        "shot": 35,
+        "impact": 35,
+        "downed": 8,
+        "death": 6,
+        "revive": 1,
+        "objective": 1
+      },
+      "renderedEvents": 73,
+      "enemyVisibleRate": 0.053473848555815766,
+      "enemyVisibleSnapshotRate": 0.1968390804597701,
+      "lastContactOneSecondRate": 0.08821233411397346,
+      "lastContactThreeSecondRate": 0.1362217017954723
+    },
+    {
+      "seed": 13,
+      "seconds": 50.3,
+      "events": {
+        "action": 385,
+        "sound": 1528,
+        "utility": 17,
+        "intel": 68,
+        "shot": 34,
+        "impact": 34,
+        "downed": 7,
+        "death": 6,
+        "objective": 1
+      },
+      "renderedEvents": 73,
+      "enemyVisibleRate": 0.055251141552511415,
+      "enemyVisibleSnapshotRate": 0.2261904761904762,
+      "lastContactOneSecondRate": 0.0771689497716895,
+      "lastContactThreeSecondRate": 0.09452054794520548
+    },
+    {
+      "seed": 14,
+      "seconds": 110.1,
+      "events": {
+        "action": 625,
+        "sound": 2115,
+        "utility": 12,
+        "intel": 56,
+        "shot": 19,
+        "impact": 19,
+        "downed": 4,
+        "death": 4,
+        "revive": 1,
+        "objective": 3
+      },
+      "renderedEvents": 40,
+      "enemyVisibleRate": 0.025727069351230425,
+      "enemyVisibleSnapshotRate": 0.06261343012704174,
+      "lastContactOneSecondRate": 0.039149888143176735,
+      "lastContactThreeSecondRate": 0.055182699478001494
+    },
+    {
+      "seed": 15,
+      "seconds": 66.1,
+      "events": {
+        "action": 527,
+        "sound": 1691,
+        "utility": 10,
+        "intel": 72,
+        "shot": 36,
+        "impact": 36,
+        "downed": 8,
+        "death": 7,
+        "revive": 1,
+        "objective": 1
+      },
+      "renderedEvents": 75,
+      "enemyVisibleRate": 0.055946953999171156,
+      "enemyVisibleSnapshotRate": 0.2039274924471299,
+      "lastContactOneSecondRate": 0.0899295482801492,
+      "lastContactThreeSecondRate": 0.12515540820555326
+    },
+    {
+      "seed": 16,
+      "seconds": 57.3,
+      "events": {
+        "action": 478,
+        "sound": 1638,
+        "utility": 11,
+        "intel": 80,
+        "shot": 37,
+        "impact": 37,
+        "downed": 8,
+        "death": 6,
+        "objective": 1
+      },
+      "renderedEvents": 77,
+      "enemyVisibleRate": 0.05181818181818182,
+      "enemyVisibleSnapshotRate": 0.1986062717770035,
+      "lastContactOneSecondRate": 0.0809090909090909,
+      "lastContactThreeSecondRate": 0.11181818181818182
+    },
+    {
+      "seed": 17,
+      "seconds": 68.5,
+      "events": {
+        "action": 534,
+        "sound": 1710,
+        "utility": 13,
+        "intel": 74,
+        "shot": 38,
+        "impact": 38,
+        "downed": 8,
+        "death": 7,
+        "revive": 1,
+        "objective": 1
+      },
+      "renderedEvents": 80,
+      "enemyVisibleRate": 0.05703734099302421,
+      "enemyVisibleSnapshotRate": 0.20262390670553937,
+      "lastContactOneSecondRate": 0.09478867459991794,
+      "lastContactThreeSecondRate": 0.13377102995486254
+    },
+    {
+      "seed": 18,
+      "seconds": 63.7,
+      "events": {
+        "action": 431,
+        "sound": 1747,
+        "utility": 15,
+        "intel": 71,
+        "shot": 41,
+        "impact": 41,
+        "downed": 9,
+        "death": 5,
+        "objective": 4,
+        "revive": 2
+      },
+      "renderedEvents": 87,
+      "enemyVisibleRate": 0.053671103477887505,
+      "enemyVisibleSnapshotRate": 0.19592476489028213,
+      "lastContactOneSecondRate": 0.0837269214255045,
+      "lastContactThreeSecondRate": 0.12322885358522971
+    },
+    {
+      "seed": 19,
+      "seconds": 51.8,
+      "events": {
+        "action": 486,
+        "sound": 1654,
+        "utility": 8,
+        "intel": 54,
+        "shot": 28,
+        "impact": 28,
+        "downed": 6,
+        "death": 3,
+        "objective": 1
+      },
+      "renderedEvents": 58,
+      "enemyVisibleRate": 0.05179982440737489,
+      "enemyVisibleSnapshotRate": 0.19653179190751446,
+      "lastContactOneSecondRate": 0.07726075504828797,
+      "lastContactThreeSecondRate": 0.11589113257243196
+    },
+    {
+      "seed": 20,
+      "seconds": 104.1,
+      "events": {
+        "action": 488,
+        "sound": 1726,
+        "utility": 14,
+        "intel": 66,
+        "shot": 28,
+        "impact": 28,
+        "downed": 6,
+        "death": 6,
+        "reload": 2,
+        "revive": 1,
+        "objective": 3
+      },
+      "renderedEvents": 59,
+      "enemyVisibleRate": 0.03503754022166607,
+      "enemyVisibleSnapshotRate": 0.07773512476007678,
+      "lastContactOneSecondRate": 0.06006435466571326,
+      "lastContactThreeSecondRate": 0.09081158383982839
+    }
+  ]
+}
