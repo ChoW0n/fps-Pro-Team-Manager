@@ -15,6 +15,8 @@ export function canvasSize(width:number,height:number,ratio:number):{width:numbe
   return {width:Math.max(1,Math.floor(width*dpr)),height:Math.max(1,Math.floor(height*dpr))};
 }
 const ROOT = `${import.meta.env.BASE_URL}operators/`;
+const DEVICE_ATLAS = `${import.meta.env.BASE_URL}effects/tactical-device-states-v3.png`;
+const EVENT_ATLAS = `${import.meta.env.BASE_URL}effects/tactical-event-effects-v3.png`;
 type Props = { tick: RealtimeTick | null; events: RealtimeEvent[]; map: TacticalMapDefinition; side: OperatorSide; selectedId: string | null; mode: 'broadcast' | 'follow' | 'full'; floor?: number; speed: number; paused: boolean; onSelect: (id: string) => void; playerNames?: ReadonlyMap<string,string>; onFocus?: (id: string | null) => void };
 
 /** 파티클 모양은 사건과 참가자 ID로 고정해 프레임마다 난수 모양이 떨리지 않게 합니다. */
@@ -70,6 +72,11 @@ export function BroadcastCanvas(props: Props): ReactElement {
     const smokeTexture=createSmokeTexture();
     /** 인물 원화는 한 번만 읽고 디코드된 이미지를 재사용합니다. */
     const asset=(file:string):HTMLImageElement=>{let image=images.get(file);if(!image){image=new Image();image.src=ROOT+file;images.set(file,image);}return image;};
+    const atlas=(file:string):HTMLImageElement=>{let image=images.get(file);if(!image){image=new Image();image.src=file;images.set(file,image);}return image;};
+    /** 장비 상태와 사건 효과를 분리해, EMP 정지·탄 소진·투척·폭발이 같은 아이콘으로 뭉개지지 않게 합니다. */
+    const sprite=(file:string,columns:number,rows:number,cell:number,x:number,y:number,width:number,height:number,alpha=1):boolean=>{const image=atlas(file);if(!image.complete||!image.naturalWidth)return false;const sw=image.naturalWidth/columns,sh=image.naturalHeight/rows,sx=(cell%columns)*sw,sy=Math.floor(cell/columns)*sh;ctx.save();ctx.globalAlpha=alpha;ctx.drawImage(image,sx,sy,sw,sh,x-width/2,y-height/2,width,height);ctx.restore();return true;};
+    const deviceSprite=(cell:number,x:number,y:number,width:number,height:number,alpha=1):boolean=>sprite(DEVICE_ATLAS,4,3,cell,x,y,width,height,alpha);
+    const effectSprite=(cell:number,x:number,y:number,width:number,height:number,alpha=1):boolean=>sprite(EVENT_ATLAS,4,2,cell,x,y,width,height,alpha);
     const motionMedia=window.matchMedia('(prefers-reduced-motion: reduce)');
     let frame=0,scene:HTMLCanvasElement|null=null,sceneKey='',visionKey='';
     let cachedVision:RealtimeUnitState[]=[];let cachedVisibleIds=new Set<string>(),camera={x:0,y:0,width:430,height:260};
@@ -163,16 +170,18 @@ export function BroadcastCanvas(props: Props): ReactElement {
         const occluders=gadget.kind==='smoke'?(snapshot.gadgets??[]).filter(other=>other.id!==gadget.id):snapshot.gadgets;
         if(gadget.side!==p.side&&!vision.some(friend=>observer.canObserve(friend,point,map,occluders,time)))continue;
         if(gadget.kind==='smoke'&&time>=gadget.activeAt){visibleSmokes.push(gadget);continue;}
-        if(electronic(gadget)){ctx.fillStyle=(gadget.disabledUntil??0)>time?'#697174':'#465D65';ctx.strokeStyle='#A8BBB5';ctx.lineWidth=2;ctx.fillRect(point.x-8,point.y-7,16,14);ctx.strokeRect(point.x-8,point.y-7,16,14);
-          ctx.font='bold 10px sans-serif';ctx.fillStyle='#D7E6DC';ctx.textAlign='center';ctx.fillText(({camera:'C',drone:'D',power:'P',interceptor:'I'} as Record<string,string>)[gadget.kind],point.x,point.y+4);
+        if(electronic(gadget)){const disabled=(gadget.disabledUntil??0)>time,cell=gadget.kind==='probe'?(disabled?1:0):gadget.kind==='camera'?(disabled?3:2):gadget.kind==='power'?(disabled?5:4):(gadget.charges??0)>0?6:7;
+          if(!deviceSprite(cell,point.x,point.y,46,46,disabled?.52:1)){ctx.fillStyle=disabled?'#697174':'#465D65';ctx.strokeStyle='#A8BBB5';ctx.lineWidth=2;ctx.fillRect(point.x-8,point.y-7,16,14);ctx.strokeRect(point.x-8,point.y-7,16,14);ctx.font='bold 10px sans-serif';ctx.fillStyle='#D7E6DC';ctx.textAlign='center';ctx.fillText(({camera:'C',probe:'P',power:'P',interceptor:'I'} as Record<string,string>)[gadget.kind],point.x,point.y+4);}
           if(gadget.side===p.side){label(GADGET_LABELS[gadget.kind]+((gadget.disabledUntil??0)>time?' · 정지':gadget.kind==='interceptor'?` · ${gadget.charges}발`:''),point.x,point.y+18*cssUnit);}continue;
         }
-        ctx.beginPath();ctx.arc(point.x,point.y,gadget.kind==='camera'?7:5,0,Math.PI*2);ctx.fillStyle=gadget.kind==='camera'?'#6EA8FF':'#FFC53D';ctx.fill();}
+        const projectileCell=({smoke:8,emp:9,grenade:11} as Record<string,number>)[gadget.kind];
+        if(projectileCell!==undefined&&gadget.thrownAt!==undefined&&!deviceSprite(projectileCell,point.x,point.y,34,34)){ctx.beginPath();ctx.arc(point.x,point.y,5,0,Math.PI*2);ctx.fillStyle='#FFC53D';ctx.fill();} else if(projectileCell===undefined) {ctx.beginPath();ctx.arc(point.x,point.y,gadget.kind==='camera'?7:5,0,Math.PI*2);ctx.fillStyle=gadget.kind==='camera'?'#6EA8FF':'#FFC53D';ctx.fill();}
+      }
       const objective=snapshot.objective,device=objective?.devicePosition;
       if(device&&(device.floor??0)===visibleFloor&&(objective.activeUntil||p.side==='공격'||vision.some(friend=>observer.canObserve(friend,device,map,snapshot.gadgets,time)))){ctx.fillStyle='#16272F';ctx.fillRect(device.x-12,device.y-9,24,18);ctx.strokeStyle='#FFC53D';ctx.strokeRect(device.x-12,device.y-9,24,18);ctx.fillStyle='#2FD4C4';ctx.fillRect(device.x-6,device.y-4,9,6);}
       hitTargets=[];
       // 실체를 연장해서 그리지 않습니다. 끊긴 접촉은 고정된 목격 표식으로만 페이드아웃합니다.
-      for(const [id,contact] of contacts){if(cachedVisibleIds.has(id))continue;ctx.save();ctx.globalAlpha=Math.max(0,1-(time-contact.seenAt));ctx.strokeStyle='#6EA8FF';ctx.setLineDash([3,4]);ctx.lineWidth=1.5;ctx.beginPath();ctx.arc(contact.position.x,contact.position.y,17,0,Math.PI*2);ctx.stroke();ctx.setLineDash([]);ctx.font='10px sans-serif';ctx.textAlign='center';ctx.fillStyle='#B0C9E9';ctx.fillText('마지막 목격',contact.position.x,contact.position.y+29);ctx.restore();}
+      for(const [id,contact] of contacts){if(cachedVisibleIds.has(id))continue;const age=time-contact.seenAt;ctx.save();ctx.globalAlpha=Math.max(0,1-age/3);ctx.strokeStyle='#6EA8FF';ctx.setLineDash([3,4]);ctx.lineWidth=1.5;ctx.beginPath();ctx.arc(contact.position.x,contact.position.y,17,0,Math.PI*2);ctx.stroke();ctx.setLineDash([]);ctx.font='10px sans-serif';ctx.textAlign='center';ctx.fillStyle='#B0C9E9';ctx.fillText('마지막 목격',contact.position.x,contact.position.y+29);ctx.restore();}
       // 앞·뒤·옆 몸체와 장비를 조립하고 사격 반동은 실제 발사 사건에만 연결합니다.
       for(const unit of visible){
         const shotAt=events.findLast(event=>event.actor===unit.id&&event.type==='shot'&&time-event.time<.14)?.time;
@@ -190,11 +199,14 @@ export function BroadcastCanvas(props: Props): ReactElement {
         if(event.type==='shot'&&event.targetPosition&&age>=0&&age<=Math.max(.1,event.travelSeconds??.1)){
           const progress=Math.min(1,age/Math.max(.01,event.travelSeconds??.1)),start=Math.max(0,progress-.16),dx=event.targetPosition.x-event.position.x,dy=event.targetPosition.y-event.position.y;ctx.strokeStyle='#FFE1A0';ctx.lineWidth=1.5;ctx.beginPath();ctx.moveTo(event.position.x+dx*start,event.position.y+dy*start);ctx.lineTo(event.position.x+dx*progress,event.position.y+dy*progress);ctx.stroke();if(age<.045){ctx.fillStyle='#FFF1C8';ctx.beginPath();ctx.arc(event.position.x,event.position.y,3,0,Math.PI*2);ctx.fill();}
         }
-        if(event.type==='impact'&&age>=0&&age<.28){const radius=3+age*18;ctx.strokeStyle=event.hit?'#E5484D':'#E3D6A3';ctx.lineWidth=1.4;ctx.beginPath();ctx.arc(event.position.x,event.position.y,radius,0,Math.PI*2);ctx.stroke();for(let i=0;i<5;i++){const angle=seeded(`${event.time}:${event.actor}`,i)*Math.PI*2,length=(1-age/.28)*(5+seeded(`${event.time}:impact`,i)*11);ctx.beginPath();ctx.moveTo(event.position.x,event.position.y);ctx.lineTo(event.position.x+Math.cos(angle)*length,event.position.y+Math.sin(angle)*length);ctx.stroke();}}
-        if(event.type==='utility'&&age>=0&&age<.65&&(event.goal==='grenade-exploded'||event.goal==='wall-breached')){const power=1-age/.65;ctx.fillStyle=event.goal==='grenade-exploded'?`rgba(255,197,61,${power*.65})`:`rgba(190,174,143,${power*.48})`;ctx.beginPath();ctx.arc(event.position.x,event.position.y,(event.goal==='grenade-exploded'?42:30)*(1-power*.35),0,Math.PI*2);ctx.fill();for(let i=0;i<14;i++){const angle=seeded(`${event.goal}:${event.time}`,i)*Math.PI*2,distance=(1-power)*(35+seeded(`${event.time}:debris`,i)*90);ctx.fillRect(event.position.x+Math.cos(angle)*distance,event.position.y+Math.sin(angle)*distance,2+seeded(event.goal,i)*5,2+seeded(event.goal,i+30)*4);}}
+        if(event.type==='impact'&&age>=0&&age<.28){if(!effectSprite(event.hit?5:4,event.position.x,event.position.y,42+age*35,42+age*35,1-age/.28)){const radius=3+age*18;ctx.strokeStyle=event.hit?'#E5484D':'#E3D6A3';ctx.lineWidth=1.4;ctx.beginPath();ctx.arc(event.position.x,event.position.y,radius,0,Math.PI*2);ctx.stroke();}}
+        if(event.type==='utility'&&age>=0&&age<.65&&(event.goal==='grenade-exploded'||event.goal==='wall-breached')){const power=1-age/.65;effectSprite(event.goal==='grenade-exploded'?6:7,event.position.x,event.position.y,(event.goal==='grenade-exploded'?100:76)*(1-power*.2),(event.goal==='grenade-exploded'?100:76)*(1-power*.2),power);}
+        if(event.type==='utility'&&age>=0&&age<1.2&&(event.goal==='probe-deployed'||event.goal==='camera-deployed'||event.goal==='power-deployed'))effectSprite(3,event.position.x,event.position.y,70+age*50,70+age*50,1-age/1.2);
+        if(event.type==='utility'&&age>=0&&age<.9&&event.goal==='emp-pulse')effectSprite(2,event.position.x,event.position.y,90+age*120,90+age*120,1-age/.9);
+        if(event.type==='utility'&&age>=0&&age<3&&event.goal==='breach-started')deviceSprite(10,event.position.x,event.position.y,48,48,Math.min(.85,1-age/3));
       }
       // 연막은 실제로 보이는 구름만 인물·탄착 위에 합성하고, 상태 글자는 그 위에 둡니다.
-      for(const smoke of visibleSmokes){const point=gadgetPosition(smoke,time);paintSmoke(ctx,smokeTexture,point.x,point.y,smoke.radius,time-smoke.activeAt,smoke.until-smoke.activeAt);}
+      for(const smoke of visibleSmokes){const point=gadgetPosition(smoke,time);const age=time-smoke.activeAt,duration=smoke.until-smoke.activeAt;if(!effectSprite(age<.55?0:1,point.x,point.y,smoke.radius*2.35,smoke.radius*2.35,Math.min(.82,age/.55,(smoke.until-time)/.45)))paintSmoke(ctx,smokeTexture,point.x,point.y,smoke.radius,age,duration);}
       ctx.textAlign='center';ctx.font=`bold ${11*cssUnit}px sans-serif`;
       for(const item of annotations){ctx.lineJoin='round';ctx.lineWidth=3*cssUnit;ctx.strokeStyle='#101820';ctx.strokeText(item.text,item.x,item.y);ctx.fillStyle=item.color;ctx.fillText(item.text,item.x,item.y);}
     };

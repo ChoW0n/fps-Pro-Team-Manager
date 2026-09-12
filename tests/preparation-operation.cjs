@@ -2,8 +2,8 @@
 const fs=require('node:fs'),assert=require('node:assert/strict'),ts=require('typescript');
 require.extensions['.ts']=(module,file)=>module._compile(ts.transpileModule(fs.readFileSync(file,'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,esModuleInterop:true,resolveJsonModule:true,target:ts.ScriptTarget.ES2022}}).outputText,file);
 const root='../artifacts/draft-order-player-generator/src/domain/';
-const {completeOperatorDraft,confirmOperatorDraft}=require(root+'operatorDraft.ts');
-const {OPERATORS}=require(root+'Operator.ts'),{TeamGenerator}=require(root+'TeamGenerator.ts');
+const {completeOperatorDraft,confirmOperatorDraft,assignLineup}=require(root+'operatorDraft.ts');
+const {OPERATORS}=require(root+'Operator.ts'),{Player}=require(root+'Player.ts'),{Team}=require(root+'Team.ts'),{TeamGenerator}=require(root+'TeamGenerator.ts');
 const {ScoutOperation}=require(root+'realtime/ScoutOperation.ts');
 const {TacticalRealtimeSimulation}=require(root+'realtime/TacticalRealtimeSimulation.ts');
 const {NAMSAN_MAP}=require(root+'tacticalMaps.ts');
@@ -18,6 +18,13 @@ test('수동 선택 보존·자동 빈자리 충원·입력 배열 불변',()=>{
 test('팀 내 중복·공수 오류·미습득·미완성 편성 차단',()=>{const selected=completeOperatorDraft(teams[0],'공격',blank);assert.throws(()=>confirmOperatorDraft(teams[0],'공격',blank));assert.throws(()=>completeOperatorDraft(teams[0],'공격',[selected[0],selected[0],null,null,null]));assert.throws(()=>completeOperatorDraft(teams[0],'수비',selected));assert.throws(()=>completeOperatorDraft(teams[0],'공격',['존재하지않음',null,null,null,null]));});
 test('편성 불가능한 기존 선수 목록을 임의로 확장하지 않음',()=>{const team={name:'검사',players:teams[0].players.map(player=>({...player,operatorPool:[OPERATORS[0]]}))};assert.throws(()=>completeOperatorDraft(team,'공격',blank));assert(team.players.every(player=>player.operatorPool.length===1));});
 test('실제 경기 입력에는 확정 오퍼레이터가 연결되고 챔피언 장비 환산 없음',()=>{const selection=completeOperatorDraft(teams[0],'공격',blank),units=confirmOperatorDraft(teams[0],'공격',selection);assert.deepEqual(units.map(unit=>unit.operator.callSign),selection);assert(units.every(unit=>unit.loadout===undefined));});
+test('감독 라인업은 개인 습득 고정 없이 선택한 다섯 오퍼레이터를 역할에 맞춰 배정',()=>{
+  const roles=['SEARCH','ENTRY','FIREPOWER','DEFENSIVE_SETUP','BLOCKING'],onlyFirst=OPERATORS.find(operator=>operator.side==='공격');
+  const team=new Team('라인업 검사',roles.map((role,index)=>new Player('p'+index,'p'+index,role,20,70,70,70,70,70,[onlyFirst],20,70,70,70,70,70,70)));
+  const lineup=OPERATORS.filter(operator=>operator.side==='공격').slice(0,5).map(operator=>operator.callSign),units=assignLineup(team,'공격',lineup);
+  assert.deepEqual(new Set(units.map(unit=>unit.operator.callSign)),new Set(lineup));assert.equal(new Set(units.map(unit=>unit.player.nickname)).size,5);
+  assert(units.some(unit=>!unit.player.operatorPool.some(operator=>operator.callSign===unit.operator.callSign)),'개인 고정 습득 목록으로 라인업을 막지 않습니다.');
+});
 const rally=new Map([['a',{x:0,y:0}],['b',{x:50,y:0}]]);
 test('허용한 네 수색 시간은 각 경계에서 복귀로 전환',()=>{for(const seconds of [25,40,55,70]){const operation=new ScoutOperation(['a'],seconds,rally),actors=[{id:'a',alive:true,position:{x:100,y:100}}];operation.step(seconds-.1,actors);assert.equal(operation.snapshot().phase,'scouting');operation.step(seconds,actors);assert.equal(operation.snapshot().phase,'returning');}});
 test('작전 중복 틱·역행과 네 명 선발조 차단',()=>{const operation=new ScoutOperation(['a'],25,rally);operation.step(25,[]);assert.equal(operation.step(25,[]),false);assert.throws(()=>operation.step(24,[]));assert.throws(()=>new ScoutOperation(['a','b','c','d'],25,rally));});
@@ -29,7 +36,10 @@ test('실제 엔진에서 선발조 복귀·합류를 거쳐 재진입하며 순
   const input={attackers:confirmOperatorDraft(teams[0],'공격',completeOperatorDraft(teams[0],'공격',blank)),defenders:confirmOperatorDraft(teams[1],'수비',completeOperatorDraft(teams[1],'수비',blank)).slice(0,1),seed:41,maxSeconds:100,scoutPlan:{indices:[0,1],seconds:25,entryRoute:0},map:{...NAMSAN_MAP,defenderSetups:[{id:'far',label:'외곽',position:{x:3500,y:2280},fallback:{x:3500,y:2200}}]}};
   for(const unit of [...input.attackers,...input.defenders]) unit.player={...unit.player,aim:75,entry:75,informationGathering:75,defensiveSetup:75,mastery:75,composure:70,aggression:65,teamSynergy:70};
   const engine=new TacticalRealtimeSimulation(),round=engine.run(input),phases=[...new Set(round.snapshots.map(snapshot=>snapshot.operation.phase))];
-  assert.deepEqual(phases,['scouting','returning','regrouping','entering']);
+  assert.deepEqual(phases,['preparing','scouting','returning','regrouping','entering']);
+  const entrySnapshot=round.snapshots.find(snapshot=>snapshot.operation.phase==='entering'),initialDefenders=round.snapshots[0].units.filter(unit=>unit.side==='수비');
+  assert(entrySnapshot);assert(round.events.filter(event=>event.type==='shot'&&event.time<entrySnapshot.time).length===0,'양 팀 준비 중에는 교전을 시작하지 않음');
+  assert(initialDefenders.every(unit=>Math.hypot(unit.position.x-input.map.defenderSpawn.x,unit.position.y-input.map.defenderSpawn.y)<=190),'수비는 맵 전역 분산 대신 한 준비 구역에서 시작');
   for(const scoutId of round.snapshots[0].operation.scoutIds){const states=round.snapshots.filter(snapshot=>snapshot.operation.phase==='scouting').map(snapshot=>snapshot.units.find(unit=>unit.id===scoutId));
     const interior=states.filter(unit=>unit.position.x>input.map.building.x&&unit.position.x<input.map.building.x+input.map.building.width&&unit.position.y>input.map.building.y&&unit.position.y<input.map.building.y+input.map.building.height);assert(states.some(unit=>unit.locomotion==='crouch'),'관측 지점 접근 중 저자세 수색 상태 발생');assert(interior.every(unit=>unit.locomotion!=='sprint'),'실내 수색은 달리지 않음');
     assert(new Set(states.map(unit=>unit.goal).filter(goal=>goal.includes('구역'))).size>=2,'선발조가 한 지점에서 끝나지 않고 다음 구역을 확인');}

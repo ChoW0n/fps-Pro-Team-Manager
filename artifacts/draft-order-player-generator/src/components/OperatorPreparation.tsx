@@ -1,7 +1,9 @@
 import { useMemo, useState } from 'react';
 import type { Team } from '../domain/Team';
 import type { OperatorSide } from '../domain/Operator';
-import { completeOperatorDraft, confirmOperatorDraft } from '../domain/operatorDraft';
+import { automaticLineup, assignLineup, confirmOperatorDraft } from '../domain/operatorDraft';
+import { unlockMatchAudio } from './matchAudio';
+import { OPERATORS } from '../domain/Operator';
 import { opponentDraft, planOpponent, type RoundObservation } from '../domain/opponentAdaptation';
 import { NAMSAN_MAP, layer } from '../domain/tacticalMaps';
 import type { TacticalRealtimeSimulationInput } from '../domain/realtime/TacticalRealtimeSimulation';
@@ -19,9 +21,14 @@ const DEFENSE_STYLES=[
   {id:'anchor',title:'거점 사수',summary:'사이트 주변에 인원을 남깁니다.',gain:'설치 저지 거리가 짧습니다.',risk:'외곽 정보가 줄어듭니다.'},
 ] as const;
 const INTEL=[
-  {id:'direct',title:'즉시 진입',summary:'정보를 기다리지 않고 팀 전체가 들어갑니다.'},
-  {id:'recon',title:'짧은 확인',summary:'한 명이 25초 확인한 뒤 팀에 합류합니다.'},
-  {id:'careful',title:'두 명 확인',summary:'두 명이 40초 확인한 뒤 팀에 합류합니다.'},
+  {id:'direct',title:'빠른 개시',summary:'양 팀 준비 뒤 바로 진입합니다.'},
+  {id:'recon',title:'짧은 탐문',summary:'한 명이 반향 표식과 외곽 관측을 마친 뒤 합류합니다.'},
+  {id:'careful',title:'두 명 탐문',summary:'두 명이 외곽 정보를 모아 팀에 합류합니다.'},
+] as const;
+const DEFENSE_PREP=[
+  {id:'reinforce',title:'보강 우선',summary:'진입 벽·해치를 보강하고 전력 노드에 연결합니다.'},
+  {id:'camera',title:'관측 우선',summary:'카메라와 반향 단서를 먼저 확보합니다.'},
+  {id:'shield',title:'차폐 우선',summary:'거점 진입 각에 설치형 방패를 배치합니다.'},
 ] as const;
 type Intel=typeof INTEL[number]['id'];
 
@@ -32,27 +39,34 @@ export function OperatorPreparation({homeTeam,awayTeam,onStart,onBack,homeSide='
 }) {
   const awaySide:OperatorSide=homeSide==='공격'?'수비':'공격';
   const [entryRoute,setEntryRoute]=useState(0),[style,setStyle]=useState<'balanced'|'smoke'|'breach'|'crossfire'|'roam'|'anchor'>(homeSide==='공격'?'balanced':'crossfire');
-  const [intel,setIntel]=useState<Intel>('direct'),[viewFloor,setViewFloor]=useState(0),[error,setError]=useState('');
+  const [intel,setIntel]=useState<Intel>('direct'),[defensePreparation,setDefensePreparation]=useState<'reinforce'|'camera'|'shield'>('reinforce'),[viewFloor,setViewFloor]=useState(0),[error,setError]=useState('');
+  const [lineup,setLineup]=useState<string[]>(()=>automaticLineup(homeTeam,homeSide));
   const opponent=useMemo(()=>planOpponent(history,awaySide,seed),[history,awaySide,seed]);
-  const draft=useMemo(()=>{try{return {home:completeOperatorDraft(homeTeam,homeSide,[null,null,null,null,null]),away:opponentDraft(awayTeam,awaySide,opponent),error:''};}catch(cause){return {home:[],away:[],error:cause instanceof Error?cause.message:'자동 편성을 만들지 못했습니다.'};}},[homeTeam,awayTeam,homeSide,awaySide,opponent]);
+  const draft=useMemo(()=>{try{return {away:opponentDraft(awayTeam,awaySide,opponent),error:''};}catch(cause){return {away:[],error:cause instanceof Error?cause.message:'상대 자동 편성을 만들지 못했습니다.'};}},[awayTeam,awaySide,opponent]);
   const route=NAMSAN_MAP.attackerRoutes[entryRoute],plans=homeSide==='공격'?ATTACK_STYLES:DEFENSE_STYLES;
   const selected=plans.find(plan=>plan.id===style)??plans[0];
   const site=(entryRoute===2||entryRoute===4||entryRoute===6)?'B':'A';
-  const scoutPlan=intel==='direct'?{indices:[],seconds:25 as const}:{indices:intel==='recon'?[0]:[0,1],seconds:intel==='recon'?25 as const:40 as const};
   function start():void {try {
-    const home=confirmOperatorDraft(homeTeam,homeSide,draft.home),away=confirmOperatorDraft(awayTeam,awaySide,draft.away);
-    const defensePreparation=intel==='direct'?'camera':intel==='recon'?'reinforce':'shield';
-    const reinforcements=defensePreparation==='reinforce'?[entryRoute===6?'hatch-b':'hatch-a']:undefined;
+    unlockMatchAudio();
+    const home=assignLineup(homeTeam,homeSide,lineup),away=confirmOperatorDraft(awayTeam,awaySide,draft.away);
+    const attackers=homeSide==='공격'?home:away;
+    const requestedScouts=intel==='direct'?0:intel==='recon'?1:2;
+    const scoutIndices=attackers.map((member,index)=>({member,index})).filter(({member})=>member.operator.role==='SEARCH').map(({index})=>index).slice(0,requestedScouts);
+    for(let index=0;scoutIndices.length<requestedScouts&&index<attackers.length;index++)if(!scoutIndices.includes(index))scoutIndices.push(index);
+    const scoutPlan={indices:scoutIndices,seconds:intel==='recon'?25 as const:40 as const};
+    const automatedDefense=opponent.defenseStyle==='anchor'?'shield':opponent.defenseStyle==='roam'?'camera':'reinforce';
+    const activeDefensePreparation=homeSide==='수비'?defensePreparation:automatedDefense;
+    const reinforcements=activeDefensePreparation==='reinforce'?[entryRoute===6?'hatch-b':'hatch-a']:undefined;
     onStart({attackers:homeSide==='공격'?home:away,defenders:homeSide==='수비'?home:away,seed,maxSeconds:150,targetSite:homeSide==='공격'?site:opponent.site,
       attackStyle:homeSide==='공격'?style as 'balanced'|'smoke'|'breach':opponent.attackStyle,
       defenseStyle:homeSide==='수비'?style as 'crossfire'|'roam'|'anchor':opponent.defenseStyle,
       anticipatedEntry:homeSide==='수비'?entryRoute:opponent.anticipatedEntry,
-      defensePreparation:homeSide==='수비'?defensePreparation:opponent.defenseStyle==='anchor'?'shield':'camera',
+      defensePreparation:activeDefensePreparation,
       reinforcementIds:homeSide==='수비'?reinforcements:undefined,
       scoutPlan:homeSide==='공격'?{...scoutPlan,entryRoute}:{indices:[],seconds:25,entryRoute:opponent.entry}});
   }catch(cause){setError(cause instanceof Error?cause.message:'작전을 확정하지 못했습니다.');}}
   return <section className="operator-preparation command-room" aria-label="라운드 작전 준비">
-    <header className="op-prep-heading"><div><h1>이번 라운드의 장면을 고르세요.</h1><p>방향, 태도, 정보 우선순위만 정합니다. 출전 뒤에는 선수 판단을 관전합니다.</p></div><span>{homeTeam.name}<br/><b>{homeSide} · 남산 중계관</b></span></header>
+    <header className="op-prep-heading"><div><h1>라인업과 작전의 큰 방향을 고르세요.</h1><p>선수에게 오퍼레이터를 고정하지 않고, 선택한 팀 라인업을 선수 역할에 맞춰 배정합니다.</p></div><span>{homeTeam.name}<br/><b>{homeSide} · 남산 중계관</b></span></header>
     <figure className="namsan-location"><img src={`${import.meta.env.BASE_URL}maps/namsan-pavilion.png`} alt="남산 전망탑 아래 관광·방송 중계관과 산책로"/><figcaption>남산 중계관 · 서·동 계단 · 송출·배전 해치</figcaption></figure>
     <div className="simple-prep">
       <section className="simple-map"><div className="command-map"><TacticalBattlefield map={layer(NAMSAN_MAP,viewFloor)} units={[]} operators={new Map()} events={[]} time={0} selectedId={null} onSelect={()=>{}} miniature/>
@@ -60,9 +74,10 @@ export function OperatorPreparation({homeTeam,awayTeam,onStart,onBack,homeSide='
         <div className="floor-switch">{NAMSAN_MAP.floors?.map(floor=><button key={floor.id} aria-pressed={viewFloor===floor.id} onClick={()=>setViewFloor(floor.id)}>{floor.label}</button>)}</div></section>
       <section className="choice-axis"><h2>방향</h2><p>어느 길로 장면을 시작할지 정합니다.</p><div>{NAMSAN_MAP.attackerRoutes.map((item,index)=><button key={item.id} aria-pressed={entryRoute===index} onClick={()=>setEntryRoute(index)}>{item.label}</button>)}</div><output>{route.label} · {site} 사이트 우선</output></section>
       <section className="choice-axis"><h2>교전 태도</h2><p>선수들이 교전에서 우선할 판단입니다.</p><div>{plans.map(plan=><button key={plan.id} aria-pressed={style===plan.id} onClick={()=>setStyle(plan.id)}>{plan.title}</button>)}</div><strong>{selected.title}</strong><output>{selected.summary} {selected.gain} {selected.risk}</output></section>
-      <section className="choice-axis"><h2>정보 우선순위</h2><p>빨리 들어갈지, 먼저 확인할지 정합니다.</p><div>{INTEL.map(option=><button key={option.id} aria-pressed={intel===option.id} onClick={()=>setIntel(option.id)}>{option.title}</button>)}</div><output>{INTEL.find(option=>option.id===intel)?.summary}</output></section>
+      {homeSide==='공격'?<section className="choice-axis"><h2>정보 우선순위</h2><p>양 팀 준비 뒤 빠르게 개시할지, 외곽 탐문을 거칠지 정합니다.</p><div>{INTEL.map(option=><button key={option.id} aria-pressed={intel===option.id} onClick={()=>setIntel(option.id)}>{option.title}</button>)}</div><output>{INTEL.find(option=>option.id===intel)?.summary}</output></section>:<section className="choice-axis"><h2>방어 준비</h2><p>같은 준비 시간에 실제로 설치할 방어 자산을 정합니다.</p><div>{DEFENSE_PREP.map(option=><button key={option.id} aria-pressed={defensePreparation===option.id} onClick={()=>setDefensePreparation(option.id)}>{option.title}</button>)}</div><output>{DEFENSE_PREP.find(option=>option.id===defensePreparation)?.summary}</output></section>}
+      <section className="choice-axis lineup-axis"><h2>전술 라인업</h2><p>선수–오퍼레이터를 1:1로 묶지 않습니다. 선택한 다섯 자리를 선수 역할·능력에 맞춰 자동 배정합니다.</p><div>{OPERATORS.filter(operator=>operator.side===homeSide).map(operator=><button key={operator.callSign} aria-pressed={lineup.includes(operator.callSign)} onClick={()=>setLineup(current=>current.includes(operator.callSign)?current.filter(name=>name!==operator.callSign):current.length<5?[...current,operator.callSign]:current)}>{operator.callSign}</button>)}</div><output>{lineup.length}/5 선택 · <button onClick={()=>setLineup(automaticLineup(homeTeam,homeSide))}>자동 추천 복원</button></output></section>
     </div>
-    {error||draft.error?<p role="alert" className="op-prep-error">{error||draft.error}</p>:null}
-    <footer><button onClick={onBack}>작전실로</button><p>준비 → 관전 → 복기</p><button className="op-prep-start" disabled={Boolean(draft.error)} onClick={start}>이 작전으로 출전</button></footer>
+    {error||draft.error||lineup.length!==5?<p role="alert" className="op-prep-error">{error||draft.error||(lineup.length<5?'라인업 다섯 자리를 선택해 주세요.':'')}</p>:null}
+    <footer><button onClick={onBack}>작전실로</button><p>양 팀 준비 → 공격 개시 → 관전 → 복기</p><button className="op-prep-start" disabled={Boolean(draft.error)||lineup.length!==5} onClick={start}>이 작전으로 출전</button></footer>
   </section>;
 }

@@ -1,9 +1,10 @@
 {
-  "axes": 3,
+  "axes": 4,
+  "manualLineup": "team lineup with role-fit assignment",
   "liveDirectorCommands": false,
   "removed": [
     "선수별 수치",
-    "수동 편성",
+    "선수별 오퍼레이터 강제",
     "별동조",
     "사이트 마지막 진입",
     "경기 중 전술 지시"

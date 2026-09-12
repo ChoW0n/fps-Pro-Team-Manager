@@ -16,7 +16,7 @@ check('두 발 요격은 차폐·적대 관계·비행 시간·잔량을 요구'
  const smoke={...thrown('active'),activeAt:0,landedAt:0};assert.equal(resolveElectronicCounters([device('i','interceptor'),smoke],.5,()=>true).length,0);
 });
 check('EMP는 벽 너머 아군 포함 전자장비를 8초 정지하고 자동 복구',()=>{
- const power=device('p','power'),friendly=device('d','drone','공격'),emp={...thrown('e','emp'),radius:280};
+ const power=device('p','power'),friendly=device('d','probe','공격'),emp={...thrown('e','emp'),radius:280};
  const all=[power,friendly,emp];assert(poweredWall(all,'wall',.5));resolveElectronicCounters(all,1,()=>false);
  assert(!poweredWall(all,'wall',8.9));assert(poweredWall(all,'wall',9));assert(!gadgetActive(friendly,5));assert(!all.includes(emp));
 });
@@ -34,7 +34,7 @@ class CounterArena extends TacticalRealtimeSimulation{
 }
 const terrain={...map,walls:map.walls.map(w=>w.id==='outer-east-2'?{...w,reinforced:true}:w)};
 check('실제 성곽 전력 설치는 MEDVED를 멈추고 해동 EMP 이후 보강 통로 개방',()=>{
- const input={attackers:[member('MEDVED')],defenders:[member('성곽')],map:terrain,seed:18,maxSeconds:12};
+ const input={attackers:[member('MEDVED')],defenders:[member('성곽')],map:terrain,seed:18,maxSeconds:45};
  const blocked=new CounterArena().run(input);assert(blocked.events.some(e=>e.goal==='power-deployed'));assert(blocked.events.some(e=>e.goal==='breach-blocked-power'));assert(!blocked.events.some(e=>e.goal==='wall-breached'));
  const supported={...input,attackers:[member('MEDVED'),member('해동')]},arena=new CounterArena(),result=arena.run(supported);
  const pulse=result.events.find(e=>e.goal==='emp-pulse'),breach=result.events.find(e=>e.goal==='wall-breached');assert(pulse&&breach,JSON.stringify(result.events.filter(e=>e.type==='utility').map(e=>({time:e.time,goal:e.goal,actor:e.actor,pos:e.position}))));assert(breach.time-pulse.time>=3.8&&breach.time-pulse.time<8);
@@ -54,11 +54,11 @@ check('SAVELLI는 실제 2초 설치 후 두 발 요격기를 남김',()=>{
  const deployed=result.events.find(e=>e.goal==='interceptor-deployed');assert(deployed);assert(deployed.time>=2);
  const device=result.snapshots.flatMap(s=>s.gadgets).find(g=>g.kind==='interceptor');assert(device);assert.equal(device.charges,2);assert.equal(device.radius,220);
 });
-check('이동 드론은 통행 가능한 지형만 이동하고 스냅샷 위치를 보존',()=>{
- class DroneArena extends TacticalRealtimeSimulation{startPosition(u){return u.side==='공격'?{x:2250,y:1750}:{x:800,y:450};}}
- const arena=new DroneArena(),result=arena.run({attackers:[member('AUBERT')],defenders:[member('BRANDT')],seed:7,maxSeconds:8});
- const drones=result.snapshots.flatMap(s=>s.gadgets.filter(g=>g.kind==='drone'));assert(drones.length);assert(new Set(drones.map(d=>d.position.x+':'+d.position.y)).size>10);
- for(let i=1;i<drones.length;i++)assert(arena.canTraverse(drones[i-1].position,drones[i].position,map));
- const deployed=result.events.find(e=>e.goal==='drone-deployed');assert(deployed);assert.deepEqual(drones[0].position,deployed.position);assert.notDeepEqual(drones.at(-1).position,drones[0].position);
+check('반향 표식은 외곽 탐문 뒤 고정 설치되고 실제 소리 정보만 수집',()=>{
+ class ProbeArena extends TacticalRealtimeSimulation{startPosition(u){return u.side==='공격'?{x:2250,y:1750}:{x:800,y:450};}}
+ const result=new ProbeArena().run({attackers:[member('AUBERT')],defenders:[member('BRANDT')],seed:7,maxSeconds:55,scoutPlan:{indices:[0],seconds:25,entryRoute:0}});
+ const probes=result.snapshots.flatMap(s=>s.gadgets.filter(g=>g.kind==='probe'));assert(probes.length);
+ assert.equal(new Set(probes.map(probe=>probe.position.x+':'+probe.position.y)).size,1);
+ const deployed=result.events.find(e=>e.goal==='probe-deployed');assert(deployed);assert(deployed.time>=15);
 });
 fs.writeFileSync('validation/tactical-counters.json',JSON.stringify({tests:rows,passed:rows.length,limits:'Deterministic engine checks, not browser play or completed balance calibration.'},null,2)+'\n');

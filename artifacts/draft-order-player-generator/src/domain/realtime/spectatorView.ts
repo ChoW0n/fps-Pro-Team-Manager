@@ -4,10 +4,10 @@ import { layer, type TacticalMapDefinition, type TacticalPoint } from '../tactic
 import type { RealtimeEvent, RealtimeGadget, RealtimeUnitState } from './TacticalRealtimeSimulation';
 
 export type ObservedContact = { position: TacticalPoint; seenAt: number };
-/** 보인 적의 좌표 사본만 갱신하고, 사라진 적은 추적하지 않은 채 1초 뒤 지웁니다. */
+/** 보인 적의 좌표 사본만 갱신하고, 사라진 적은 추적하지 않은 채 3초 동안 마지막 목격으로만 남깁니다. */
 export function rememberContacts(contacts: Map<string, ObservedContact>, observed: readonly RealtimeUnitState[], observedAt: number, time: number): void {
   for(const unit of observed) contacts.set(unit.id,{position:{...unit.position},seenAt:observedAt});
-  for(const [id,contact] of contacts) if(time-contact.seenAt>1) contacts.delete(id);
+  for(const [id,contact] of contacts) if(time-contact.seenAt>3) contacts.delete(id);
 }
 
 /** 카메라는 우리 선수와 현재 관측된 상대를 함께 담고, 정보 밖 상대를 따라가지 않습니다. */

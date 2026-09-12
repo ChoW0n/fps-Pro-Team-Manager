@@ -7,6 +7,7 @@ import { NAMSAN_MAP, type TacticalMapDefinition } from '../domain/tacticalMaps';
 import { BroadcastCanvas } from './BroadcastCanvas';
 import { OperatorEmblem } from './OperatorEmblem';
 import { OperatorArt } from './TacticalBattlefield';
+import { playMatchAudio } from './matchAudio';
 import './matchBroadcast.css';
 
 export interface TacticalRoundLiveProps { input:TacticalRealtimeSimulationInput; map?:TacticalMapDefinition; roundNumber?:number; directorSide?:OperatorSide; score?:[number,number]; onComplete?:(result:TacticalRealtimeResult)=>void }
@@ -22,11 +23,12 @@ export function TacticalRoundLive({input,map=NAMSAN_MAP,roundNumber=1,directorSi
   const [paused,setPaused]=useState(false),[speed,setSpeed]=useState(1),[error,setError]=useState('');
   const [viewFloor,setViewFloor]=useState<number|undefined>(undefined);
   const workerRef=useRef<Worker|null>(null),controls=useRef({paused,speed});controls.current={paused,speed};
+  const heardEvents=useRef(new Set<string>());
   const participants=useMemo(()=>new Map([...input.attackers,...input.defenders].map((unit,index)=>[realtimeUnitId(unit,index),unit])),[input]);
   useEffect(()=>{
     let stopped=false,reported=false,fallbackStop:(()=>void)|undefined;
     const first=[...participants].find(([,unit])=>unit.side===directorSide);
-    setSelectedId(first?.[0]??null);setTick(null);setEvents([]);setResult(null);setError('');setPaused(false);controls.current.paused=false;
+    setSelectedId(first?.[0]??null);setTick(null);setEvents([]);setResult(null);setError('');setPaused(false);heardEvents.current.clear();controls.current.paused=false;
     /** 실시간 틱과 최종 통지를 분리해 라운드 점수를 한 번만 기록합니다. */
     const receiveTick=(next:RealtimeTick):void=>{if(stopped)return;setTick(next);setEvents(previous=>[...previous,...next.events].slice(-120));};
     const receiveResult=(value:TacticalRealtimeResult):void=>{if(stopped||reported)return;reported=true;setResult(value);complete.current?.(value);};
@@ -39,6 +41,7 @@ export function TacticalRoundLive({input,map=NAMSAN_MAP,roundNumber=1,directorSi
     return()=>{stopped=true;fallbackStop?.();workerRef.current?.terminate();workerRef.current=null;};
   },[input,map,directorSide,participants]);
   useEffect(()=>{workerRef.current?.postMessage({type:'controls',controls:{paused,speed}});},[paused,speed]);
+  useEffect(()=>{for(const event of events){const key=`${event.time}:${event.actor}:${event.goal}:${event.type}`;if(heardEvents.current.has(key))continue;heardEvents.current.add(key);playMatchAudio(event);}if(heardEvents.current.size>180)heardEvents.current=new Set([...heardEvents.current].slice(-120));},[events]);
   const units=tick?.snapshot.units??[],time=tick?.time??0,own=units.filter(unit=>unit.side===directorSide);
   // 자동 중계 카드도 실제 카메라 선수의 이름·체력·탄약을 표시합니다.
   const viewedId=mode==='broadcast'?focusedId??selectedId:selectedId;

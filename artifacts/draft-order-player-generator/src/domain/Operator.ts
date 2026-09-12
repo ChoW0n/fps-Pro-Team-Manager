@@ -142,9 +142,9 @@ export const OPERATORS: Operator[] = [
     effect: '연막은 양 팀의 관측을 막지만 총알을 막지 않는다. 실제 통로·사선을 활용해야 한다.',
   }, { aim: 70, entry: 66, informationGathering: 94, defensiveSetup: 48, clutch: 72, aggression: 56 }),
   new Operator('AUBERT', unit('국가헌병대 개입부대 GIGN'), '공격', 'SEARCH', ['SIG MPX', 'MR73 리볼버'], {
-    name: '저상 정찰 드론',
-    description: '지상 통로를 따라 목표 거점으로 이동하는 소형 정찰 드론이다.',
-    effect: '1회 전개 후 최대 35초 운용. 9m 안의 시야·벽·연막을 검사해 위치를 보고한다. 닫힌 창문을 통과하지 않으며 EMP·근거리 제거에 취약하다.',
+    name: '반향 표식',
+    description: '외곽에 고정해 실내의 움직임과 설치음을 수집하는 소형 반사 표식이다.',
+    effect: '1회 설치 후 최대 35초 운용. 범위 안에서 실제로 발생한 적 발소리·설치음의 당시 위치만 팀에 전달한다. 적의 현재 위치·신원은 알려주지 않으며 EMP·근거리 제거에 취약하다.',
   }, { aim: 76, entry: 60, informationGathering: 88, defensiveSetup: 52, clutch: 68, aggression: 48 }),
   new Operator('MEDVED', unit('연방보안국 알파 그룹'), '공격', 'ENTRY', ['AS Val 소음소총', 'SR-1 베크토르'], {
     name: '충격 파쇄봉',

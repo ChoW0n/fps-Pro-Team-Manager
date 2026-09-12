@@ -1,16 +1,16 @@
 import type { RealtimeUnitState, RealtimeGadget } from '../domain/realtime/TacticalRealtimeSimulation';
-import { paintWeaponPart, weaponPart } from './weaponParts';
+import { paintWeaponPart } from './weaponParts';
 import { muzzlePosition } from '../domain/operatorVisuals';
 
 export type PartLoader = (file:string) => HTMLImageElement;
 
 // 창작 군장의 식별용 조합입니다. 실부대 지급품이나 미구현 가젯 효과를 뜻하지 않습니다.
-const KITS:Record<string,{color:string;pouches:number;pack:number;tool:'shells'|'radio'|'optic'|'probe'|'case'|'charge'|'plate'|'roll'|'coil'|'lamp'|'drone'|'battery'|'interceptor'}>={
+const KITS:Record<string,{color:string;pouches:number;pack:number;tool:'shells'|'radio'|'optic'|'probe'|'case'|'charge'|'plate'|'roll'|'coil'|'lamp'|'battery'|'interceptor'}>={
   MAGPIE:{color:'#706B50',pouches:3,pack:9,tool:'shells'},
   COLLIER:{color:'#39484B',pouches:4,pack:8,tool:'radio'},
   '해동':{color:'#526052',pouches:3,pack:10,tool:'coil'},
   ARBEL:{color:'#817858',pouches:2,pack:8,tool:'roll'},
-  AUBERT:{color:'#455360',pouches:2,pack:13,tool:'drone'},
+  AUBERT:{color:'#455360',pouches:2,pack:13,tool:'probe'},
   MEDVED:{color:'#66644C',pouches:3,pack:14,tool:'charge'},
   REUSS:{color:'#46534C',pouches:2,pack:15,tool:'plate'},
   BRANDT:{color:'#56605A',pouches:2,pack:9,tool:'roll'},
@@ -48,19 +48,15 @@ export interface OperatorMotion { reloadStartedAt?:number; thrown?:RealtimeGadge
 
 /** 가파른 탑뷰의 한 로컬 좌표계를 머리·군장·팔·총기가 연속적으로 공유합니다. */
 export function paintMinimalOperator(ctx:CanvasRenderingContext2D,unit:RealtimeUnitState,time:number,shotAt:number|undefined,_asset:PartLoader,reducedMotion=false,motion:OperatorMotion={}):boolean {
-  const kit=KITS[unit.callSign]??KITS.MAGPIE,part=weaponPart(unit.weaponName??'');
+  const kit=KITS[unit.callSign]??KITS.MAGPIE;
   const down=Boolean(unit.downed)||!unit.alive;
   const installing=!down&&(unit.action==='plant'||unit.action==='disable'||unit.action==='utility'&&/설치/.test(unit.goal??''));
   const crouch=unit.locomotion==='crouch'||installing;
   // 시작 사건과 남은 시간으로 진행률을 계산하므로 정지·탐색에서도 같은 자세입니다.
-  const elapsed=motion.reloadStartedAt===undefined?0:Math.max(0,time-motion.reloadStartedAt);
-  const reload=!down&&unit.action==='reload'&&unit.reloadRemaining>0;
-  const progress=reload?elapsed/Math.max(.001,elapsed+unit.reloadRemaining):0;
-  const travel=reload&&!reducedMotion?Math.sin(Math.PI*progress)*9:0;
   const thrown=motion.thrown;
   const throwAge=thrown?.thrownAt===undefined?-1:time-thrown.thrownAt;
   // 이미 발사된 투척물의 후속 팔 동작만 표시합니다. 가짜 수류탄을 손에 생성하지 않습니다.
-  const throwing=!down&&!reload&&!installing&&throwAge>=0&&throwAge<.45;
+  const throwing=!down&&unit.action!=='reload'&&!installing&&throwAge>=0&&throwAge<.45;
   const throwProgress=throwing?(reducedMotion?.6:Math.min(1,throwAge/.45)):0;
   const moving=Math.hypot(unit.velocity.x,unit.velocity.y)>1&&unit.alive;
   const step=!reducedMotion&&moving&&!down?Math.sin(time*(unit.locomotion==='sprint'?15:10)):0;
@@ -84,7 +80,7 @@ export function paintMinimalOperator(ctx:CanvasRenderingContext2D,unit:RealtimeU
   box(-20,-kit.pack*.42,8,kit.pack*.84,shade);
   // 군장 식별은 외곽의 큰 물체 한두 개로 유지합니다.
   if(kit.tool==='charge'||kit.tool==='plate'){box(-17,11,18,4,light);if(kit.tool==='charge')box(-15,16,12,3,kit.color);}
-  else if(kit.tool==='drone'){box(-17,10,12,6,shade);box(-18,9,3,3,light);box(-8,15,3,3,light);}
+  else if(kit.tool==='probe'){box(-17,10,12,6,shade);ctx.fillStyle=light;ctx.beginPath();ctx.arc(-12,12,4,0,Math.PI*2);ctx.fill();}
   else if(kit.tool==='battery'){box(-17,10,11,8,kit.color);box(-14,9,5,2,light);}
   else if(kit.tool==='interceptor'){box(-17,11,13,4,shade);box(-13,15,4,5,light);}
   else if(kit.tool==='coil'){ctx.fillStyle=light;ctx.beginPath();ctx.arc(-12,14,5,0,Math.PI*2);ctx.fill();ctx.stroke();}
@@ -98,35 +94,12 @@ export function paintMinimalOperator(ctx:CanvasRenderingContext2D,unit:RealtimeU
   ctx.fillStyle=unit.side==='공격'?'#2FD4C4':'#F0873C';ctx.fillRect(-18,-5,2,5);
   if(!down){
     const gunStowed=installing||throwing;
-    const grip=part.gripPoint,support=part.supportPoint;
-    // 탄창은 원본에 포함되어 있습니다. 장전은 손의 접근 동작으로 표시하고 가짜 탄창은 덧그리지 않습니다.
-    const reach=travel/9;
-    const workHand={x:support[0]+(part.magazinePoint[0]-support[0])*reach,y:support[1]+(part.magazinePoint[1]-support[1])*reach};
-    const hands=gunStowed?[]:[{x:tip.x+(grip[0]-kick),y:tip.y+grip[1]},{x:tip.x+(workHand.x-kick),y:tip.y+workHand.y}];
-    // 팔꿈치를 가진 두 구간으로 연결합니다. 투척에서도 팔 길이를 확대하지 않습니다.
-    const arm=(side:number,hand:{x:number;y:number})=>{
-      const shoulder={x:2,y:side*10},dx=hand.x-shoulder.x,dy=hand.y-shoulder.y,d=Math.max(.001,Math.hypot(dx,dy));
-      const upper=9,lower=8,reach=Math.min(d,upper+lower-.01),along=(upper*upper-lower*lower+reach*reach)/(2*reach),height=Math.sqrt(Math.max(0,upper*upper-along*along));
-      const ux=dx/d,uy=dy/d,bend=side;const elbow={x:shoulder.x+ux*along-uy*height*bend,y:shoulder.y+uy*along+ux*height*bend};
-      ctx.strokeStyle=ink;ctx.lineWidth=7;ctx.beginPath();ctx.moveTo(shoulder.x,shoulder.y);ctx.lineTo(elbow.x,elbow.y);ctx.lineTo(hand.x,hand.y);ctx.stroke();ctx.strokeStyle=kit.color;ctx.lineWidth=3;ctx.stroke();
-    };
-    hands.forEach((hand,i)=>arm(i?1:-1,hand));
-    // 총기 원화 전체를 그대로 조립합니다. 실제 발사 시 총구는 엔진 위치에 정렬합니다.
+    // 탑뷰 축척에서 팔·손을 총기 파지점까지 억지로 연결하면 관절이 접혀 보입니다.
+    // 그래서 인물은 군장 실루엣, 총기는 어깨 전방의 독립 실루엣으로만 읽게 합니다.
+    // 총기 원화 전체는 실제 발사 시 총구 위치에 정렬합니다.
     ctx.save();ctx.translate(tip.x,tip.y);if(gunStowed){const lower=installing?1:1-throwProgress;ctx.translate(-7*lower,9*lower);}ctx.translate(-kick,0);
     paintWeaponPart(ctx,unit.weaponName??'',_asset);
     if(unit.shieldRaised){ctx.fillStyle=shade;ctx.strokeStyle=ink;ctx.lineWidth=outline/.75;ctx.fillRect(-5,-18,7,36);ctx.strokeRect(-5,-18,7,36);ctx.fillStyle=light;ctx.fillRect(-4,-9,5,9);}ctx.restore();
-    if(installing){
-      hands.push({x:13,y:-6},{x:13,y:7});
-      hands.forEach((hand,i)=>arm(i?1:-1,hand));
-    }else if(throwing){
-      // 상완 9, 전완 8의 길이를 보존하며 회전합니다. 발사체 위치/피해 판정은 바꾸지 않습니다.
-      const pose=throwArmPose(throwProgress);
-      arm(1,pose.hand);hands.push(pose.hand);
-      const resting={x:2,y:-1};arm(-1,resting);hands.push(resting);
-    }
-    ctx.strokeStyle=ink;ctx.lineWidth=outline;ctx.fillStyle=kit.color;
-    for(const hand of hands){ctx.beginPath();ctx.ellipse(hand.x,hand.y,4,3.3,0,0,Math.PI*2);ctx.fill();ctx.stroke();}
-
   }
   ctx.restore();return true;
 }
