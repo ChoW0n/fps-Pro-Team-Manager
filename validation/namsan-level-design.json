@@ -1,0 +1,55 @@
+{
+  "map": "namsan-relay-01",
+  "indoorSamples": 368,
+  "lineOfSight": {
+    "longestMetres": 21.2602916254693,
+    "pair": [
+      {
+        "x": 1040,
+        "y": 1240
+      },
+      {
+        "x": 1680,
+        "y": 1800
+      }
+    ],
+    "openPairs": 522,
+    "over25mPairs": 0,
+    "over25mPercent": 0,
+    "targetLongestMetres": 25,
+    "targetOverPercent": 10
+  },
+  "oversizedRooms": [],
+  "siteEntrances": [
+    {
+      "site": "A",
+      "portals": [
+        "link-h-0-1",
+        "link-h-0-2",
+        "link-v-1-0",
+        "link-v-1-1",
+        "link-h-1-1",
+        "link-v-1-2",
+        "link-h-1-2"
+      ]
+    },
+    {
+      "site": "B",
+      "portals": [
+        "link-h-1-1",
+        "link-h-1-2",
+        "link-v-2-0",
+        "link-v-2-1",
+        "link-h-2-1",
+        "link-v-2-2",
+        "link-h-2-2"
+      ]
+    }
+  ],
+  "spawnStraightLineMetres": {
+    "min": 16.75,
+    "max": 34.713109915419565,
+    "ratio": 2.072424472562362
+  },
+  "verticalConnections": 0
+}

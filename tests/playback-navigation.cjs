@@ -8,7 +8,7 @@ const { startRoundPlayback } = require(root + 'realtime/roundPlayback.ts');
 const { cameraViewport, combatCamera } = require(root + 'realtime/spectatorView.ts');
 const { TacticalRealtimeSimulation } = require(root + 'realtime/TacticalRealtimeSimulation.ts');
 const { OPERATORS } = require(root + 'Operator.ts'), { Player } = require(root + 'Player.ts');
-const { BREACHLINE_MAP: map } = require(root + 'tacticalMaps.ts');
+const { NAMSAN_MAP: map } = require(root + 'tacticalMaps.ts');
 const rows = [];
 function test(name, run) { run(); rows.push({ name, passed: true }); console.log('PASS', name); }
 function side(name) { return OPERATORS.filter(o => o.side === name).slice(0, 5).map((operator, i) => ({
@@ -48,7 +48,7 @@ try {
   });
 } finally { global.setTimeout = originalSet; global.clearTimeout = originalClear; }
 test('전체 전황은 지도 네 모서리를 포함하고 확대는 지도 경계 안에 머무름', () => {
-  assert.deepEqual(cameraViewport(map, { x: 50, y: 50, width: 430 }, true), { x: 0, y: 0, width: 3600, height: 2400 });
+  assert.deepEqual(cameraViewport(map, { x: 50, y: 50, width: 430 }, true), { x: 0, y: 0, width: map.width, height: map.height });
   for (const x of [-100, 0, 1800, 3700]) for (const y of [-100, 0, 1200, 2500]) {
     const view = cameraViewport(map, { x, y, width: 430 }, false);
     assert(view.x >= 0 && view.y >= 0 && view.x + view.width <= map.width && view.y + view.height <= map.height);

@@ -19,6 +19,7 @@
 | 작업 | 두 번째 문서 | 필요할 때 세 번째 문서 |
 |---|---|---|
 | 현재 상태·이어하기 | `docs/PROJECT_STATE.md` | 해당 `*-current.md` |
+| 맵·레벨 디자인 | `docs/namsan-map-current.md` | `docs/level-design-and-vertical-combat.md`의 해당 단계 |
 | AI·전투·밸런스 QA | `docs/qa-remediation-current.md` | `docs/2026-09-12-qa-debrief.md` |
 | 스프라이트·무기·오퍼레이터 | `docs/sprite-production-current.md` | `docs/weapon-art-standard.md` |
 | 모바일·관전 UI | `docs/mobile-qa-stack-20260912.md` | 관련 테스트 파일 |

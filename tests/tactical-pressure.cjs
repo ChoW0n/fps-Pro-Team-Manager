@@ -8,7 +8,7 @@ const {weaponHandling,shotCone,estimatedShotQuality}=require(root+'realtime/weap
 const {battlefieldMap}=require(root+'realtime/fortifications.ts');
 const {breachWalls}=require(root+'realtime/breachGeometry.ts');
 const {combatSkillsFor}=require(root+'combatSkills.ts');
-const {OPERATORS}=require(root+'Operator.ts'),{Player}=require(root+'Player.ts'),{BREACHLINE_MAP:map}=require(root+'tacticalMaps.ts');
+const {OPERATORS}=require(root+'Operator.ts'),{Player}=require(root+'Player.ts'),{NAMSAN_MAP:map}=require(root+'tacticalMaps.ts');
 const results=[];
 function check(name,fn){try{fn();results.push({name,pass:true});console.log('PASS',name);}catch(error){results.push({name,pass:false,error:error.message});console.error('FAIL',name,error.message);}}
 function team(side,count=5){return OPERATORS.filter(operator=>operator.side===side).slice(0,count).map((operator,index)=>({operator,side,teamName:side,player:new Player('선수'+index,'선수'+index,operator.role,20,60,70,70,70,70,OPERATORS,20,55,40,65,70,70,70)}));}
@@ -45,7 +45,7 @@ check('분산 3+2는 실제 서로 다른 경로에서 출발하고 중복 경�
   const input={attackers:team('공격'),defenders:team('수비',1),seed:41,maxSeconds:2,scoutPlan:{indices:[],seconds:25,entryRoute:0,secondaryRoute:2,secondaryIndices:[3,4]}};
   const snapshot=engine.createSession(input).step().snapshot;
   assert.deepEqual(snapshot.units.slice(0,5).map(unit=>unit.routeIndex),[0,0,0,2,2]);
-  assert(snapshot.units[0].position.y<300&&snapshot.units[4].position.y>2100);
+  assert(snapshot.units[0].position.y===map.attackerRoutes[0].points[0].y&&snapshot.units[4].position.y===map.attackerRoutes[2].points[0].y);
   assert.throws(()=>engine.run({...input,scoutPlan:{...input.scoutPlan,secondaryRoute:0}}),/분산/);
 });
 check('분산 선발조도 각 진입로로 복귀·합류한 뒤 함께 재진입',()=>{
@@ -66,7 +66,7 @@ const runs={};
 for(const preparation of ['reinforce','shield']){
   check(preparation+' 실제 이동·2초 설치·지형 변경·run/session 일치',()=>{
     class SetupArena extends TacticalRealtimeSimulation {
-      startPosition(unit,index,count,terrain){return unit.side==='수비'?(preparation==='reinforce'?{x:3100,y:1210}:{x:2700,y:1280}):super.startPosition(unit,index,count,terrain);}
+      startPosition(unit,index,count,terrain){return unit.side==='수비'?(preparation==='reinforce'?{x:1884,y:1560}:{x:1300,y:1380}):super.startPosition(unit,index,count,terrain);}
       startFacing(unit){return unit.side==='수비'?Math.PI:0;}
     }
     const input={attackers:team('공격',1),defenders:team('수비',1),seed:18,maxSeconds:12,defensePreparation:preparation,scoutPlan:{indices:[0],seconds:25,entryRoute:0}};
@@ -86,9 +86,9 @@ for(const preparation of ['reinforce','shield']){
 }
 check('보강은 일반 파쇄를 막고 MEDVED의 4초 관통 장약에는 실제 통로를 내줌',()=>{
   class HardBreachArena extends TacticalRealtimeSimulation {
-    startPosition(unit,index,count,terrain){return unit.side==='공격'?{x:2750,y:260}:super.startPosition(unit,index,count,terrain);}
+    startPosition(unit,index,count,terrain){return unit.side==='공격'?{x:1960,y:1560}:super.startPosition(unit,index,count,terrain);}
   }
-  const terrain={...map,walls:map.walls.map(wall=>wall.id==='outer-soft-north'?{...wall,reinforced:true}:wall)};
+  const terrain={...map,walls:map.walls.map(wall=>wall.id==='outer-east-2'?{...wall,reinforced:true}:wall)};
   const attackers=team('공격',1);attackers[0].operator=OPERATORS.find(operator=>operator.callSign==='MEDVED');
   const result=new HardBreachArena().run({attackers,defenders:team('수비',1),map:terrain,seed:18,maxSeconds:12});
   const start=result.events.find(event=>event.goal==='breach-started'),done=result.events.find(event=>event.goal==='wall-breached');

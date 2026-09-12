@@ -26,13 +26,13 @@ const fallbackResult=engine.run(fallback),cameras=fallbackResult.events.filter(e
 assert.equal(cameras.length,1,'MARCHAND 부재 시 공용 카메라는 한 명에게만 지급');
 assert.equal(cameras[0].actor,fallbackResult.snapshots[0].units.at(-1).id);
 // 짧은 교전에서 전멸하기 전에 연막과 수류탄을 모두 쓰는 고정 편성입니다.
-const {Player}=require(root+'Player.ts'),{BREACHLINE_MAP}=require(root+'tacticalMaps.ts');
+const {Player}=require(root+'Player.ts'),{NAMSAN_MAP}=require(root+'tacticalMaps.ts');
 function member(name){const operator=OPERATORS.find(o=>o.callSign===name);return {operator,side:operator.side,teamName:operator.side,player:new Player(name,name,operator.role,20,5,70,70,70,70,[operator],10,5,90,5,70,70,70)};}
 class Arena extends TacticalRealtimeSimulation{
  startPosition(unit){return unit.side==='공격'?{x:1000,y:1000}:{x:1350,y:1000};}
  startFacing(unit){return unit.side==='공격'?0:Math.PI;}
 }
-const encounter={attackers:[member('ARBEL')],defenders:[member('BRANDT')],map:{...BREACHLINE_MAP,walls:[],covers:[],portals:[]},maxSeconds:30,seed:1};
+const encounter={attackers:[member('ARBEL')],defenders:[member('BRANDT')],map:{...NAMSAN_MAP,walls:[],covers:[],portals:[]},maxSeconds:30,seed:1};
 const duel=new Arena().run(encounter);
 const throws=duel.events.filter(e=>e.goal==='smoke-thrown'||e.goal==='grenade-thrown');
 assert(throws.some(e=>e.goal==='smoke-thrown'),'실제 연막 투척');

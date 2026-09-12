@@ -3,8 +3,8 @@ const fs=require('node:fs'),assert=require('node:assert/strict'),ts=require('typ
 require.extensions['.ts']=(module,file)=>module._compile(ts.transpileModule(fs.readFileSync(file,'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,esModuleInterop:true,resolveJsonModule:true}}).outputText,file);
 const root='../artifacts/draft-order-player-generator/src/domain/';
 const {TacticalRealtimeSimulation,UNIT_RADIUS}=require(root+'realtime/TacticalRealtimeSimulation.ts');
-const {BREACHLINE_MAP}=require(root+'tacticalMaps.ts');
-const map={...BREACHLINE_MAP,width:400,height:400,covers:[],searchPoints:[],defenderSetups:[],entrances:[],sites:[],
+const {NAMSAN_MAP}=require(root+'tacticalMaps.ts');
+const map={...NAMSAN_MAP,width:400,height:400,covers:[],searchPoints:[],defenderSetups:[],entrances:[],sites:[],
   attackerSpawn:{x:70,y:200},defenderSpawn:{x:330,y:200},returnPoint:{x:70,y:200},
   attackerRoutes:[{id:'door',label:'문 통과',points:[{x:70,y:200},{x:330,y:200}]}],
   walls:[{id:'top',kind:'interior',from:{x:200,y:0},to:{x:200,y:160}},{id:'bottom',kind:'interior',from:{x:200,y:240},to:{x:200,y:400}}],

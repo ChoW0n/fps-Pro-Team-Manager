@@ -6,7 +6,7 @@ const {completeOperatorDraft,confirmOperatorDraft}=require(root+'operatorDraft.t
 const {OPERATORS}=require(root+'Operator.ts'),{TeamGenerator}=require(root+'TeamGenerator.ts');
 const {ScoutOperation}=require(root+'realtime/ScoutOperation.ts');
 const {TacticalRealtimeSimulation}=require(root+'realtime/TacticalRealtimeSimulation.ts');
-const {BREACHLINE_MAP}=require(root+'tacticalMaps.ts');
+const {NAMSAN_MAP}=require(root+'tacticalMaps.ts');
 // 선수 생성까지 고정해 테스트 실행마다 편성과 경로가 바뀌지 않게 합니다.
 const originalRandom=Math.random;let rosterSeed=41;Math.random=()=>{rosterSeed=(Math.imul(rosterSeed,1664525)+1013904223)>>>0;return rosterSeed/4294967296;};
 const teams=new TeamGenerator().generateTenTeams();Math.random=originalRandom;
@@ -26,7 +26,7 @@ test('잘못된 인원·중복·명단 밖 선수·수색 시간 차단',()=>{as
 test('수색 → 실제 복귀 → 전원 합류 → 재진입',()=>{const operation=new ScoutOperation(['a'],25,rally),actors=[{id:'a',alive:true,position:{x:100,y:100}},{id:'b',alive:true,position:{x:100,y:100}}];operation.step(24.9,actors);assert.equal(operation.snapshot().phase,'scouting');operation.step(25,actors);assert.equal(operation.snapshot().phase,'returning');operation.step(30,actors);assert.equal(operation.snapshot().phase,'returning');actors[0].position={x:0,y:0};operation.step(31,actors);assert.equal(operation.snapshot().phase,'regrouping');operation.step(32,actors);assert.equal(operation.snapshot().phase,'regrouping');actors[1].position={x:50,y:0};operation.step(33,actors);assert.equal(operation.snapshot().phase,'entering');});
 test('선발조 전사자는 합류 조건에서 제외되며 감독 복귀 지시도 적용',()=>{const operation=new ScoutOperation(['a'],70,rally),actors=[{id:'a',alive:true,position:{x:100,y:100}},{id:'b',alive:true,position:{x:50,y:0}}];operation.step(4,actors,true);assert.equal(operation.snapshot().phase,'returning');actors[0].alive=false;operation.step(5,actors);operation.step(6,actors);assert.equal(operation.snapshot().phase,'entering');});
 test('실제 엔진에서 선발조 복귀·합류를 거쳐 재진입하며 순간이동 없음',()=>{
-  const input={attackers:confirmOperatorDraft(teams[0],'공격',completeOperatorDraft(teams[0],'공격',blank)),defenders:confirmOperatorDraft(teams[1],'수비',completeOperatorDraft(teams[1],'수비',blank)).slice(0,1),seed:41,maxSeconds:100,scoutPlan:{indices:[0,1],seconds:25,entryRoute:0},map:{...BREACHLINE_MAP,defenderSetups:[{id:'far',label:'외곽',position:{x:3500,y:2280},fallback:{x:3500,y:2200}}]}};
+  const input={attackers:confirmOperatorDraft(teams[0],'공격',completeOperatorDraft(teams[0],'공격',blank)),defenders:confirmOperatorDraft(teams[1],'수비',completeOperatorDraft(teams[1],'수비',blank)).slice(0,1),seed:41,maxSeconds:100,scoutPlan:{indices:[0,1],seconds:25,entryRoute:0},map:{...NAMSAN_MAP,defenderSetups:[{id:'far',label:'외곽',position:{x:3500,y:2280},fallback:{x:3500,y:2200}}]}};
   for(const unit of [...input.attackers,...input.defenders]) unit.player={...unit.player,aim:75,entry:75,informationGathering:75,defensiveSetup:75,mastery:75,composure:70,aggression:65,teamSynergy:70};
   const engine=new TacticalRealtimeSimulation(),round=engine.run(input),phases=[...new Set(round.snapshots.map(snapshot=>snapshot.operation.phase))];
   assert.deepEqual(phases,['scouting','returning','regrouping','entering']);

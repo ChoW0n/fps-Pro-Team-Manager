@@ -5,7 +5,7 @@ const root='../artifacts/draft-order-player-generator/src/domain/';
 const {resolveElectronicCounters,gadgetActive,poweredWall}=require(root+'realtime/gadgetRules.ts');
 const {weaponHandling,shotCone,estimatedShotQuality}=require(root+'realtime/weaponHandling.ts');
 const {TacticalRealtimeSimulation}=require(root+'realtime/TacticalRealtimeSimulation.ts');
-const {OPERATORS}=require(root+'Operator.ts'),{Player}=require(root+'Player.ts'),{BREACHLINE_MAP:map}=require(root+'tacticalMaps.ts');
+const {OPERATORS}=require(root+'Operator.ts'),{Player}=require(root+'Player.ts'),{NAMSAN_MAP:map}=require(root+'tacticalMaps.ts');
 const rows=[];function check(name,fn){fn();rows.push({name,pass:true});console.log('PASS',name);}
 const device=(id,kind,side='수비',x=0)=>({id,kind,side,owner:id,position:{x,y:0},activeAt:0,until:100,radius:220,charges:2,wallId:'wall'});
 const thrown=(id,kind='smoke')=>({...device(id,kind,'공격'),activeAt:1,landedAt:1,thrownAt:0,from:{x:-100,y:0}});
@@ -30,9 +30,9 @@ check('30m 고숙련 SMG의 예상 효율이 중숙련 DMR보다 낮으며 거�
 });
 function member(name){const operator=OPERATORS.find(o=>o.callSign===name);return {operator,side:operator.side,teamName:operator.side,player:new Player(name,name,operator.role,20,75,75,75,75,75,[operator],20,75,65,70,70,70,70)};}
 class CounterArena extends TacticalRealtimeSimulation{
- startPosition(u){return u.operator.callSign==='MEDVED'?{x:2750,y:260}:u.operator.callSign==='해동'?{x:2700,y:190}:{x:2750,y:336};}
+ startPosition(u){return u.operator.callSign==='MEDVED'?{x:1960,y:1560}:u.operator.callSign==='해동'?{x:2030,y:1510}:{x:1884,y:1560};}
 }
-const terrain={...map,walls:map.walls.map(w=>w.id==='outer-soft-north'?{...w,reinforced:true}:w)};
+const terrain={...map,walls:map.walls.map(w=>w.id==='outer-east-2'?{...w,reinforced:true}:w)};
 check('실제 성곽 전력 설치는 MEDVED를 멈추고 해동 EMP 이후 보강 통로 개방',()=>{
  const input={attackers:[member('MEDVED')],defenders:[member('성곽')],map:terrain,seed:18,maxSeconds:12};
  const blocked=new CounterArena().run(input);assert(blocked.events.some(e=>e.goal==='power-deployed'));assert(blocked.events.some(e=>e.goal==='breach-blocked-power'));assert(!blocked.events.some(e=>e.goal==='wall-breached'));
@@ -49,13 +49,13 @@ check('A/B 각각 세 개 실제 입구는 모든 외부 진입로에서 통행 
  }
 });
 check('SAVELLI는 실제 2초 설치 후 두 발 요격기를 남김',()=>{
- class Arena extends TacticalRealtimeSimulation{startPosition(u){return u.side==='공격'?{x:3050,y:1750}:{x:800,y:450};}}
+ class Arena extends TacticalRealtimeSimulation{startPosition(u){return u.side==='공격'?{x:2250,y:1750}:{x:800,y:450};}}
  const result=new Arena().run({attackers:[member('AUBERT')],defenders:[member('SAVELLI')],seed:7,maxSeconds:5});
  const deployed=result.events.find(e=>e.goal==='interceptor-deployed');assert(deployed);assert(deployed.time>=2);
  const device=result.snapshots.flatMap(s=>s.gadgets).find(g=>g.kind==='interceptor');assert(device);assert.equal(device.charges,2);assert.equal(device.radius,220);
 });
 check('이동 드론은 통행 가능한 지형만 이동하고 스냅샷 위치를 보존',()=>{
- class DroneArena extends TacticalRealtimeSimulation{startPosition(u){return u.side==='공격'?{x:3050,y:1750}:{x:800,y:450};}}
+ class DroneArena extends TacticalRealtimeSimulation{startPosition(u){return u.side==='공격'?{x:2250,y:1750}:{x:800,y:450};}}
  const arena=new DroneArena(),result=arena.run({attackers:[member('AUBERT')],defenders:[member('BRANDT')],seed:7,maxSeconds:8});
  const drones=result.snapshots.flatMap(s=>s.gadgets.filter(g=>g.kind==='drone'));assert(drones.length);assert(new Set(drones.map(d=>d.position.x+':'+d.position.y)).size>10);
  for(let i=1;i<drones.length;i++)assert(arena.canTraverse(drones[i-1].position,drones[i].position,map));

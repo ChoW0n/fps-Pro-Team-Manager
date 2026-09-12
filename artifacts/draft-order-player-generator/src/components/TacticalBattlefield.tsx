@@ -94,11 +94,11 @@ const Interior = memo(function Interior({ map, detail }: { map: TacticalMapDefin
     <rect width={map.width} height={map.height} fill="#202B30" />
     <rect {...map.building} fill="#535d61" />
     {map.rooms.map((room) => <g key={room.id}>
-      <rect {...room.rect} fill={room.kind === 'yard' ? '#303D40' : room.kind === 'corridor' ? '#747A75' : `url(#floor-${detail?'detail':'small'})`} />
+      <rect {...room.rect} fill={room.floorColor ?? (room.kind === 'yard' ? '#303D40' : room.kind === 'corridor' ? '#747A75' : `url(#floor-${detail?'detail':'small'})`)} />
       {detail && room.kind !== 'yard' && <g stroke="#82908f" opacity=".16" strokeWidth="1">
         {Array.from({ length: Math.floor(room.rect.width / 80) }, (_, index) => <path key={index} d={`M${room.rect.x + (index + 1) * 80} ${room.rect.y} v${room.rect.height}`} />)}
       </g>}
-      <text x={room.rect.x + 20} y={room.rect.y + 34} className="battle-room" style={{fontSize:detail?15:28}}>{room.label}</text>
+      <text x={room.rect.x + 20} y={room.rect.y + 34} className="battle-room" style={{fontSize:detail?15:28}}>{room.callout??room.label}</text>
     </g>)}
     <rect {...map.building} fill="none" stroke="#87918f" strokeWidth="4" />
     {map.sites.map((site) => <g key={site.id}>

@@ -9,7 +9,7 @@ const root = '../artifacts/draft-order-player-generator/src/domain/';
 const { TacticalRealtimeSimulation } = require(root + 'realtime/TacticalRealtimeSimulation.ts');
 const { OPERATORS } = require(root + 'Operator.ts');
 const { Player } = require(root + 'Player.ts');
-const { BREACHLINE_MAP } = require(root + 'tacticalMaps.ts');
+const { NAMSAN_MAP } = require(root + 'tacticalMaps.ts');
 const separation = (a,b) => Math.hypot(a.x-b.x,a.y-b.y);
 // 선수 생성 난수를 쓰지 않고 같은 공개·내부 입력을 직접 구성합니다.
 function fixture(seed) {
@@ -51,7 +51,7 @@ function audit(seed) {
     reversals,movingButStationaryTicks,loopWindows,blockedEvents};
 }
 const seeds=[3,11,23,41,51,81,107,149];
-const report={scenario:process.argv[3]??'distributed-starts',map:{id:BREACHLINE_MAP.id,width:BREACHLINE_MAP.width,height:BREACHLINE_MAP.height},rows:seeds.map(audit)};
+const report={scenario:process.argv[3]??'distributed-starts',map:{id:NAMSAN_MAP.id,width:NAMSAN_MAP.width,height:NAMSAN_MAP.height},rows:seeds.map(audit)};
 const name=process.argv[2]??'movement-audit.json';
 fs.writeFileSync(path.join(__dirname,'../validation',path.basename(name)),JSON.stringify(report,null,2)+'\n');
 console.table(report.rows);

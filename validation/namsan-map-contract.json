@@ -1,0 +1,82 @@
+{
+  "map": "namsan-relay-01",
+  "indoorAreaMetres": 576,
+  "rooms": 16,
+  "gridStep": 40,
+  "standableSamples": 368,
+  "lineOfSight": {
+    "longestMetres": 24.08318915758459,
+    "openPairs": 9846,
+    "over25mPairs": 0
+  },
+  "spawnIndoorSightLines": 0,
+  "sites": [
+    {
+      "id": "A",
+      "distancesMetres": [
+        41.447255469900966,
+        41.409451989597336,
+        43.224449889203704,
+        43.57737179592521,
+        39.50569185608029
+      ],
+      "ratio": 1.103065653290622
+    },
+    {
+      "id": "B",
+      "distancesMetres": [
+        46.017166907171685,
+        46.064387629267586,
+        39.422429442441754,
+        39.54353839739231,
+        45.74382410029547
+      ],
+      "ratio": 1.1684817064996804
+    }
+  ],
+  "interiorRotations": 2,
+  "crawlPortals": 2,
+  "pending": [
+    "2층·계단·수직 해치",
+    "팀 보강 자원 배분",
+    "층간 교전"
+  ],
+  "planting": [
+    {
+      "site": "A",
+      "room": "room-1-1",
+      "time": 7,
+      "position": {
+        "x": 1300,
+        "y": 1375
+      }
+    },
+    {
+      "site": "A",
+      "room": "room-1-2",
+      "time": 7,
+      "position": {
+        "x": 1580,
+        "y": 1375
+      }
+    },
+    {
+      "site": "B",
+      "room": "room-2-1",
+      "time": 7,
+      "position": {
+        "x": 1300,
+        "y": 1615
+      }
+    },
+    {
+      "site": "B",
+      "room": "room-2-2",
+      "time": 7,
+      "position": {
+        "x": 1580,
+        "y": 1615
+      }
+    }
+  ]
+}

@@ -13,7 +13,7 @@ const root = '../artifacts/draft-order-player-generator/src/';
 const { TacticalRealtimeSimulation, realtimeUnitId, UNIT_RADIUS, updateIdentifiedOperators } = require(root + 'domain/realtime/TacticalRealtimeSimulation.ts');
 const { Player } = require(root + 'domain/Player.ts');
 const { OPERATORS } = require(root + 'domain/Operator.ts');
-const { BREACHLINE_MAP } = require(root + 'domain/tacticalMaps.ts');
+const { NAMSAN_MAP } = require(root + 'domain/tacticalMaps.ts');
 const { muzzlePosition, operatorVisual, OPERATOR_SCALE } = require(root + 'domain/operatorVisuals.ts');
 const { angleDifference, turnTowards, TURN_SPEED, FOCUS_RANGE, PERIPHERAL_RANGE } = require(root + 'domain/realtime/perception.ts');
 const results = [];
@@ -53,8 +53,8 @@ test('같은 명령 틱: generator / session 동일',()=>{
 test('모든 초기 배치와 이동 선분이 벽·엄폐 반경 밖',()=>{
   const engine=new TacticalRealtimeSimulation();
   for(let i=0;i<base.snapshots.length;i++)for(const u of base.snapshots[i].units){
-    assert(engine.canStand(u.position,BREACHLINE_MAP),`illegal ${u.callSign} ${JSON.stringify(u.position)}`);
-    if(i)assert(engine.canTraverse(base.snapshots[i-1].units.find(v=>v.id===u.id).position,u.position,BREACHLINE_MAP),`cross ${u.callSign}`);
+    assert(engine.canStand(u.position,NAMSAN_MAP),`illegal ${u.callSign} ${JSON.stringify(u.position)}`);
+    if(i)assert(engine.canTraverse(base.snapshots[i-1].units.find(v=>v.id===u.id).position,u.position,NAMSAN_MAP),`cross ${u.callSign}`);
   }
 });
 test('아군 몸 지름 24 이상 유지',()=>{
@@ -75,7 +75,7 @@ test('탄창 소모·장전·탄약 보존 및 장전 중 사격 금지',()=>{
   const input=fixture(81,45);
   [...input.attackers,...input.defenders].forEach(u=>{u.operator={...u.operator,firearms:['C14 팀버울프']};});
   for(const unit of [...input.attackers,...input.defenders])unit.player={...unit.player,aim:0,mastery:0,composure:0,aggression:40};
-  input.map={...BREACHLINE_MAP,walls:[],covers:[]};input.maxSeconds=60;
+  input.map={...NAMSAN_MAP,walls:[],covers:[]};input.maxSeconds=60;
   class ReloadArena extends TacticalRealtimeSimulation {
     startPosition(unit,index,count){return {x:1000+(unit.side==='공격'?index:index-count)*90,y:unit.side==='공격'?900:1600};}
     startFacing(unit){return unit.side==='공격'?Math.PI/2:-Math.PI/2;}
@@ -97,8 +97,8 @@ test('발사 원점 = 동일 틱의 회전된 실제 총구',()=>{
   for(const e of base.events.filter(e=>e.type==='shot')){
     const u=base.snapshots.find(s=>s.time===e.time).units.find(u=>u.id===e.actor);
     assert(distance(muzzlePosition(u.callSign,u.position,u.facing),e.position)<1e-6);
-    assert(engine.hasLineOfSight(u.position,e.position,BREACHLINE_MAP));
-    assert(engine.hasLineOfSight(e.position,e.targetPosition,BREACHLINE_MAP));
+    assert(engine.hasLineOfSight(u.position,e.position,NAMSAN_MAP));
+    assert(engine.hasLineOfSight(e.position,e.targetPosition,NAMSAN_MAP));
     assert.equal(e.blocked,false);
   }
 });
@@ -123,20 +123,20 @@ test('같은 콜사인도 별도 참가자·능력치·교전 기록',()=>{
   for(const e of result.engagements)assert.notEqual(e.attackerId,e.defenderId);
 });
 test('서로 떨어진 공선 선분은 시야를 막지 않음',()=>{
-  const map={...BREACHLINE_MAP,covers:[],walls:[{id:'test',kind:'interior',from:{x:700,y:100},to:{x:800,y:100}}]};
+  const map={...NAMSAN_MAP,covers:[],walls:[{id:'test',kind:'interior',from:{x:700,y:100},to:{x:800,y:100}}]};
   assert(new TacticalRealtimeSimulation().hasLineOfSight({x:100,y:100},{x:200,y:100},map));
 });
 test('설계 경유점·수비 초기 위치는 모두 통행 가능',()=>{
   const engine=new TacticalRealtimeSimulation();
-  for(const route of BREACHLINE_MAP.attackerRoutes)for(const point of route.points)assert(engine.canStand(point,BREACHLINE_MAP),route.id);
-  for(const setup of BREACHLINE_MAP.defenderSetups)assert(engine.canStand(setup.position,BREACHLINE_MAP),setup.id);
+  for(const route of NAMSAN_MAP.attackerRoutes)for(const point of route.points)assert(engine.canStand(point,NAMSAN_MAP),route.id);
+  for(const setup of NAMSAN_MAP.defenderSetups)assert(engine.canStand(setup.position,NAMSAN_MAP),setup.id);
 });
 test('엄폐물 모서리 경로의 모든 선분 통행 가능',()=>{
-  const engine=new TacticalRealtimeSimulation(), nodes=engine.buildNavigationNodes(BREACHLINE_MAP);
-  for(const route of BREACHLINE_MAP.attackerRoutes){
-    const path=engine.findPath(route.points[0],route.points.at(-1),BREACHLINE_MAP,nodes);
+  const engine=new TacticalRealtimeSimulation(), nodes=engine.buildNavigationNodes(NAMSAN_MAP);
+  for(const route of NAMSAN_MAP.attackerRoutes){
+    const path=engine.findPath(route.points[0],route.points.at(-1),NAMSAN_MAP,nodes);
     assert(path.length>0,route.id);let prior=route.points[0];
-    for(const point of path){assert(engine.canTraverse(prior,point,BREACHLINE_MAP));prior=point;}
+    for(const point of path){assert(engine.canTraverse(prior,point,NAMSAN_MAP));prior=point;}
   }
 });
 test('12명 원화·총구 메타데이터와 정적 파일 존재',()=>{
@@ -145,7 +145,7 @@ test('12명 원화·총구 메타데이터와 정적 파일 존재',()=>{
   }for(const operator of OPERATORS){const visual=operatorVisual(operator.callSign);assert(visual);assert(fs.existsSync(path.join(__dirname,'../artifacts/draft-order-player-generator/public/operators',visual.sprite)));}
 });
 test('모든 문·출입구·A/B 설치 위치가 물리 통행과 일치',()=>{
-  const engine=new TacticalRealtimeSimulation(),map=BREACHLINE_MAP;
+  const engine=new TacticalRealtimeSimulation(),map=NAMSAN_MAP;
   assert.equal(new Set(map.portals.map(p=>p.id)).size,map.portals.length);
   for(const portal of map.portals)assert(engine.canStand(portal.center,map),portal.id);
   for(const entrance of map.entrances)assert(engine.canTraverse(entrance.outside,entrance.inside,map),entrance.id);
@@ -155,14 +155,14 @@ test('모든 문·출입구·A/B 설치 위치가 물리 통행과 일치',()=>{
   for(const site of map.sites)for(const point of [...site.plantAnchors,...site.defendAnchors])assert(engine.canStand(point,map),site.id);
 });
 test('양 사이트는 모든 공격 진입 지점에서 도달 가능',()=>{
-  const engine=new TacticalRealtimeSimulation(),map=BREACHLINE_MAP,nodes=engine.buildNavigationNodes(map);
+  const engine=new TacticalRealtimeSimulation(),map=NAMSAN_MAP,nodes=engine.buildNavigationNodes(map);
   for(const route of map.attackerRoutes.slice(0,5))for(const site of map.sites){
     const path=engine.findPath(route.points[0],site.plantAnchors[0],map,nodes);assert(path.length,route.id+' → '+site.id);
     assert(distance(path.at(-1),site.plantAnchors[0])<1e-6);
   }
 });
 test('개인 시야는 뒤쪽·범위 밖·벽 뒤의 실시간 좌표를 받지 않음',()=>{
-  const engine=new TacticalRealtimeSimulation(),map={...BREACHLINE_MAP,walls:[],covers:[]};
+  const engine=new TacticalRealtimeSimulation(),map={...NAMSAN_MAP,walls:[],covers:[]};
   const observer={position:{x:1500,y:1200},facing:0};
   assert(engine.canSee(observer,{x:1800,y:1200},map));
   assert(!engine.canSee(observer,{x:1200,y:1200},map));
@@ -171,7 +171,7 @@ test('개인 시야는 뒤쪽·범위 밖·벽 뒤의 실시간 좌표를 받지
   assert(!engine.canSee(observer,{x:1800,y:1200},map));
 });
 test('정면·주변 시야 거리와 회전 속도는 후방 순간 회전을 만들지 않음',()=>{
-  const engine=new TacticalRealtimeSimulation(),map={...BREACHLINE_MAP,walls:[],covers:[]},observer={position:{x:100,y:100},facing:0};
+  const engine=new TacticalRealtimeSimulation(),map={...NAMSAN_MAP,walls:[],covers:[]},observer={position:{x:100,y:100},facing:0};
   assert(engine.canSee(observer,{x:100+FOCUS_RANGE,y:100},map));
   assert(!engine.canSee(observer,{x:100+FOCUS_RANGE+.01,y:100},map));
   const peripheralAngle=Math.PI*.45;
@@ -194,7 +194,7 @@ test('범용 가젯은 신원을 누설하지 않고 직접 목격·고유 브�
 test('실제 틱의 설치와 무력화는 정지·생존·장전 종료 상태에서만 진행',()=>{
   const input=fixture(41,180);
   input.defenders=input.defenders.slice(0,1);
-  input.map={...BREACHLINE_MAP,attackerRoutes:[{x:2380,y:1200},{x:2420,y:1160},{x:2480,y:1160},{x:2380,y:1280},{x:2420,y:1280}].map((point,index)=>({id:'plant-fixture-'+index,label:'5인 설치·엄호 검사',points:[point]})),defenderSetups:[{id:'far-guard',label:'외곽 수비',position:{x:3500,y:2280},fallback:{x:3500,y:2200}}]};
+  input.map={...NAMSAN_MAP,attackerRoutes:[{x:2380,y:1200},{x:2420,y:1160},{x:2480,y:1160},{x:2380,y:1280},{x:2420,y:1280}].map((point,index)=>({id:'plant-fixture-'+index,label:'5인 설치·엄호 검사',points:[point]})),defenderSetups:[{id:'far-guard',label:'외곽 수비',position:{x:3500,y:2280},fallback:{x:3500,y:2200}}]};
   const round=new TacticalRealtimeSimulation().run(input);
   const planted=round.events.find(e=>e.goal==='planted');assert(planted,'실제 경기 설치 사례 필요');
   for(const snap of round.snapshots)for(const unit of snap.units)if(['plant','disable'].includes(unit.action)){
