@@ -1,8 +1,8 @@
 import type { RealtimeEvent, RealtimeGadget } from './TacticalRealtimeSimulation';
 import type { TacticalPoint } from '../tacticalMaps';
 
-export const GADGET_LABELS:Record<RealtimeGadget['kind'],string>={smoke:'연막',grenade:'수류탄',camera:'카메라',drone:'정찰 드론',power:'전력 노드',interceptor:'요격기',emp:'EMP'};
-export const electronic=(gadget:RealtimeGadget):boolean=>['camera','drone','power','interceptor'].includes(gadget.kind);
+export const GADGET_LABELS:Record<RealtimeGadget['kind'],string>={smoke:'연막',grenade:'수류탄',camera:'카메라',probe:'반향 표식',power:'전력 노드',interceptor:'요격기',emp:'EMP'};
+export const electronic=(gadget:RealtimeGadget):boolean=>['camera','probe','power','interceptor'].includes(gadget.kind);
 export const gadgetActive=(gadget:RealtimeGadget,time:number):boolean=>time>=gadget.activeAt&&time<gadget.until&&time>=(gadget.disabledUntil??0);
 const distance=(a:TacticalPoint,b:TacticalPoint)=>Math.hypot(a.x-b.x,a.y-b.y);
 

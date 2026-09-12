@@ -4,6 +4,28 @@ import type { RealtimeUnitInput } from './realtime/TacticalRealtimeSimulation';
 
 export type OperatorSelection = Array<string | null>;
 
+/** 감독이 고른 팀 라인업을 선수 개인 고정이 아닌 역할 적합도 순으로 배치합니다. */
+export function assignLineup(team: Team, side: OperatorSide, lineup: readonly string[]): RealtimeUnitInput[] {
+  if(team.players.length!==5||lineup.length!==5||new Set(lineup).size!==5) throw new Error('라인업은 서로 다른 다섯 오퍼레이터여야 합니다.');
+  const operators=lineup.map(name=>OPERATORS.find(operator=>operator.callSign===name&&operator.side===side));
+  if(operators.some(operator=>!operator)) throw new Error('공수에 맞지 않는 오퍼레이터가 라인업에 있습니다.');
+  let best:{score:number;order:number[]}|undefined;
+  const place=(order:number[]):void=>{
+    if(order.length===5){
+      const score=order.reduce((sum,operatorIndex,playerIndex)=>{const player=team.players[playerIndex],operator=operators[operatorIndex]!;return sum+(player.role===operator.role?100:0)+player.mastery+player.aim*operator.stats.aim/100+player.aggression*operator.stats.aggression/150;},0);
+      if(!best||score>best.score)best={score,order:[...order]};return;
+    }
+    for(let index=0;index<operators.length;index++)if(!order.includes(index))place([...order,index]);
+  };
+  place([]);
+  return best!.order.map((operatorIndex,playerIndex)=>({player:team.players[playerIndex],operator:operators[operatorIndex]!,teamName:team.name,side}));
+}
+
+/** 수동 라인업을 열지 않았을 때는 기존 습득 목록 자동 편성을 그대로 사용합니다. */
+export function automaticLineup(team:Team,side:OperatorSide):string[] {
+  return completeOperatorDraft(team,side,[null,null,null,null,null]).filter((name):name is string=>Boolean(name));
+}
+
 /** 현재 선수의 실제 습득 목록에서 해당 공수 오퍼레이터만 반환합니다. */
 export function availableOperators(team: Team, playerIndex: number, side: OperatorSide): Operator[] {
   const player = team.players[playerIndex];
