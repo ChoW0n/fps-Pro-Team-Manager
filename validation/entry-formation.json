@@ -1,0 +1,52 @@
+[
+  {
+    "route": 0,
+    "departureTimes": [
+      0.3,
+      1.1,
+      2,
+      2.9,
+      4.7
+    ]
+  },
+  {
+    "route": 1,
+    "departureTimes": [
+      0.3,
+      1.1,
+      2,
+      2.9,
+      4
+    ]
+  },
+  {
+    "route": 2,
+    "departureTimes": [
+      0.3,
+      1.1,
+      2,
+      2.9,
+      4
+    ]
+  },
+  {
+    "route": 3,
+    "departureTimes": [
+      0.3,
+      1.1,
+      2,
+      3.2,
+      4
+    ]
+  },
+  {
+    "route": 4,
+    "departureTimes": [
+      0.3,
+      1.1,
+      2,
+      2.9,
+      4
+    ]
+  }
+]

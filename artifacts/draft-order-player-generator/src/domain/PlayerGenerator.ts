@@ -45,8 +45,14 @@ export class PlayerGenerator {
   private generateOperatorPool(poolStat: number, role: Role): Operator[] {
     const count = Math.max(2, Math.min(5, Math.round(poolStat / 20)));
     // 새로 생성하는 선수에게만 기본 공수 한 명씩을 부여합니다. 기존 저장 선수는 변경하지 않습니다.
-    const basics: Record<Role, [string,string]> = {SEARCH:['ARBEL','HALLORAN'],ENTRY:['MAGPIE','MARCHAND'],FIREPOWER:['COLLIER','BRANDT'],DEFENSIVE_SETUP:['해동','REUSS'],BLOCKING:['AUBERT','성곽']};
-    const pool = basics[role].map(name=>OPERATORS.find(operator=>operator.callSign===name)!);
+    // 역할 슬롯별 공수 후보를 분리하여 5인 중복 없는 기본 편성 가능성을 유지합니다.
+    // 기존 기본 지급 인물과 같은 슬롯의 추가 인물도 새 시즌부터 동등하게 추첨합니다.
+    const basics: Record<Role, [string[],string[]]> = {
+      SEARCH:[['ARBEL'],['HALLORAN']], ENTRY:[['MAGPIE','MEDVED'],['MARCHAND']],
+      FIREPOWER:[['COLLIER'],['BRANDT']], DEFENSIVE_SETUP:[['해동'],['REUSS','SAVELLI']],
+      BLOCKING:[['AUBERT'],['성곽']],
+    };
+    const pool = basics[role].map(names=>{const selected=names[Math.floor(Math.random()*names.length)];return OPERATORS.find(operator=>operator.callSign===selected)!;});
     const candidates = OPERATORS.filter(operator=>!pool.includes(operator));
     while (pool.length < count) {
       const index = Math.floor(Math.random() * candidates.length);

@@ -277,7 +277,8 @@ export class TacticalRealtimeSimulation {
       if (!scoutPlan) return this.startPosition(unit,index,input.attackers.length,map);
       const route=map.attackerRoutes[assignedRoute(index)],from=route.points[0],to=route.points[1]??map.breachEntryPoint;
       const group=input.attackers.map((_,i)=>i).filter(i=>assignedRoute(i)===assignedRoute(index));
-      const length=distance(from,to)||1,offset=(group.indexOf(index)-(group.length-1)/2)*34;
+      // 즉시 진입조는 외곽에서 2m 간격을 확보합니다. 선발 수색의 출발 배치는 유지합니다.
+      const length=distance(from,to)||1,offset=(group.indexOf(index)-(group.length-1)/2)*(scoutPlan.indices.length?34:80);
       const point={x:from.x-(to.y-from.y)/length*offset,y:from.y+(to.x-from.x)/length*offset};
       if(!this.canStand(point,map)) throw new Error('진입 방향의 합류 위치가 지형과 겹칩니다.');
       return point;
@@ -316,18 +317,26 @@ export class TacticalRealtimeSimulation {
         if(choice){unit.routeIndex=choice.index;unit.position={...choice.setup.position};occupied.push(unit.position);unit.lookDirection=Math.atan2(entry.y-unit.position.y,entry.x-unit.position.x);}
       }
     }
-    const selectedScoutIndices=new Set(scoutPlan?.indices??[]),supportRank=new Map(units.filter(unit=>unit.side==='공격'&&!selectedScoutIndices.has(unit.formationIndex)).map((unit,index)=>[unit.id,index]));
-    const rally = new Map(units.filter(unit=>unit.side==='공격').map(unit=>{
-      // 진압조도 선발조 뒤의 출입구 대기선까지 전진합니다. 스폰에 영구 대기하지 않습니다.
+    const rally = new Map<string,TacticalPoint>();
+    // 합류 목표는 서로 떨어지고 출발점에서 직접 도달 가능한 외곽 대기선에 배정합니다.
+    // 엄폐물 속 후보를 원래 위치로 조용히 대체하면 다른 대원의 복귀 경로를 막을 수 있습니다.
+    for(const unit of units.filter(unit=>unit.side==='공격')){
       const ownRoute=map.attackerRoutes[unit.routeIndex%map.attackerRoutes.length];
-      const start=ownRoute.points[0],next=ownRoute.points[1]??start;
-      // 진압조는 입구 정면의 긴 사선에 서지 않고 첫 외곽 엄폐선까지만 전진합니다.
+      const start=ownRoute.points[0],next=ownRoute.points[1]??start,length=Math.max(1,distance(start,next));
+      const forward={x:(next.x-start.x)/length,y:(next.y-start.y)/length},side={x:-forward.y,y:forward.x};
       const center={x:start.x+(next.x-start.x)*.45,y:start.y+(next.y-start.y)*.45};
-      const length=Math.max(1,distance(start,next)),perpendicular={x:-(next.y-start.y)/length,y:(next.x-start.x)/length};
-      const lane=selectedScoutIndices.has(unit.formationIndex)?0:-(supportRank.get(unit.id)!+1)*55;
-      const point={x:center.x+perpendicular.x*lane,y:center.y+perpendicular.y*lane};
-      return [unit.id,scoutPlan&&this.canStand(point,map)?point:{...unit.position}];
-    }));
+      let destination:TacticalPoint|undefined;
+      if(scoutPlan)for(const back of [0,55,110,165,220,275]){
+        for(const lane of [0,-55,55,-110,110]){
+          const point={x:center.x-forward.x*back+side.x*lane,y:center.y-forward.y*back+side.y*lane};
+          if(this.canStand(point,map)&&this.canTraverse(unit.position,point,map)&&[...rally.values()].every(other=>distance(other,point)>=55)){
+            destination=point;break;
+          }
+        }
+        if(destination)break;
+      }
+      rally.set(unit.id,destination??{...unit.position});
+    }
     const operation = new ScoutOperation((scoutPlan?.indices??[]).map(index=>units[index].id), scoutPlan?.seconds??25, rally);
     const objective = new BombObjective(map.sites.map(site => ({
       id: site.id, label: site.label, zone: site.bounds, plantPoint: site.plantAnchors[0],
@@ -1215,6 +1224,18 @@ export class TacticalRealtimeSimulation {
           if (unit.traversal && pathCache.has(unit.id)) destination = pathCache.get(unit.id)!.goal;
           if(roamer&&!seen)unit.goal='로머 순환 · 실제 관측 보고에 대응';
           if(operationGoal) unit.goal = isOpeningScout ? `선발조 저자세 수색 · 구역 ${(scoutSweepIndex.get(unit.id)??0)+1}/${sweep?.length??1}` : operationState.phase==='scouting' ? '진압조 전진 대기선 · 선발조 엄호' : '실제 복귀 · 진압조와 합류';
+          // 준비한 경로의 선두를 0.9초 간격으로 출발시킵니다. 외곽 출발 간격은 배치에서 확보합니다.
+          // 실제 적 대응·후퇴·창문 통과는 중단하지 않으며 전사/다운 동료를 기다리지 않습니다.
+          if(scoutPlan&&unit.side==='공격'&&!openingSearch&&!routeDone&&!seen&&!shouldReposition&&!unit.traversal){
+            const group=units.filter(friend=>friend.side==='공격'&&friend.routeIndex===unit.routeIndex&&friend.alive&&!friend.downed);
+            const rank=group.indexOf(unit),release=operationState.phaseStartedAt+rank*.9;
+            // 공간 간격은 출발 대형으로 확보하고 통행 중에는 기존 문 예약/충돌 회피에 맡깁니다.
+            // 선행 대원의 이동 여부를 또 다른 대기 조건으로 삼으면 두 양보 규칙이 충돌합니다.
+            if(now<release){
+              unit.goal='순차 진입 · 출발 시차 대기';unit.decision=unit.goal;
+              unit.velocity={x:0,y:0};unit.action='hold';continue;
+            }
+          }
           this.move(
             unit,
             destination,

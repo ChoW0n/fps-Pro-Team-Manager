@@ -1,0 +1,1070 @@
+{
+  "summary": {
+    "games": 20,
+    "entering": 20,
+    "attackWins": 1,
+    "eliminated": 7
+  },
+  "rows": [
+    {
+      "seed": 1,
+      "scoutPlan": {
+        "indices": [
+          0,
+          1
+        ],
+        "seconds": 25,
+        "entryRoute": 0
+      },
+      "winner": "수비",
+      "reason": "device-disabled",
+      "entering": true,
+      "duration": 158.9,
+      "rally": [
+        {
+          "id": "공격:검사0:MAGPIE:0",
+          "position": {
+            "x": 762.5,
+            "y": 180
+          }
+        },
+        {
+          "id": "공격:검사1:COLLIER:1",
+          "position": {
+            "x": 762.5,
+            "y": 180
+          }
+        },
+        {
+          "id": "공격:검사2:해동:2",
+          "position": {
+            "x": 762.5,
+            "y": 125
+          }
+        },
+        {
+          "id": "공격:검사3:ARBEL:3",
+          "position": {
+            "x": 762.5,
+            "y": 70
+          }
+        },
+        {
+          "id": "공격:검사4:AUBERT:4",
+          "position": {
+            "x": 762.5,
+            "y": 15
+          }
+        }
+      ],
+      "finalPhase": "entering"
+    },
+    {
+      "seed": 2,
+      "scoutPlan": {
+        "indices": [
+          0,
+          1
+        ],
+        "seconds": 25,
+        "entryRoute": 0
+      },
+      "winner": "수비",
+      "reason": "time-expired",
+      "entering": true,
+      "duration": 180,
+      "rally": [
+        {
+          "id": "공격:검사0:MAGPIE:0",
+          "position": {
+            "x": 762.5,
+            "y": 180
+          }
+        },
+        {
+          "id": "공격:검사1:COLLIER:1",
+          "position": {
+            "x": 762.5,
+            "y": 180
+          }
+        },
+        {
+          "id": "공격:검사2:해동:2",
+          "position": {
+            "x": 762.5,
+            "y": 125
+          }
+        },
+        {
+          "id": "공격:검사3:ARBEL:3",
+          "position": {
+            "x": 762.5,
+            "y": 70
+          }
+        },
+        {
+          "id": "공격:검사4:AUBERT:4",
+          "position": {
+            "x": 762.5,
+            "y": 15
+          }
+        }
+      ],
+      "finalPhase": "entering"
+    },
+    {
+      "seed": 3,
+      "scoutPlan": {
+        "indices": [
+          0,
+          1
+        ],
+        "seconds": 25,
+        "entryRoute": 0
+      },
+      "winner": "수비",
+      "reason": "time-expired",
+      "entering": true,
+      "duration": 180,
+      "rally": [
+        {
+          "id": "공격:검사0:MAGPIE:0",
+          "position": {
+            "x": 762.5,
+            "y": 180
+          }
+        },
+        {
+          "id": "공격:검사1:COLLIER:1",
+          "position": {
+            "x": 762.5,
+            "y": 180
+          }
+        },
+        {
+          "id": "공격:검사2:해동:2",
+          "position": {
+            "x": 762.5,
+            "y": 125
+          }
+        },
+        {
+          "id": "공격:검사3:ARBEL:3",
+          "position": {
+            "x": 762.5,
+            "y": 70
+          }
+        },
+        {
+          "id": "공격:검사4:AUBERT:4",
+          "position": {
+            "x": 762.5,
+            "y": 15
+          }
+        }
+      ],
+      "finalPhase": "entering"
+    },
+    {
+      "seed": 4,
+      "scoutPlan": {
+        "indices": [
+          0,
+          1
+        ],
+        "seconds": 25,
+        "entryRoute": 0
+      },
+      "winner": "수비",
+      "reason": "attackers-eliminated",
+      "entering": true,
+      "duration": 79.3,
+      "rally": [
+        {
+          "id": "공격:검사0:MAGPIE:0",
+          "position": {
+            "x": 762.5,
+            "y": 180
+          }
+        },
+        {
+          "id": "공격:검사1:COLLIER:1",
+          "position": {
+            "x": 762.5,
+            "y": 180
+          }
+        },
+        {
+          "id": "공격:검사2:해동:2",
+          "position": {
+            "x": 762.5,
+            "y": 125
+          }
+        },
+        {
+          "id": "공격:검사3:ARBEL:3",
+          "position": {
+            "x": 762.5,
+            "y": 70
+          }
+        },
+        {
+          "id": "공격:검사4:AUBERT:4",
+          "position": {
+            "x": 762.5,
+            "y": 15
+          }
+        }
+      ],
+      "finalPhase": "entering"
+    },
+    {
+      "seed": 5,
+      "scoutPlan": {
+        "indices": [
+          0,
+          1
+        ],
+        "seconds": 25,
+        "entryRoute": 0
+      },
+      "winner": "수비",
+      "reason": "attackers-eliminated",
+      "entering": true,
+      "duration": 79.3,
+      "rally": [
+        {
+          "id": "공격:검사0:MAGPIE:0",
+          "position": {
+            "x": 762.5,
+            "y": 180
+          }
+        },
+        {
+          "id": "공격:검사1:COLLIER:1",
+          "position": {
+            "x": 762.5,
+            "y": 180
+          }
+        },
+        {
+          "id": "공격:검사2:해동:2",
+          "position": {
+            "x": 762.5,
+            "y": 125
+          }
+        },
+        {
+          "id": "공격:검사3:ARBEL:3",
+          "position": {
+            "x": 762.5,
+            "y": 70
+          }
+        },
+        {
+          "id": "공격:검사4:AUBERT:4",
+          "position": {
+            "x": 762.5,
+            "y": 15
+          }
+        }
+      ],
+      "finalPhase": "entering"
+    },
+    {
+      "seed": 6,
+      "scoutPlan": {
+        "indices": [
+          0,
+          1
+        ],
+        "seconds": 25,
+        "entryRoute": 0
+      },
+      "winner": "수비",
+      "reason": "device-disabled",
+      "entering": true,
+      "duration": 153.1,
+      "rally": [
+        {
+          "id": "공격:검사0:MAGPIE:0",
+          "position": {
+            "x": 762.5,
+            "y": 180
+          }
+        },
+        {
+          "id": "공격:검사1:COLLIER:1",
+          "position": {
+            "x": 762.5,
+            "y": 180
+          }
+        },
+        {
+          "id": "공격:검사2:해동:2",
+          "position": {
+            "x": 762.5,
+            "y": 125
+          }
+        },
+        {
+          "id": "공격:검사3:ARBEL:3",
+          "position": {
+            "x": 762.5,
+            "y": 70
+          }
+        },
+        {
+          "id": "공격:검사4:AUBERT:4",
+          "position": {
+            "x": 762.5,
+            "y": 15
+          }
+        }
+      ],
+      "finalPhase": "entering"
+    },
+    {
+      "seed": 7,
+      "scoutPlan": {
+        "indices": [
+          0,
+          1
+        ],
+        "seconds": 25,
+        "entryRoute": 0
+      },
+      "winner": "수비",
+      "reason": "time-expired",
+      "entering": true,
+      "duration": 180,
+      "rally": [
+        {
+          "id": "공격:검사0:MAGPIE:0",
+          "position": {
+            "x": 762.5,
+            "y": 180
+          }
+        },
+        {
+          "id": "공격:검사1:COLLIER:1",
+          "position": {
+            "x": 762.5,
+            "y": 180
+          }
+        },
+        {
+          "id": "공격:검사2:해동:2",
+          "position": {
+            "x": 762.5,
+            "y": 125
+          }
+        },
+        {
+          "id": "공격:검사3:ARBEL:3",
+          "position": {
+            "x": 762.5,
+            "y": 70
+          }
+        },
+        {
+          "id": "공격:검사4:AUBERT:4",
+          "position": {
+            "x": 762.5,
+            "y": 15
+          }
+        }
+      ],
+      "finalPhase": "entering"
+    },
+    {
+      "seed": 8,
+      "scoutPlan": {
+        "indices": [
+          0,
+          1
+        ],
+        "seconds": 25,
+        "entryRoute": 0
+      },
+      "winner": "수비",
+      "reason": "device-disabled",
+      "entering": true,
+      "duration": 151.1,
+      "rally": [
+        {
+          "id": "공격:검사0:MAGPIE:0",
+          "position": {
+            "x": 762.5,
+            "y": 180
+          }
+        },
+        {
+          "id": "공격:검사1:COLLIER:1",
+          "position": {
+            "x": 762.5,
+            "y": 180
+          }
+        },
+        {
+          "id": "공격:검사2:해동:2",
+          "position": {
+            "x": 762.5,
+            "y": 125
+          }
+        },
+        {
+          "id": "공격:검사3:ARBEL:3",
+          "position": {
+            "x": 762.5,
+            "y": 70
+          }
+        },
+        {
+          "id": "공격:검사4:AUBERT:4",
+          "position": {
+            "x": 762.5,
+            "y": 15
+          }
+        }
+      ],
+      "finalPhase": "entering"
+    },
+    {
+      "seed": 9,
+      "scoutPlan": {
+        "indices": [
+          0,
+          1
+        ],
+        "seconds": 25,
+        "entryRoute": 0
+      },
+      "winner": "수비",
+      "reason": "attackers-eliminated",
+      "entering": true,
+      "duration": 79.3,
+      "rally": [
+        {
+          "id": "공격:검사0:MAGPIE:0",
+          "position": {
+            "x": 762.5,
+            "y": 180
+          }
+        },
+        {
+          "id": "공격:검사1:COLLIER:1",
+          "position": {
+            "x": 762.5,
+            "y": 180
+          }
+        },
+        {
+          "id": "공격:검사2:해동:2",
+          "position": {
+            "x": 762.5,
+            "y": 125
+          }
+        },
+        {
+          "id": "공격:검사3:ARBEL:3",
+          "position": {
+            "x": 762.5,
+            "y": 70
+          }
+        },
+        {
+          "id": "공격:검사4:AUBERT:4",
+          "position": {
+            "x": 762.5,
+            "y": 15
+          }
+        }
+      ],
+      "finalPhase": "entering"
+    },
+    {
+      "seed": 10,
+      "scoutPlan": {
+        "indices": [
+          0,
+          1
+        ],
+        "seconds": 25,
+        "entryRoute": 0
+      },
+      "winner": "수비",
+      "reason": "attackers-eliminated",
+      "entering": true,
+      "duration": 79.3,
+      "rally": [
+        {
+          "id": "공격:검사0:MAGPIE:0",
+          "position": {
+            "x": 762.5,
+            "y": 180
+          }
+        },
+        {
+          "id": "공격:검사1:COLLIER:1",
+          "position": {
+            "x": 762.5,
+            "y": 180
+          }
+        },
+        {
+          "id": "공격:검사2:해동:2",
+          "position": {
+            "x": 762.5,
+            "y": 125
+          }
+        },
+        {
+          "id": "공격:검사3:ARBEL:3",
+          "position": {
+            "x": 762.5,
+            "y": 70
+          }
+        },
+        {
+          "id": "공격:검사4:AUBERT:4",
+          "position": {
+            "x": 762.5,
+            "y": 15
+          }
+        }
+      ],
+      "finalPhase": "entering"
+    },
+    {
+      "seed": 11,
+      "scoutPlan": {
+        "indices": [
+          0,
+          1
+        ],
+        "seconds": 25,
+        "entryRoute": 0
+      },
+      "winner": "수비",
+      "reason": "attackers-eliminated",
+      "entering": true,
+      "duration": 79.3,
+      "rally": [
+        {
+          "id": "공격:검사0:MAGPIE:0",
+          "position": {
+            "x": 762.5,
+            "y": 180
+          }
+        },
+        {
+          "id": "공격:검사1:COLLIER:1",
+          "position": {
+            "x": 762.5,
+            "y": 180
+          }
+        },
+        {
+          "id": "공격:검사2:해동:2",
+          "position": {
+            "x": 762.5,
+            "y": 125
+          }
+        },
+        {
+          "id": "공격:검사3:ARBEL:3",
+          "position": {
+            "x": 762.5,
+            "y": 70
+          }
+        },
+        {
+          "id": "공격:검사4:AUBERT:4",
+          "position": {
+            "x": 762.5,
+            "y": 15
+          }
+        }
+      ],
+      "finalPhase": "entering"
+    },
+    {
+      "seed": 12,
+      "scoutPlan": {
+        "indices": [
+          0,
+          1
+        ],
+        "seconds": 25,
+        "entryRoute": 0
+      },
+      "winner": "수비",
+      "reason": "attackers-eliminated",
+      "entering": true,
+      "duration": 112.3,
+      "rally": [
+        {
+          "id": "공격:검사0:MAGPIE:0",
+          "position": {
+            "x": 762.5,
+            "y": 180
+          }
+        },
+        {
+          "id": "공격:검사1:COLLIER:1",
+          "position": {
+            "x": 762.5,
+            "y": 180
+          }
+        },
+        {
+          "id": "공격:검사2:해동:2",
+          "position": {
+            "x": 762.5,
+            "y": 125
+          }
+        },
+        {
+          "id": "공격:검사3:ARBEL:3",
+          "position": {
+            "x": 762.5,
+            "y": 70
+          }
+        },
+        {
+          "id": "공격:검사4:AUBERT:4",
+          "position": {
+            "x": 762.5,
+            "y": 15
+          }
+        }
+      ],
+      "finalPhase": "entering"
+    },
+    {
+      "seed": 13,
+      "scoutPlan": {
+        "indices": [
+          0,
+          1
+        ],
+        "seconds": 25,
+        "entryRoute": 0
+      },
+      "winner": "수비",
+      "reason": "time-expired",
+      "entering": true,
+      "duration": 180,
+      "rally": [
+        {
+          "id": "공격:검사0:MAGPIE:0",
+          "position": {
+            "x": 762.5,
+            "y": 180
+          }
+        },
+        {
+          "id": "공격:검사1:COLLIER:1",
+          "position": {
+            "x": 762.5,
+            "y": 180
+          }
+        },
+        {
+          "id": "공격:검사2:해동:2",
+          "position": {
+            "x": 762.5,
+            "y": 125
+          }
+        },
+        {
+          "id": "공격:검사3:ARBEL:3",
+          "position": {
+            "x": 762.5,
+            "y": 70
+          }
+        },
+        {
+          "id": "공격:검사4:AUBERT:4",
+          "position": {
+            "x": 762.5,
+            "y": 15
+          }
+        }
+      ],
+      "finalPhase": "entering"
+    },
+    {
+      "seed": 14,
+      "scoutPlan": {
+        "indices": [
+          0,
+          1
+        ],
+        "seconds": 25,
+        "entryRoute": 0
+      },
+      "winner": "수비",
+      "reason": "device-disabled",
+      "entering": true,
+      "duration": 129.6,
+      "rally": [
+        {
+          "id": "공격:검사0:MAGPIE:0",
+          "position": {
+            "x": 762.5,
+            "y": 180
+          }
+        },
+        {
+          "id": "공격:검사1:COLLIER:1",
+          "position": {
+            "x": 762.5,
+            "y": 180
+          }
+        },
+        {
+          "id": "공격:검사2:해동:2",
+          "position": {
+            "x": 762.5,
+            "y": 125
+          }
+        },
+        {
+          "id": "공격:검사3:ARBEL:3",
+          "position": {
+            "x": 762.5,
+            "y": 70
+          }
+        },
+        {
+          "id": "공격:검사4:AUBERT:4",
+          "position": {
+            "x": 762.5,
+            "y": 15
+          }
+        }
+      ],
+      "finalPhase": "entering"
+    },
+    {
+      "seed": 15,
+      "scoutPlan": {
+        "indices": [
+          0,
+          1
+        ],
+        "seconds": 25,
+        "entryRoute": 0
+      },
+      "winner": "수비",
+      "reason": "device-disabled",
+      "entering": true,
+      "duration": 137.1,
+      "rally": [
+        {
+          "id": "공격:검사0:MAGPIE:0",
+          "position": {
+            "x": 762.5,
+            "y": 180
+          }
+        },
+        {
+          "id": "공격:검사1:COLLIER:1",
+          "position": {
+            "x": 762.5,
+            "y": 180
+          }
+        },
+        {
+          "id": "공격:검사2:해동:2",
+          "position": {
+            "x": 762.5,
+            "y": 125
+          }
+        },
+        {
+          "id": "공격:검사3:ARBEL:3",
+          "position": {
+            "x": 762.5,
+            "y": 70
+          }
+        },
+        {
+          "id": "공격:검사4:AUBERT:4",
+          "position": {
+            "x": 762.5,
+            "y": 15
+          }
+        }
+      ],
+      "finalPhase": "entering"
+    },
+    {
+      "seed": 16,
+      "scoutPlan": {
+        "indices": [
+          0,
+          1
+        ],
+        "seconds": 25,
+        "entryRoute": 0
+      },
+      "winner": "수비",
+      "reason": "time-expired",
+      "entering": true,
+      "duration": 180,
+      "rally": [
+        {
+          "id": "공격:검사0:MAGPIE:0",
+          "position": {
+            "x": 762.5,
+            "y": 180
+          }
+        },
+        {
+          "id": "공격:검사1:COLLIER:1",
+          "position": {
+            "x": 762.5,
+            "y": 180
+          }
+        },
+        {
+          "id": "공격:검사2:해동:2",
+          "position": {
+            "x": 762.5,
+            "y": 125
+          }
+        },
+        {
+          "id": "공격:검사3:ARBEL:3",
+          "position": {
+            "x": 762.5,
+            "y": 70
+          }
+        },
+        {
+          "id": "공격:검사4:AUBERT:4",
+          "position": {
+            "x": 762.5,
+            "y": 15
+          }
+        }
+      ],
+      "finalPhase": "entering"
+    },
+    {
+      "seed": 17,
+      "scoutPlan": {
+        "indices": [
+          0,
+          1
+        ],
+        "seconds": 25,
+        "entryRoute": 0
+      },
+      "winner": "수비",
+      "reason": "attackers-eliminated",
+      "entering": true,
+      "duration": 79.3,
+      "rally": [
+        {
+          "id": "공격:검사0:MAGPIE:0",
+          "position": {
+            "x": 762.5,
+            "y": 180
+          }
+        },
+        {
+          "id": "공격:검사1:COLLIER:1",
+          "position": {
+            "x": 762.5,
+            "y": 180
+          }
+        },
+        {
+          "id": "공격:검사2:해동:2",
+          "position": {
+            "x": 762.5,
+            "y": 125
+          }
+        },
+        {
+          "id": "공격:검사3:ARBEL:3",
+          "position": {
+            "x": 762.5,
+            "y": 70
+          }
+        },
+        {
+          "id": "공격:검사4:AUBERT:4",
+          "position": {
+            "x": 762.5,
+            "y": 15
+          }
+        }
+      ],
+      "finalPhase": "entering"
+    },
+    {
+      "seed": 18,
+      "scoutPlan": {
+        "indices": [
+          0,
+          1
+        ],
+        "seconds": 25,
+        "entryRoute": 0
+      },
+      "winner": "수비",
+      "reason": "device-disabled",
+      "entering": true,
+      "duration": 146.6,
+      "rally": [
+        {
+          "id": "공격:검사0:MAGPIE:0",
+          "position": {
+            "x": 762.5,
+            "y": 180
+          }
+        },
+        {
+          "id": "공격:검사1:COLLIER:1",
+          "position": {
+            "x": 762.5,
+            "y": 180
+          }
+        },
+        {
+          "id": "공격:검사2:해동:2",
+          "position": {
+            "x": 762.5,
+            "y": 125
+          }
+        },
+        {
+          "id": "공격:검사3:ARBEL:3",
+          "position": {
+            "x": 762.5,
+            "y": 70
+          }
+        },
+        {
+          "id": "공격:검사4:AUBERT:4",
+          "position": {
+            "x": 762.5,
+            "y": 15
+          }
+        }
+      ],
+      "finalPhase": "entering"
+    },
+    {
+      "seed": 19,
+      "scoutPlan": {
+        "indices": [
+          0,
+          1
+        ],
+        "seconds": 25,
+        "entryRoute": 0
+      },
+      "winner": "수비",
+      "reason": "device-disabled",
+      "entering": true,
+      "duration": 147.9,
+      "rally": [
+        {
+          "id": "공격:검사0:MAGPIE:0",
+          "position": {
+            "x": 762.5,
+            "y": 180
+          }
+        },
+        {
+          "id": "공격:검사1:COLLIER:1",
+          "position": {
+            "x": 762.5,
+            "y": 180
+          }
+        },
+        {
+          "id": "공격:검사2:해동:2",
+          "position": {
+            "x": 762.5,
+            "y": 125
+          }
+        },
+        {
+          "id": "공격:검사3:ARBEL:3",
+          "position": {
+            "x": 762.5,
+            "y": 70
+          }
+        },
+        {
+          "id": "공격:검사4:AUBERT:4",
+          "position": {
+            "x": 762.5,
+            "y": 15
+          }
+        }
+      ],
+      "finalPhase": "entering"
+    },
+    {
+      "seed": 20,
+      "scoutPlan": {
+        "indices": [
+          0,
+          1
+        ],
+        "seconds": 25,
+        "entryRoute": 0
+      },
+      "winner": "공격",
+      "reason": "defenders-eliminated",
+      "entering": true,
+      "duration": 130.2,
+      "rally": [
+        {
+          "id": "공격:검사0:MAGPIE:0",
+          "position": {
+            "x": 762.5,
+            "y": 180
+          }
+        },
+        {
+          "id": "공격:검사1:COLLIER:1",
+          "position": {
+            "x": 762.5,
+            "y": 180
+          }
+        },
+        {
+          "id": "공격:검사2:해동:2",
+          "position": {
+            "x": 762.5,
+            "y": 125
+          }
+        },
+        {
+          "id": "공격:검사3:ARBEL:3",
+          "position": {
+            "x": 762.5,
+            "y": 70
+          }
+        },
+        {
+          "id": "공격:검사4:AUBERT:4",
+          "position": {
+            "x": 762.5,
+            "y": 15
+          }
+        }
+      ],
+      "finalPhase": "entering"
+    }
+  ]
+}

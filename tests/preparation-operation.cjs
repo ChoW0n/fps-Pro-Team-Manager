@@ -7,7 +7,11 @@ const {OPERATORS}=require(root+'Operator.ts'),{TeamGenerator}=require(root+'Team
 const {ScoutOperation}=require(root+'realtime/ScoutOperation.ts');
 const {TacticalRealtimeSimulation}=require(root+'realtime/TacticalRealtimeSimulation.ts');
 const {BREACHLINE_MAP}=require(root+'tacticalMaps.ts');
-const teams=new TeamGenerator().generateTenTeams(),blank=[null,null,null,null,null],results=[];
+// 선수 생성까지 고정해 테스트 실행마다 편성과 경로가 바뀌지 않게 합니다.
+const originalRandom=Math.random;let rosterSeed=41;Math.random=()=>{rosterSeed=(Math.imul(rosterSeed,1664525)+1013904223)>>>0;return rosterSeed/4294967296;};
+const teams=new TeamGenerator().generateTenTeams();Math.random=originalRandom;
+const blank=[null,null,null,null,null],results=[];
+/** 각 회귀 계약의 성공과 실패를 보고서에 남깁니다. */
 function test(name,run){try{run();results.push({name,pass:true});console.log('PASS',name);}catch(error){results.push({name,pass:false,error:error.message});console.error('FAIL',name,error.message);}}
 test('새로 생성한 10개 팀 모두 습득 목록 안에서 공수 5인 편성 가능',()=>{for(const team of teams)for(const side of ['공격','수비']){const selection=completeOperatorDraft(team,side,blank);assert.equal(new Set(selection).size,5);for(const [i,name]of selection.entries())assert(team.players[i].operatorPool.some(o=>o.callSign===name&&o.side===side));}});
 test('수동 선택 보존·자동 빈자리 충원·입력 배열 불변',()=>{const initial=completeOperatorDraft(teams[0],'공격',blank),manual=[initial[0],null,null,null,null];const result=completeOperatorDraft(teams[0],'공격',manual);assert.equal(result[0],manual[0]);assert.deepEqual(manual,[initial[0],null,null,null,null]);});
@@ -36,6 +40,18 @@ test('실제 엔진에서 선발조 복귀·합류를 거쳐 재진입하며 순
     if(snapshot.operation.phase==='regrouping'&&snapshot.operation.scoutIds.includes(unit.id))assert(Math.hypot(unit.position.x-snapshot.operation.rally.find(v=>v.id===unit.id).position.x,unit.position.y-snapshot.operation.rally.find(v=>v.id===unit.id).position.y)<32);
     if(index){const previous=round.snapshots[index-1].units.find(v=>v.id===unit.id);assert(Math.hypot(unit.position.x-previous.position.x,unit.position.y-previous.position.y)<13);assert(engine.canTraverse(previous.position,unit.position,input.map));}
   }
+});
+// 승패/재진입까지 실제 5대5로 실행하여 기능 정합성 검사에서 빠진 교착을 잡습니다.
+const {fixture,measure}=require('./qa-preparation-batch.cjs');
+test('같은 진입로 선발조 2·3명의 합류 목표가 충돌하지 않음',()=>{
+ for(const route of [0,1,2,3,4])for(const count of [1,2,3]){const session=new TacticalRealtimeSimulation().createSession(fixture(1,count,route));const tick=session.step();const positions=tick.snapshot.operation.rally;
+  for(let i=0;i<positions.length;i++)for(let j=i+1;j<positions.length;j++)assert(Math.hypot(positions[i].position.x-positions[j].position.x,positions[i].position.y-positions[j].position.y)>=26.4,'같은 합류 목표는 충돌 회피 정체를 유발합니다');}
+});
+test('선발조 2명 실제 20경기: 재진입 80% 이상·공격 승리 발생',()=>{
+ const rows=Array.from({length:20},(_,i)=>measure(fixture(i+1,2)));
+ const entering=rows.filter(r=>r.entering).length,wins=rows.filter(r=>r.winner==='공격').length;
+ fs.writeFileSync('validation/qa-scout-final.json',JSON.stringify({summary:{games:20,entering,attackWins:wins},rows},null,2)+'\n');
+ assert(entering>=16,`재진입 ${entering}/20`);assert(wins>0,`공격 승리 ${wins}/20: 확정 패배 회귀`);
 });
 fs.writeFileSync(require('node:path').join(__dirname,'../validation/preparation-operation-results.json'),JSON.stringify({passed:results.filter(r=>r.pass).length,total:results.length,tests:results},null,2)+'\n');
 process.exitCode=results.every(result=>result.pass)?0:1;

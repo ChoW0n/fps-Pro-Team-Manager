@@ -17,8 +17,8 @@ function fixture(seed) {
     operator:o, side:name, teamName:name,
     player:new Player(`선수${i}`,`검사${i}`,o.role,20,75,75,75,75,75,[o],20,75,65,70,70,70,70),
   }));
-  const input={attackers:side('공격'),defenders:side('수비'),seed,maxSeconds:180};
-  if(process.argv[3])input.scoutPlan={indices:process.argv[3]==='scout'?[0,1]:[],seconds:40,entryRoute:0};
+  // UI의 기본 준비도 scoutPlan을 명시합니다. 생략 경로를 기본 밸런스 근거로 사용하지 않습니다.
+  const input={attackers:side('공격'),defenders:side('수비'),seed,maxSeconds:180,scoutPlan:{indices:process.argv.includes('scout')?[0,1]:[],seconds:40,entryRoute:0}};
   return input;
 }
 
@@ -26,7 +26,7 @@ const rows=[];
 for(const seed of [211,317,419,523])for(const targetSite of ['A','B'])for(const siteApproach of [0,1,2])for(const composition of [0,1]){
  const input=fixture(seed);Object.assign(input,{targetSite,siteApproach});
  if(composition){for(const side of ['attackers','defenders']){const operators=OPERATORS.filter(o=>o.side===input[side][0].side);input[side]=input[side].map((m,i)=>({...m,operator:operators[(i+1)%operators.length]}));}}
- const r=new TacticalRealtimeSimulation().run(input);rows.push({seed,targetSite,siteApproach,composition,winner:r.winner,reason:r.objective.reason,duration:r.executionTime,planted:r.events.some(e=>e.goal==='planted')});
+ const r=new TacticalRealtimeSimulation().run(input);rows.push({seed,scoutPlan:input.scoutPlan,targetSite,siteApproach,composition,winner:r.winner,reason:r.objective.reason,duration:r.executionTime,planted:r.events.some(e=>e.goal==='planted')});
 }
 const summary=['A','B'].map(site=>{const r=rows.filter(r=>r.targetSite===site);return{site,games:r.length,attackWins:r.filter(r=>r.winner==='공격').length,defenseWins:r.filter(r=>r.winner==='수비').length,planted:r.filter(r=>r.planted).length};});
-fs.writeFileSync('validation/route-balance-matrix.json',JSON.stringify({summary,rows,limits:'48 deterministic cases, one map, equal player stats, two compositions, three approach choices, four new seeds; not production balance approval.'},null,2)+'\n');console.table(summary);
+fs.writeFileSync('validation/route-balance-matrix.json',JSON.stringify({summary,rows,limits:'48 deterministic cases with explicit UI scoutPlan, one map, equal player stats, two compositions, three approach choices, four new seeds; not production balance approval.'},null,2)+'\n');console.table(summary);
