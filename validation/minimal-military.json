@@ -1,0 +1,9 @@
+{
+  "parts": 9,
+  "bytes": 159494,
+  "operators": 12,
+  "directions": 3,
+  "actualComposites": 36,
+  "checks": "asset dimensions, all compositions, deterministic state, movement/down state, event-bound recoil",
+  "limits": "Two shared head families, six simplified weapon silhouettes; not twelve individually authenticated gear sets or browser play"
+}

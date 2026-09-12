@@ -7,5 +7,9 @@
     19,
     41
   ],
-  "scope": "Injury unit checks and real engine deterministic fixtures; not browser play or Siege rules verification"
+  "additionalFixture": {
+    "name": "rescue-under-cover",
+    "seed": 41
+  },
+  "scope": "Injury unit checks, four normal matches and a separate real combat rescue fixture; not browser play or Siege rules verification"
 }

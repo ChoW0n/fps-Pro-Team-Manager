@@ -21,12 +21,14 @@ export interface TacticalWall {
   to: TacticalPoint;
   kind: 'outer' | 'interior' | 'door-gap';
   breachable?: boolean;
+  reinforced?: boolean;
 }
 
 export interface TacticalCover {
   id: string;
   label: string;
   rect: TacticalRect;
+  kind?: 'shield' | 'truck' | 'partition';
 }
 
 export interface TacticalRoute {
@@ -48,6 +50,7 @@ export interface TacticalRoom {
   label: string;
   rect: TacticalRect;
   kind: 'room' | 'corridor' | 'yard';
+  preferredEngagementDistance?: number;
 }
 
 export interface TacticalPortal {
@@ -140,7 +143,7 @@ export const BREACHLINE_MAP: TacticalMapDefinition = {
     { id: 'office-north', label: '북측 사무실', rect: rect(1040, 420, 560, 500), kind: 'room' },
     { id: 'server-lab', label: '서버 실험실', rect: rect(1640, 420, 560, 500), kind: 'room' },
     { id: 'control-room', label: '관제 통제실', rect: rect(2240, 420, 760, 500), kind: 'room' },
-    { id: 'central-atrium', label: '중앙 아트리움', rect: rect(500, 1000, 1720, 400), kind: 'corridor' },
+    { id: 'central-atrium', label: '중앙 아트리움', rect: rect(500, 1000, 1720, 400), kind: 'corridor', preferredEngagementDistance:480 },
     { id: 'objective-a-hall', label: 'A 연구동 홀', rect: rect(2240, 1000, 760, 400), kind: 'room' },
     { id: 'maintenance', label: '설비 유지보수실', rect: rect(500, 1400, 560, 500), kind: 'room' },
     { id: 'south-service', label: '남측 서비스실', rect: rect(1060, 1400, 560, 500), kind: 'room' },
@@ -194,8 +197,12 @@ export const BREACHLINE_MAP: TacticalMapDefinition = {
   ],
   walls: [
     wall('outer-top-west', p(400, 300), p(840, 300), 'outer'),
-    wall('outer-top-east', p(960, 300), p(3200, 300), 'outer'),
-    wall('outer-right-north', p(3200, 300), p(3200, 1560), 'outer'),
+    wall('outer-top-east', p(960, 300), p(2640, 300), 'outer'),
+    {...wall('outer-soft-north', p(2640, 300), p(2860, 300), 'outer'),breachable:true},
+    wall('outer-top-corner', p(2860, 300), p(3200, 300), 'outer'),
+    wall('outer-right-north', p(3200, 300), p(3200, 1100), 'outer'),
+    {...wall('outer-soft-east', p(3200,1100),p(3200,1320),'outer'),breachable:true},
+    wall('outer-right-middle',p(3200,1320),p(3200,1560),'outer'),
     wall('outer-right-south', p(3200, 1640), p(3200, 2100), 'outer'),
     wall('outer-bottom-west', p(400, 2100), p(665, 2100), 'outer'),
     wall('maintenance-hatch-gap', p(665, 2100), p(735, 2100), 'door-gap'),
@@ -245,6 +252,14 @@ export const BREACHLINE_MAP: TacticalMapDefinition = {
     wall('south-b-loading-bottom', p(2240, 1880), p(2240, 1900)),
   ],
   covers: [
+    // 실제 차체와 교차 차폐판이 사선을 끊습니다. 보이지 않는 무적·굴곡은 사용하지 않습니다.
+    {id:'spawn-north-truck',label:'북측 접근 차폐 트럭',kind:'truck',rect:rect(750,240,160,45)},
+    {id:'spawn-west-truck',label:'서측 접근 차폐 트럭',kind:'truck',rect:rect(300,925,42,240)},
+    {id:'spawn-south-truck',label:'남측 접근 차폐 트럭',kind:'truck',rect:rect(2270,2155,240,42)},
+    {id:'spawn-east-truck',label:'동측 접근 차폐 트럭',kind:'truck',rect:rect(3270,1490,42,230)},
+    {id:'spawn-maintenance-truck',label:'해치 접근 차폐 트럭',kind:'truck',rect:rect(590,2155,240,42)},
+    {id:'atrium-partition-west',label:'아트리움 서측 차폐판',kind:'partition',rect:rect(1020,1030,24,215)},
+    {id:'atrium-partition-east',label:'아트리움 동측 차폐판',kind:'partition',rect:rect(1740,1160,24,210)},
     { id: 'cover-admin-desk', label: '로비 안내 데스크', rect: rect(600, 560, 170, 42) },
     { id: 'cover-admin-cabinet', label: '행정 캐비닛', rect: rect(840, 470, 42, 150) },
     { id: 'cover-office-desks', label: '사무실 책상', rect: rect(1160, 520, 180, 42) },

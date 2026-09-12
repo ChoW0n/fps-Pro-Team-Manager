@@ -1,0 +1,88 @@
+{
+  "kind": "Actual Canvas renderer in local Skia; not browser or iPhone performance validation",
+  "seed": 41,
+  "time": 18.8,
+  "rows": [
+    {
+      "name": "desktop",
+      "width": 1280,
+      "height": 720,
+      "medianMs": 26.33,
+      "p95Ms": 31.19,
+      "file": "minimal-broadcast-desktop.png"
+    },
+    {
+      "name": "phone",
+      "width": 390,
+      "height": 844,
+      "medianMs": 4.67,
+      "p95Ms": 27.43,
+      "file": "minimal-broadcast-phone.png"
+    },
+    {
+      "name": "phone-landscape",
+      "width": 844,
+      "height": 390,
+      "medianMs": 25.26,
+      "p95Ms": 30.09,
+      "file": "minimal-broadcast-phone-landscape.png"
+    },
+    {
+      "name": "downed",
+      "width": 1280,
+      "height": 720,
+      "medianMs": 1.53,
+      "p95Ms": 2.23,
+      "file": null
+    },
+    {
+      "name": "collier-downed",
+      "width": 1280,
+      "height": 720,
+      "medianMs": 0.97,
+      "p95Ms": 1.18,
+      "file": null
+    },
+    {
+      "name": "collier-crawl",
+      "width": 1280,
+      "height": 720,
+      "medianMs": 1.46,
+      "p95Ms": 2.62,
+      "file": null
+    },
+    {
+      "name": "walk",
+      "width": 1280,
+      "height": 720,
+      "medianMs": 25.33,
+      "p95Ms": 29,
+      "file": null
+    },
+    {
+      "name": "crouch",
+      "width": 1280,
+      "height": 720,
+      "medianMs": 25.54,
+      "p95Ms": 91.52,
+      "file": null
+    },
+    {
+      "name": "team-visibility",
+      "width": 1280,
+      "height": 720,
+      "medianMs": 0.98,
+      "p95Ms": 5.9,
+      "file": null
+    },
+    {
+      "name": "tactical",
+      "width": 1280,
+      "height": 720,
+      "medianMs": 1.68,
+      "p95Ms": 8.95,
+      "file": "minimal-broadcast-tactical.png"
+    }
+  ],
+  "note": "Only four selected screenshots retained; other cases ran successfully. Local Skia timings varied substantially and do not certify mobile performance."
+}

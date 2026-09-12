@@ -5,6 +5,13 @@ export const FOCUS_RANGE = 2400;
 export const PERIPHERAL_RANGE = 600;
 export const TURN_SPEED = Math.PI * 4 / 3;
 
+/** 먼 거리·부분 노출은 더 오래 확인해야 합니다. 실측값이 아닌 게임용 인지 시간입니다. */
+export function recognitionSeconds(metres: number, exposure: number, awareness: number, magnification = 1): number {
+  const skill = Math.max(0, Math.min(1, awareness / 100));
+  const distant = Math.max(0, metres - 12) / (20 * Math.sqrt(magnification));
+  return .12 + (1 - skill) * .2 + distant * distant * .65 + (1 - exposure) * .7;
+}
+
 /** ±π 경계를 넘어도 가장 짧은 방향으로 회전하도록 각도 차이를 구합니다. */
 export function angleDifference(target: number, current: number): number {
   return Math.atan2(Math.sin(target - current), Math.cos(target - current));

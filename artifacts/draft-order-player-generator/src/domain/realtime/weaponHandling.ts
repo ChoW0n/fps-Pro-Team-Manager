@@ -43,3 +43,9 @@ export function shotInterval(profile: WeaponHandling, range: number, control: nu
   const limit=range>profile.comfortableDistance?2:3;
   return burst%limit===0 ? .23+(1-control)*.24 : Math.max(.1,60/profile.cyclicRpm);
 }
+
+/** 기존 탄퍼짐으로 예상되는 표적 폭을 비교합니다. 승패나 실제 명중을 미리 뽑지 않습니다. */
+export function estimatedShotQuality(range: number, cone: number, exposure: number): number {
+  const spreadRadius = Math.max(1, Math.tan(Math.min(.5, cone)) * range);
+  return Math.max(0, Math.min(1, (12 / spreadRadius) ** 2)) * exposure;
+}

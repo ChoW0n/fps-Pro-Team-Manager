@@ -4,6 +4,7 @@
  */
 
 import type { PlayerTrait } from './playerTraits';
+import type { CombatSkills } from './combatSkills';
 import type { Champion } from './Champion';
 import type { Operator } from './Operator';
 import type { SoloRankRecord } from './soloRank';
@@ -17,6 +18,7 @@ export type Position = 'TOP' | 'JUNGLE' | 'MID' | 'ADC' | 'SUPPORT';
 export class Player {
   public nickname: string;
   public behaviorTrait?: PlayerTrait;
+  public combatSkills?: Partial<CombatSkills>;
   public realName: string;
   public readonly role: Role;
   public age: number;

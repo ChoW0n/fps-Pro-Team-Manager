@@ -1,6 +1,6 @@
 import type { TacticalPoint } from '../tacticalMaps';
 
-export interface ScoutPlan { indices: number[]; seconds: 25 | 40 | 55 | 70; entryRoute: number }
+export interface ScoutPlan { indices: number[]; seconds: 25 | 40 | 55 | 70; entryRoute: number; secondaryRoute?:number; secondaryIndices?:number[] }
 export type ScoutPhase = 'scouting' | 'returning' | 'regrouping' | 'entering';
 export interface ScoutState { phase: ScoutPhase; scoutIds: string[]; searchSeconds: number; phaseStartedAt: number; rally?:Array<{id:string;position:TacticalPoint}> }
 export interface ScoutActor { id: string; alive: boolean; position: TacticalPoint }

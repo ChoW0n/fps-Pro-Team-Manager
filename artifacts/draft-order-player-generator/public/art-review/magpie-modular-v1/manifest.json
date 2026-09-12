@@ -1,0 +1,68 @@
+{
+  "scope": "MAGPIE static aimed-pose assembly pilot; not animation or gameplay validation",
+  "layers": [
+    {
+      "part": "body",
+      "sourceSha256": "bb9b8f1d4a6a7179a9abbcc27d169e40926e868bf9ff9ef9f6c3d7231e406b53",
+      "canvas": [
+        1254,
+        1254
+      ],
+      "subjectBounds": [
+        331,
+        358,
+        955,
+        1187
+      ],
+      "bytes": 398044,
+      "upscaled": false,
+      "geometryEdited": false
+    },
+    {
+      "part": "weapon",
+      "sourceSha256": "5c5df2de48bc7af02df6090d7e7b7f32e02e1f7457694008479c51f8f6fa0af2",
+      "canvas": [
+        1254,
+        1254
+      ],
+      "subjectBounds": [
+        540,
+        59,
+        792,
+        584
+      ],
+      "bytes": 77616,
+      "upscaled": false,
+      "geometryEdited": false
+    },
+    {
+      "part": "kit",
+      "sourceSha256": "0231e108ce9e5238cffe23dd2949c597c1a1804beea9e686ac8d1acf28feffee",
+      "canvas": [
+        1254,
+        1254
+      ],
+      "subjectBounds": [
+        397,
+        510,
+        813,
+        1074
+      ],
+      "bytes": 282446,
+      "upscaled": false,
+      "geometryEdited": false
+    }
+  ],
+  "nativeFacing": "up",
+  "drawOrder": [
+    "body",
+    "weapon",
+    "kit"
+  ],
+  "registration": "Same canvas, no per-part offsets, rotation or scaling",
+  "limitations": [
+    "Weapon and hands are one contact layer, not independently rigged.",
+    "Headgear and carrier are one kit layer in this pilot.",
+    "Exact weapon variant details and unit-issued kit are not certified."
+  ]
+}

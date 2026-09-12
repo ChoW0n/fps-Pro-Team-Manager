@@ -1,11 +1,12 @@
 import { memo, useId, useMemo, type ReactElement } from 'react';
-import { breachWalls } from '../domain/realtime/breachGeometry';
+import { battlefieldMap, type Fortification } from '../domain/realtime/fortifications';
 import { visionPolygon } from '../domain/realtime/spectatorView';
 import type { BombState } from '../domain/realtime/BombObjective';
 import type { Operator } from '../domain/Operator';
 import type { RealtimeEvent, RealtimeSnapshot, RealtimeGadget, RealtimeBreach } from '../domain/realtime/TacticalRealtimeSimulation';
 import type { TacticalMapDefinition } from '../domain/tacticalMaps';
 import { operatorVisual, operatorStateVisual, OPERATOR_SCALE, TEMPORARY_OPERATOR_SCALE } from '../domain/operatorVisuals';
+import { minimalHeadFile } from './minimalOperator';
 
 export const SIDE_COLOR = { 공격: '#2FD4C4', 수비: '#F0873C' };
 const ASSET_ROOT = `${import.meta.env.BASE_URL}operators/`;
@@ -13,17 +14,12 @@ export type BattleUnit = RealtimeSnapshot['units'][number];
 
 /** 배포 하위 경로에서도 같은 정적 인물 파일을 읽습니다. */
 export function portraitUrl(callSign: string): string | undefined {
-  const visual = operatorVisual(callSign);
-  return visual?.portrait ? ASSET_ROOT + visual.portrait : undefined;
+  return ASSET_ROOT + minimalHeadFile(callSign);
 }
 
-/** 편성과 선수 카드에서도 같은 고유 원화를 재사용합니다. */
+/** 편성과 선수 카드에서도 전장과 같은 미니멀 머리 파츠를 재사용합니다. */
 export function OperatorArt({callSign}: {callSign:string}): ReactElement {
-  const visual=operatorVisual(callSign),portrait=portraitUrl(callSign),clipId=useId().replaceAll(':','');
-  return portrait?<img src={portrait} alt={`${callSign} 오퍼레이터`}/>:visual?.region?<svg viewBox={`0 0 ${visual.width} ${visual.height}`} role="img" aria-label={`${callSign} 장비 원화`}>
-    <defs><clipPath id={clipId}><rect width={visual.width} height={visual.height}/></clipPath></defs>
-    <g clipPath={`url(#${clipId})`}><image href={ASSET_ROOT+visual.sprite} x={-visual.region[0]} y={-visual.region[1]} width={visual.sheetWidth??1254} height={visual.sheetHeight??1254}/></g>
-  </svg>:<span>{callSign}</span>;
+  return <img src={portraitUrl(callSign)} alt={`${callSign} 오퍼레이터`}/>;
 }
 
 /** 미제작 인물의 임시 몸체와 주무기 종류를 표현합니다. 제조사 도면은 아닙니다. */
@@ -126,6 +122,7 @@ const Interior = memo(function Interior({ map, detail }: { map: TacticalMapDefin
     {map.walls.filter(wall => wall.kind !== 'door-gap').map(wall => <g key={wall.id}>
       <line x1={wall.from.x} y1={wall.from.y} x2={wall.to.x} y2={wall.to.y} stroke="#242c30" strokeWidth="18" />
       <line x1={wall.from.x} y1={wall.from.y} x2={wall.to.x} y2={wall.to.y} stroke="#a0aaa9" strokeWidth="9" />
+      {wall.reinforced&&<line x1={wall.from.x} y1={wall.from.y} x2={wall.to.x} y2={wall.to.y} stroke="#C5D1D6" strokeWidth="14" strokeDasharray="4 9"/>}
       {[wall.from, wall.to].map((point, index) => <rect key={index} x={point.x - 6} y={point.y - 6} width="12" height="12" fill="#d1d3c9" />)}
     </g>)}
     {map.covers.map((cover, index) => <g key={cover.id}>
@@ -155,12 +152,12 @@ const Interior = memo(function Interior({ map, detail }: { map: TacticalMapDefin
 });
 
 /** 전체 지도와 확대 화면이 같은 스냅샷·사건 기록을 그립니다. */
-export function TacticalBattlefield({ map:baseMap, units, operators, events, time, objective, selectedId, onSelect, viewBox, visionUnits, gadgets=[], breaches=[], miniature = false }: {
+export function TacticalBattlefield({ map:baseMap, units, operators, events, time, objective, selectedId, onSelect, viewBox, visionUnits, gadgets=[], breaches=[], fortifications=[], miniature = false }: {
   map: TacticalMapDefinition; units: BattleUnit[]; operators: Map<string, Operator>; events: RealtimeEvent[];
-  time: number; objective?: BombState; selectedId: string | null; onSelect: (id: string) => void; viewBox?: string; visionUnits?: BattleUnit[]; gadgets?:RealtimeGadget[];breaches?:RealtimeBreach[]; miniature?: boolean;
+  time: number; objective?: BombState; selectedId: string | null; onSelect: (id: string) => void; viewBox?: string; visionUnits?: BattleUnit[]; gadgets?:RealtimeGadget[];breaches?:RealtimeBreach[];fortifications?:Fortification[]; miniature?: boolean;
 }): ReactElement {
   const maskId=useId().replaceAll(':','');
-  const map=useMemo(()=>({...baseMap,walls:breaches.reduce((walls,breach)=>breachWalls(walls,breach.wallId,breach.position,breach.width),baseMap.walls)}),[baseMap,breaches]);
+  const map=useMemo(()=>battlefieldMap(baseMap,breaches,fortifications),[baseMap,breaches,fortifications]);
   const smokes=useMemo(()=>gadgets.filter(gadget=>gadget.kind==='smoke'&&time>=gadget.activeAt&&time<gadget.until),[gadgets,time]);
   const sight=useMemo(()=>visionUnits?.map(unit=>({id:unit.id,points:visionPolygon(unit,map,smokes),position:unit.position})),[visionUnits,map,smokes]);
   return <svg className={miniature ? 'battle-mini-map' : 'battlefield'} viewBox={viewBox ?? `0 0 ${map.width} ${map.height}`}

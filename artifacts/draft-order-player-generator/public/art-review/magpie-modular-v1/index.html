@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="ko">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DRAFT ORDER · MAGPIE 부품 조립 시범</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#0e1113;color:#d6dce0;font:16px/1.6 system-ui,sans-serif}main{max-width:1120px;margin:auto;padding:24px}h1{font-size:25px;margin:0}p{color:#a8b2b8}header{border-bottom:1px solid #262d31;padding-bottom:12px}.layout{display:grid;grid-template-columns:minmax(0,1fr) 260px;gap:24px;margin-top:24px}canvas{display:block;max-width:100%;height:auto;background:#161a1d;border:1px solid #262d31;border-radius:8px}fieldset{border:1px solid #262d31;margin:0 0 20px;padding:16px}label{display:block;padding:8px 0}input{accent-color:#2fd4c4}button{padding:10px 16px;color:#d6dce0;background:#161a1d;border:1px solid #63747f;border-radius:6px;cursor:pointer}.sizes{display:flex;align-items:center;gap:12px}small{color:#a8b2b8}#status{min-height:26px;color:#ffc53d}@media(max-width:700px){main{padding:16px}.layout{grid-template-columns:1fr}aside{display:grid;grid-template-columns:1fr 1fr;gap:12px}fieldset{margin:0}.sizes{grid-column:1/-1}}
+</style>
+<main>
+<header><small>DRAFT ORDER / ART STUDY 01</small><h1>MAGPIE · 몸체와 장비 조립</h1><p>부품을 껐다 켜며 파지·견착·겹침을 확인하세요. 정지 조준 자세 시범이며 경기 화면과 애니메이션은 아닙니다.</p></header>
+<div id="status" role="status">부품을 불러오는 중입니다.</div>
+<div class="layout"><canvas id="main" width="800" height="800" aria-label="조립된 MAGPIE 확대 보기"></canvas><aside>
+<fieldset><legend>부품 표시</legend><label><input id="body" type="checkbox" checked> 기본 몸체</label><label><input id="weapon" type="checkbox" checked> L119A2 · 양손 파지</label><label><input id="kit" type="checkbox" checked> 헬멧 · 방탄복</label></fieldset>
+<fieldset><legend>방향 확인</legend><label>회전 <input id="angle" type="range" min="0" max="360" value="0"></label><button id="reset" type="button">기본 자세</button></fieldset>
+<div class="sizes"><div><canvas id="medium" width="128" height="128" aria-label="128픽셀 비교"></canvas><small>128px</small></div><div><canvas id="small" width="64" height="64" aria-label="64픽셀 비교"></canvas><small>64px</small></div></div>
+<p><strong>검수 포인트</strong><br>왼손은 앞쪽 지지점, 오른손은 뒤쪽 손잡이. 총기·손 접점은 함께 유지합니다.</p>
+</aside></div>
+</main>
+<script type="module">
+import { drawMagpiePilot } from './compose.mjs';
+const images = {};
+const controls = ['body','weapon','kit','angle'].map(id => document.getElementById(id));
+// 실제 표시 부품만 변경하며 연속 렌더 루프를 만들지 않습니다.
+function redraw() {
+  const options = Object.fromEntries(controls.slice(0,3).map(input => [input.id,input.checked]));
+  options.angle = Number(controls[3].value) * Math.PI / 180;
+  for (const id of ['main','medium','small']) {
+    const canvas = document.getElementById(id), context = canvas.getContext('2d');
+    context.clearRect(0,0,canvas.width,canvas.height);
+    drawMagpiePilot(context,images,{...options,size:canvas.width});
+  }
+}
+try {
+  await Promise.all(['body','weapon','kit'].map(async name => {
+    const image = new Image(); image.src = `./${name}.webp`; await image.decode(); images[name] = image;
+  }));
+  controls.forEach(input => input.addEventListener('input',redraw));
+  document.getElementById('reset').addEventListener('click',() => {
+    controls.slice(0,3).forEach(input => input.checked = true); controls[3].value = 0; redraw();
+  });
+  document.getElementById('status').textContent = '3개 부품 로드 완료 · 장전 및 이동 동작 미검증';
+  redraw();
+} catch (error) {
+  document.getElementById('status').textContent = '부품을 불러오지 못했습니다. 새로고침해 주세요.';
+}
+</script>
+</html>

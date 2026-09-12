@@ -1,0 +1,18 @@
+{
+  "scope": "Static modular assembly in local Skia, not browser/gameplay/animation",
+  "parts": 3,
+  "nativeCanvas": [
+    1254,
+    1254
+  ],
+  "checks": [
+    "canvas registration",
+    "muzzle",
+    "two boots",
+    "wrist contact occupancy",
+    "alpha",
+    "weapon toggle",
+    "all hidden"
+  ],
+  "note": "Occupied wrist pixels are not anatomical certification. Visual review is still required."
+}

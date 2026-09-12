@@ -1,24 +1,18 @@
 import { useEffect, useRef, type ReactElement } from 'react';
 import type { OperatorSide } from '../domain/Operator';
-import { operatorPoseVisual, operatorStateVisual, operatorWalkVisual, OPERATOR_SCALE } from '../domain/operatorVisuals';
+import { paintMinimalOperator } from './minimalOperator';
 import { TacticalRealtimeSimulation, type RealtimeEvent, type RealtimeTick, type RealtimeUnitState } from '../domain/realtime/TacticalRealtimeSimulation';
-import { breachWalls } from '../domain/realtime/breachGeometry';
+import { battlefieldMap } from '../domain/realtime/fortifications';
 import { angleDifference } from '../domain/realtime/perception';
-import { cameraViewport, combatCamera, rememberContacts } from '../domain/realtime/spectatorView';
+import { cameraViewport, combatCamera, rememberContacts, visionPolygon } from '../domain/realtime/spectatorView';
 import type { TacticalMapDefinition } from '../domain/tacticalMaps';
 import { createSmokeTexture, paintSmoke } from './smokeEffect';
 
-const COLORS = { 공격: '#2FD4C4', 수비: '#F0873C' };
 const ROOT = `${import.meta.env.BASE_URL}operators/`;
 type Props = { tick: RealtimeTick | null; events: RealtimeEvent[]; map: TacticalMapDefinition; side: OperatorSide; selectedId: string | null; mode: 'broadcast' | 'follow' | 'full'; speed: number; paused: boolean; onSelect: (id: string) => void; onFocus?: (id: string | null) => void };
 
 /** 파티클 모양은 사건과 참가자 ID로 고정해 프레임마다 난수 모양이 떨리지 않게 합니다. */
 function seeded(key:string,index=0):number { let value=2166136261;for(const letter of `${key}:${index}`)value=Math.imul(value^letter.charCodeAt(0),16777619);return (value>>>0)/4294967295; }
-
-/** 브라우저와 이미지 기반 렌더 검사에서 모두 디코딩 완료 여부를 같은 기준으로 판정합니다. */
-function imageReady(image: HTMLImageElement): boolean {
-  return image.complete === undefined ? image.width > 0 : image.complete && image.naturalWidth > 0;
-}
 
 /** 기록된 두 스냅샷 사이만 보간하며 사망·새 출현과 미래 위치를 외삽하지 않습니다. */
 export function interpolateUnit(previous: RealtimeUnitState, next: RealtimeUnitState | undefined, amount: number): RealtimeUnitState {
@@ -34,18 +28,22 @@ export function paintBattleMap(ctx: CanvasRenderingContext2D, map: TacticalMapDe
   ctx.fillStyle='#536268'; ctx.fillRect(map.building.x,map.building.y,map.building.width,map.building.height);
   for(const room of map.rooms) {
     const r=room.rect; ctx.fillStyle=room.kind==='yard'?'#364246':room.kind==='corridor'?'#7C817A':'#65737A';ctx.fillRect(r.x,r.y,r.width,r.height);
-    if(room.kind!=='yard'){ctx.strokeStyle='#D3DDD315';ctx.lineWidth=1;ctx.beginPath();for(let x=r.x;x<r.x+r.width;x+=80){ctx.moveTo(x,r.y);ctx.lineTo(x,r.y+r.height);}for(let y=r.y;y<r.y+r.height;y+=80){ctx.moveTo(r.x,y);ctx.lineTo(r.x+r.width,y);}ctx.stroke();ctx.fillStyle='#17232912';for(let i=0;i<10;i++){const x=r.x+seeded(room.id,i)*r.width,y=r.y+seeded(room.id,i+20)*r.height;ctx.fillRect(x,y,22+seeded(room.id,i+40)*55,3);}}
+    if(room.kind!=='yard'){ctx.strokeStyle='#D3DDD315';ctx.lineWidth=1;ctx.beginPath();for(let x=r.x;x<r.x+r.width;x+=80){ctx.moveTo(x,r.y);ctx.lineTo(x,r.y+r.height);}for(let y=r.y;y<r.y+r.height;y+=80){ctx.moveTo(r.x,y);ctx.lineTo(r.x+r.width,y);}ctx.stroke();}
     ctx.font='18px sans-serif';ctx.fillStyle='#CBD2CD99';ctx.fillText(room.label,r.x+20,r.y+34);
   }
   for(const site of map.sites){ctx.strokeStyle='#FFC53D';ctx.lineWidth=3;ctx.setLineDash([18,14]);ctx.strokeRect(site.bounds.x,site.bounds.y,site.bounds.width,site.bounds.height);ctx.setLineDash([]);ctx.fillStyle='#FFD66C';ctx.font='bold 30px sans-serif';ctx.fillText(site.id,site.bounds.x+20,site.bounds.y+42);}
   for(const wall of map.walls.filter(w=>w.kind!=='door-gap')){
     ctx.save();ctx.translate(5,7);ctx.beginPath();ctx.moveTo(wall.from.x,wall.from.y);ctx.lineTo(wall.to.x,wall.to.y);ctx.strokeStyle='#07101466';ctx.lineWidth=25;ctx.stroke();ctx.restore();ctx.beginPath();ctx.moveTo(wall.from.x,wall.from.y);ctx.lineTo(wall.to.x,wall.to.y);ctx.strokeStyle='#1D282E';ctx.lineWidth=22;ctx.stroke();ctx.strokeStyle=wall.breachable?'#B7AA91':'#ADB9B8';ctx.lineWidth=10;ctx.stroke();
     if(wall.breachable){ctx.setLineDash([20,10]);ctx.strokeStyle='#6D6555';ctx.lineWidth=2;ctx.stroke();ctx.setLineDash([]);}
+    if(wall.reinforced){ctx.strokeStyle='#718693';ctx.lineWidth=14;ctx.stroke();ctx.setLineDash([4,9]);ctx.strokeStyle='#C5D1D6';ctx.lineWidth=8;ctx.stroke();ctx.setLineDash([]);}
   }
+  for(const portal of map.portals){ctx.save();ctx.translate(portal.center.x,portal.center.y);if(portal.axis==='vertical')ctx.rotate(Math.PI/2);ctx.strokeStyle='#B46C5755';ctx.lineWidth=4;ctx.beginPath();ctx.moveTo(-portal.width/2,-18);ctx.lineTo(portal.width/2,-18);ctx.moveTo(-portal.width/2,18);ctx.lineTo(portal.width/2,18);ctx.stroke();ctx.restore();}
   for(const cover of map.covers){const r=cover.rect;ctx.fillStyle='#16212699';ctx.fillRect(r.x+8,r.y+10,r.width,r.height);ctx.fillStyle='#374A52';ctx.fillRect(r.x,r.y,r.width,r.height);ctx.strokeStyle='#A5B3AF';ctx.lineWidth=2;ctx.strokeRect(r.x,r.y,r.width,r.height);
     ctx.strokeStyle='#182F39';ctx.beginPath();if(r.width>r.height){for(let x=r.x+12;x<r.x+r.width;x+=24){ctx.moveTo(x,r.y+4);ctx.lineTo(x,r.y+r.height-4);}}else{for(let y=r.y+12;y<r.y+r.height;y+=24){ctx.moveTo(r.x+4,y);ctx.lineTo(r.x+r.width-4,y);}}ctx.stroke();
     if(/desk|bench|console/.test(cover.id)){ctx.fillStyle='#122D3B';ctx.fillRect(r.x+12,r.y+8,Math.min(48,r.width-20),Math.min(23,r.height-14));ctx.fillStyle='#74B6BB';ctx.fillRect(r.x+17,r.y+13,22,2);ctx.fillRect(r.x+17,r.y+18,14,2);}
     if(/rack|cabinet/.test(cover.id)){for(let y=r.y+9;y<r.y+r.height-5;y+=24){ctx.fillStyle='#82CDB8';ctx.fillRect(r.x+8,y,4,3);}}
+    if(cover.kind==='truck'){ctx.save();ctx.translate(r.x+r.width/2,r.y+r.height/2);if(r.height>r.width)ctx.rotate(Math.PI/2);const length=Math.max(r.width,r.height),width=Math.min(r.width,r.height);ctx.fillStyle='#A6A398';ctx.fillRect(-length/2+2,-width/2+2,length-4,width-4);ctx.fillStyle='#233D46';ctx.fillRect(length/2-37,-width/2+5,23,width-10);ctx.fillStyle='#12191D';for(const axle of [-length/2+24,length/2-27]){ctx.fillRect(axle,-width/2,17,6);ctx.fillRect(axle,width/2-6,17,6);}ctx.strokeStyle='#637277';ctx.strokeRect(-length/2+8,-width/2+7,length-60,width-14);ctx.restore();}
+    if(cover.kind==='shield'){ctx.fillStyle='#A0ABB0';ctx.fillRect(r.x+3,r.y+3,r.width-6,r.height-6);ctx.strokeStyle='#2B3E48';ctx.lineWidth=3;ctx.strokeRect(r.x+5,r.y+5,r.width-10,r.height-10);}
   }
 }
 
@@ -64,7 +62,7 @@ export function BroadcastCanvas(props: Props): ReactElement {
     let cachedVision:RealtimeUnitState[]=[];let cachedVisibleIds=new Set<string>(),camera={x:0,y:0,width:430,height:260};
     let focusId:string|null=null,holdUntil=0,lastStamp=0,cameraReady=false;
     const contacts=new Map<string,{position:{x:number;y:number};seenAt:number}>();
-    let contactView='';
+    let contactView='',fanKey='';let fan:Array<{x:number;y:number}>=[];
     let hitTargets:Array<{id:string;x:number;y:number}>=[];
     const observer=new TacticalRealtimeSimulation(props.map);
     /** 캔버스 좌표를 실제 월드 좌표로 되돌려 우리 선수만 선택합니다. */
@@ -79,27 +77,24 @@ export function BroadcastCanvas(props: Props): ReactElement {
       const time=state.previous.time+(state.next.time-state.previous.time)*amount;
       const nextUnits=new Map(state.next.snapshot.units.map(unit=>[unit.id,unit]));
       const units=state.previous.snapshot.units.map(unit=>interpolateUnit(unit,nextUnits.get(unit.id),amount));
-      // 알려진 아군의 다운 원화를 미리 읽어 첫 부상 순간에 큰 이미지 요청이 시작되지 않게 합니다.
-      for(const unit of units.filter(unit=>unit.side===p.side)){
-        const still=operatorPoseVisual(unit.callSign,true),crawl=operatorPoseVisual(unit.callSign,true,0);
-        if(still)asset(still.sprite);if(crawl)asset(crawl.sprite);
-        const walk=operatorWalkVisual(unit.callSign);if(walk)asset(walk.sprite);
-        const crouch=operatorWalkVisual(unit.callSign,true);if(crouch)asset(crouch.sprite);
-      }
+      // 아홉 개 공통 128px 파츠만 재사용하며 실사형 전신 행동 시트를 더 이상 선행 로드하지 않습니다.
+      for(const view of ['front','back','side']){asset(`minimal-body-0-${view}.png`);asset(`minimal-head-0-${view}.png`);asset(`minimal-head-1-${view}.png`);}
       const snapshot=amount>=1?state.next.snapshot:state.previous.snapshot,breaches=snapshot.breaches??[];
-      const map={...p.map,walls:breaches.reduce((walls,breach)=>breachWalls(walls,breach.wallId,breach.position,breach.width),p.map.walls)};
-      const events=p.events.filter(event=>event.time<=time&&event.seenBy?.includes(p.side));
+      const map=battlefieldMap(p.map,breaches,snapshot.fortifications);
+      // 카메라의 최대 기억은 8초입니다. 오래된 발소리까지 매 프레임 시야 검사하지 않습니다.
+      const events=p.events.filter(event=>event.time<=time&&time-event.time<8&&event.seenBy?.includes(p.side));
       const teamVisible=units.filter(unit=>unit.side===p.side||snapshot.visibleTo?.[p.side].includes(unit.id));
       const framing=combatCamera(teamVisible,events,p.side,time,p.selectedId,p.mode==='follow',time<holdUntil?focusId:undefined);
       if(framing.focusId!==focusId)p.onFocus?.(framing.focusId);
       if(framing.focusId!==focusId||time>=holdUntil){focusId=framing.focusId;holdUntil=time+3.5;}
       const focus=snapshot.units.find(unit=>unit.id===focusId&&unit.side===p.side);
-      const currentVision=p.mode==='full'?snapshot.units.filter(unit=>unit.side===p.side&&unit.alive):focus?.alive?[focus]:[];
+      // 중계는 우리 팀의 실제 관측을 합칩니다. 카메라가 고개를 돌려도 동료의 접촉은 유지됩니다.
+      const currentVision=snapshot.units.filter(unit=>unit.side===p.side&&unit.alive);
       const nextVisionKey=snapshot.time+':'+p.mode+':'+(focus?.id??'none')+':'+breaches.length;
-      if(nextVisionKey!==visionKey){visionKey=nextVisionKey;cachedVision=currentVision;cachedVisibleIds=new Set(snapshot.units.filter(unit=>unit.id===focus?.id||p.mode==='full'&&unit.side===p.side||currentVision.some(friend=>observer.canObserve(friend,unit.position,map,snapshot.gadgets,snapshot.time))).map(unit=>unit.id));}
+      if(nextVisionKey!==visionKey){visionKey=nextVisionKey;cachedVision=currentVision;cachedVisibleIds=new Set(snapshot.units.filter(unit=>unit.side===p.side||currentVision.some(friend=>(!snapshot.observedBy||snapshot.observedBy[friend.id]?.includes(unit.id))&&observer.canObserve(friend,unit.position,map,snapshot.gadgets,snapshot.time))).map(unit=>unit.id));}
       const vision=cachedVision,visible=units.filter(unit=>cachedVisibleIds.has(unit.id));
-      // 목격 좌표의 사본만 저장합니다. 관전 선수가 바뀌면 이전 개인 시야의 잔상을 버립니다.
-      const view=p.side+':'+p.mode+':'+focusId;
+      // 목격 좌표의 사본만 저장하며 카메라 전환으로 팀의 마지막 목격 기록을 지우지 않습니다.
+      const view=p.side;
       if(contactView!==view){contacts.clear();contactView=view;}
       rememberContacts(contacts,snapshot.units.filter(unit=>unit.side!==p.side&&cachedVisibleIds.has(unit.id)),snapshot.time,time);
       const actualFrame=combatCamera(visible,events,p.side,time,p.selectedId,p.mode==='follow',focusId);
@@ -118,11 +113,17 @@ export function BroadcastCanvas(props: Props): ReactElement {
       const blast=!reducedMotion&&!p.paused&&p.mode!=='full'?[...events].reverse().find(event=>event.position&&event.position.x>=camera.x&&event.position.x<=camera.x+camera.width&&event.position.y>=camera.y&&event.position.y<=camera.y+camera.height&&vision.some(friend=>observer.canObserve(friend,event.position!,map,snapshot.gadgets,time))&&time-event.time>=0&&time-event.time<.38&&(event.goal==='grenade-exploded'||event.goal==='wall-breached')):undefined;
       const blastAge=blast?time-blast.time:1,shake=blast?(1-blastAge/.38)*Math.min(7,scale*5):0,shakeX=(seeded(`${blast?.time}:x`,Math.floor(blastAge*80))-.5)*shake,shakeY=(seeded(`${blast?.time}:y`,Math.floor(blastAge*80))-.5)*shake;
       ctx.setTransform(1,0,0,1,0,0);ctx.fillStyle='#080E12';ctx.fillRect(0,0,w,h);ctx.setTransform(scale,0,0,scale,ox-camera.x*scale+shakeX,oy-camera.y*scale+shakeY);
-      const key=p.map.id+':'+breaches.map(b=>b.wallId+':'+b.position.x+':'+b.position.y).join(',');
+      const key=p.map.id+':'+breaches.map(b=>b.wallId+':'+b.position.x+':'+b.position.y).join(',')+':'+(snapshot.fortifications??[]).map(item=>item.id).join(',');
       if(!scene||key!==sceneKey){scene=document.createElement('canvas');scene.width=Math.ceil(map.width/2);scene.height=Math.ceil(map.height/2);const sceneContext=scene.getContext('2d')!;sceneContext.scale(.5,.5);paintBattleMap(sceneContext,map);sceneKey=key;}
       // 감독은 익숙한 경기장 구조를 보되 상대 선수·가젯은 실제 개인 시야로 확인된 경우에만 봅니다.
-      // AI 판정용 시야 폴리곤을 화면에 칠하지 않아 거대한 삼각형 조명이 생기지 않습니다.
-      ctx.globalAlpha=p.mode==='full'?.72:.56;ctx.drawImage(scene,camera.x/2,camera.y/2,camera.width/2,camera.height/2,camera.x,camera.y,camera.width,camera.height);ctx.globalAlpha=1;
+      ctx.globalAlpha=.86;ctx.drawImage(scene,camera.x/2,camera.y/2,camera.width/2,camera.height/2,camera.x,camera.y,camera.width,camera.height);ctx.globalAlpha=1;
+      // 전술 보기의 선택 아군만 실제 벽·연막으로 잘린 시야를 표시합니다. 적 정보는 추가로 공개하지 않습니다.
+      const watched=p.mode==='full'?snapshot.units.find(unit=>unit.id===p.selectedId&&unit.side===p.side&&unit.alive):undefined;
+      if(watched){const key=snapshot.time+':'+watched.id;if(key!==fanKey){fanKey=key;
+        const smokes=(snapshot.gadgets??[]).filter(gadget=>gadget.kind==='smoke'&&snapshot.time>=gadget.activeAt&&snapshot.time<gadget.until);
+        fan=visionPolygon(watched,map,smokes).split(' ').map(pair=>{const [x,y]=pair.split(',').map(Number);return {x,y};});}
+        ctx.fillStyle='#2FD4C418';ctx.beginPath();ctx.moveTo(watched.position.x,watched.position.y);for(const point of fan)ctx.lineTo(point.x,point.y);ctx.closePath();ctx.fill();
+      }
       for(const portal of map.portals.filter(portal=>portal.traversal)){
         if(!vision.some(friend=>observer.canObserve(friend,portal.center,map,snapshot.gadgets,time)))continue;
         const opened=snapshot.openedPortals?.includes(portal.id);ctx.save();ctx.translate(portal.center.x,portal.center.y);if(portal.axis==='vertical')ctx.rotate(Math.PI/2);ctx.fillStyle=portal.traversal==='window'?(opened?'#A7CDCE33':'#86CEDB88'):'#B7A984';ctx.fillRect(-portal.width/2,-6,portal.width,12);ctx.strokeStyle='#D9E4D8';ctx.lineWidth=2;ctx.strokeRect(-portal.width/2,-8,portal.width,16);if(opened){ctx.beginPath();ctx.moveTo(-portal.width/2,-12);ctx.lineTo(-portal.width/2+8,3);ctx.lineTo(-portal.width/2+15,-8);ctx.stroke();}ctx.restore();
@@ -138,26 +139,17 @@ export function BroadcastCanvas(props: Props): ReactElement {
       hitTargets=[];
       // 실체를 연장해서 그리지 않습니다. 끊긴 접촉은 고정된 목격 표식으로만 페이드아웃합니다.
       for(const [id,contact] of contacts){if(cachedVisibleIds.has(id))continue;ctx.save();ctx.globalAlpha=Math.max(0,1-(time-contact.seenAt));ctx.strokeStyle='#6EA8FF';ctx.setLineDash([3,4]);ctx.lineWidth=1.5;ctx.beginPath();ctx.arc(contact.position.x,contact.position.y,17,0,Math.PI*2);ctx.stroke();ctx.setLineDash([]);ctx.font='10px sans-serif';ctx.textAlign='center';ctx.fillStyle='#B0C9E9';ctx.fillText('마지막 목격',contact.position.x,contact.position.y+29);ctx.restore();}
-      // 사격 가능한 자세의 총구 계약은 보존합니다. 다운 원화는 실제 다운 상태에서만 사용합니다.
+      // 앞·뒤·옆 몸체와 장비를 조립하고 사격 반동은 실제 발사 사건에만 연결합니다.
       for(const unit of visible){
-        let visual=operatorStateVisual(unit,time);
-        if(!visual)continue;
-        let image=asset(visual.sprite);
-        // 새 행동 시트 디코딩 중에도 이미 읽은 정지 자세를 유지해 인물이 사라지지 않게 합니다.
-        if(!imageReady(image)){visual=operatorPoseVisual(unit.callSign,Boolean(unit.downed));if(!visual)continue;image=asset(visual.sprite);}
-        if(!imageReady(image))continue;
-        const spriteScale=visual.scale??OPERATOR_SCALE;ctx.save();ctx.translate(unit.position.x,unit.position.y);ctx.rotate(unit.facing+(visual.rotationOffset??0));ctx.globalAlpha=unit.alive?1:.4;
-        ctx.fillStyle='#07101466';ctx.beginPath();ctx.ellipse(0,5,22,9,0,0,Math.PI*2);ctx.fill();
-        if(visual.region)ctx.drawImage(image,visual.region[0],visual.region[1],visual.width,visual.height,-visual.pivot[0]*spriteScale,-visual.pivot[1]*spriteScale,visual.width*spriteScale,visual.height*spriteScale);
-        else ctx.drawImage(image,-visual.pivot[0]*spriteScale,-visual.pivot[1]*spriteScale,visual.width*spriteScale,visual.height*spriteScale);
-        if(unit.shieldRaised){ctx.fillStyle='#617582';ctx.fillRect(16,-18,7,36);ctx.strokeStyle='#BED0D9';ctx.strokeRect(16,-18,7,36);}
-        ctx.fillStyle=COLORS[unit.side];ctx.fillRect(-5,-14,6,3);ctx.restore();
+        const shotAt=events.findLast(event=>event.actor===unit.id&&event.type==='shot'&&time-event.time<.14)?.time;
+        if(!paintMinimalOperator(ctx,unit,time,shotAt,asset,reducedMotion||p.paused))continue;
         // 다운은 사망과 다른 실제 상태입니다. 자세별 원화 전에는 명확한 구조 표식을 사용합니다.
         if(unit.downed){ctx.save();ctx.strokeStyle='#FFC53D';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(unit.position.x-5,unit.position.y-23);ctx.lineTo(unit.position.x+5,unit.position.y-23);ctx.moveTo(unit.position.x,unit.position.y-28);ctx.lineTo(unit.position.x,unit.position.y-18);ctx.stroke();if(unit.downed.progress>0){ctx.beginPath();ctx.arc(unit.position.x,unit.position.y,21,-Math.PI/2,-Math.PI/2+Math.PI*2*unit.downed.progress);ctx.stroke();}ctx.restore();}
         if(unit.side===p.side){hitTargets.push({id:unit.id,x:ox+(unit.position.x-camera.x)*scale,y:oy+(unit.position.y-camera.y)*scale});if(unit.id===p.selectedId){ctx.strokeStyle='#FFC53D';ctx.lineWidth=1.5;ctx.beginPath();ctx.arc(unit.position.x,unit.position.y,18,0,Math.PI*2);ctx.stroke();}}
+        if(unit.side===p.side&&!unit.downed&&(unit.suppression??0)>=.4){ctx.fillStyle='#FFC53D';ctx.font='bold 15px sans-serif';ctx.textAlign='center';ctx.fillText('!',unit.position.x,unit.position.y-25);if(unit.id===focusId){ctx.font='10px sans-serif';ctx.fillText('탄착 압박 · 엄폐',unit.position.x,unit.position.y-40);}}
         if(p.mode==='full'||unit.id===focusId){ctx.font='10px sans-serif';ctx.textAlign='center';ctx.fillStyle='#EDF2F0';ctx.fillText(unit.callSign,unit.position.x,unit.position.y+29);}
       }
-      for(const event of events){if(!event.position||!vision.some(friend=>observer.canObserve(friend,event.position!,map,snapshot.gadgets,time)))continue;const age=time-event.time;
+      for(const event of events){const age=time-event.time;if(!['shot','impact','utility'].includes(event.type)||age>Math.max(.65,event.travelSeconds??0)||!event.position||!vision.some(friend=>observer.canObserve(friend,event.position!,map,snapshot.gadgets,time)))continue;
         if(event.type==='shot'&&event.targetPosition&&age>=0&&age<=Math.max(.1,event.travelSeconds??.1)){
           const progress=Math.min(1,age/Math.max(.01,event.travelSeconds??.1)),start=Math.max(0,progress-.16),dx=event.targetPosition.x-event.position.x,dy=event.targetPosition.y-event.position.y;ctx.strokeStyle='#FFE1A0';ctx.lineWidth=1.5;ctx.beginPath();ctx.moveTo(event.position.x+dx*start,event.position.y+dy*start);ctx.lineTo(event.position.x+dx*progress,event.position.y+dy*progress);ctx.stroke();if(age<.045){ctx.fillStyle='#FFF1C8';ctx.beginPath();ctx.arc(event.position.x,event.position.y,3,0,Math.PI*2);ctx.fill();}
         }

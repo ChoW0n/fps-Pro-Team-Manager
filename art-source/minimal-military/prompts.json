@@ -1,0 +1,20 @@
+{
+  "body": "Use case: stylized-concept. Production game sprite asset for DRAFT ORDER, Minimalist Military, not photorealism. Create a transparent PNG sprite sheet consisting of EXACTLY THREE isolated HEADLESS BODY PARTS in one horizontal row: front view, back view, right-facing side view. Same body proportions and exact aligned size, front/back are elevated 45 degree view appropriate for a top-down tactical board, side is similarly elevated. These are body layers to receive separately drawn oversized heads and separately attached weapon-with-hands layers. Each body is only a compact navy-grey uniform torso, black plate carrier with 3 simplified pouches, short trouser legs and TWO sturdy boots. NO head, NO helmet, NO hands, NO arms extending outside shoulder width, NO weapon. A tiny closed dark collar where the head will attach, shoulders compact. Intended assembled character is 2.5 heads tall, torso including legs only 1.5 times oversized head height. Bold very dark outlines (equivalent to 2-3px at 128px output), flat 3-step cel shading, no gradients, no photographic textures, no tiny realistic anatomy. Muted navy grey #35454e and charcoal #192125, no camouflage noise. Strong readable silhouette, boots close to body, no dangling limbs. Equal three cells, plenty of transparent margin, all collar centers on same y coordinate, all boot bottoms aligned, no dividers, no labels, no text, no ground shadow, no scenery, truly transparent background. Flat production sprite parts not a mockup.",
+  "parts": [
+    {
+      "args": {
+        "prompt": "Edit only the MIDDLE body of this transparent three-part sprite sheet. It was incorrectly drawn as another front. Make the MIDDLE explicitly the BACK view: back plate carrier with flat rear panel and one horizontal drag handle at upper back, NO magazine pouches on back, no front collar buckle, rear of trousers and heel view of boots. Keep the left FRONT and right SIDE pixel-identical, same muted palette, flat cel shading, bold outlines, same collar and feet registration. Preserve truly transparent background. No head, hands, weapon, text, ground shadow. Keep all three isolated body layers exactly in their existing cells.",
+        "referenced_image_paths": [
+          "/workspace/scratch/be2a482d297b/generated_images/exec-81a60d2c-d35b-4c47-be54-15f4742fdef3.png"
+        ]
+      },
+      "key": "minimalBodyCorrected"
+    },
+    {
+      "args": {
+        "prompt": "Use case: stylized-concept. Transparent PNG modular HEAD layer sprite sheet for Minimalist Military tactical manager game. EXACTLY SIX isolated oversized chibi military heads, a clean 3 column by 2 row grid. Row1: matte coyote TAN high-cut ballistic helmet with olive headset and dark ballistic goggles, FRONT elevated view, BACK elevated view, RIGHT SIDE elevated view. Row2: charcoal BLACK full-coverage tactical helmet with dark gas mask, FRONT elevated view, BACK elevated view, RIGHT SIDE elevated view. SAME scale, same center and neck anchor in all equal cells, no torso, no shoulders, no weapons, no labels or text. Heads round compact and serious, no smile/no cute face, goggles are one dark flat plane, gas mask one facepiece with single circular filter and two dark lens planes; BACK must show rear helmet shell, nape/headset band, NOT goggles or mask face. Flat clean VECTOR STYLE or crisp pixel compatible, 2-3 flat cel-shaded muted tones only, strong black outline equal to 2-3px at128px output. No gradients, no realistic lighting, no scratches/no fine hair/no skin pores. Intended heads fit a 2.5 head tall compact tactical body, not realistic human scale. Each head stays within its cell with ample transparent margins, no cast shadows, NO background, genuinely transparent PNG."
+      },
+      "key": "minimalHeads"
+    }
+  ]
+}

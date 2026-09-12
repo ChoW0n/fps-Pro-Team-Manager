@@ -149,7 +149,7 @@ export const OPERATORS: Operator[] = [
   new Operator('MEDVED', unit('연방보안국 알파 그룹'), '공격', 'ENTRY', ['AS Val 소음소총', 'SR-1 베크토르'], {
     name: '충격 파쇄봉',
     description: '벽체를 한 번에 무너뜨리는 지향성 파쇄 장약이다.',
-    effect: '예정에 없던 진입 지점을 만드는 것이고 대신 큰 소리가 나 상대 전원이 방향을 안다.',
+    effect: '일반 벽은 2초, 보강된 연질 벽은 4초 장약 설치 후 통로를 연다. 1회 사용하며 소리 전파 범위의 상대에게 방향 단서가 남는다. 설치 중 동료 엄호가 필요하다.',
   }, { aim: 78, entry: 94, informationGathering: 48, defensiveSetup: 44, clutch: 80, aggression: 96 }),
   new Operator('REUSS', unit('연방경찰 국경수비대 9조 GSG 9'), '수비', 'DEFENSIVE_SETUP', ['HK417', 'HK USP'], {
     name: '지향성 차단벽',

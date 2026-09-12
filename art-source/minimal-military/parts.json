@@ -1,0 +1,158 @@
+{
+  "parts": [
+    {
+      "file": "minimal-body-0-front.png",
+      "size": [
+        128,
+        128
+      ],
+      "anchor": [
+        64,
+        120
+      ],
+      "sourceBounds": [
+        191,
+        151,
+        599,
+        752
+      ]
+    },
+    {
+      "file": "minimal-body-0-back.png",
+      "size": [
+        128,
+        128
+      ],
+      "anchor": [
+        64,
+        120
+      ],
+      "sourceBounds": [
+        111,
+        151,
+        518,
+        753
+      ]
+    },
+    {
+      "file": "minimal-body-0-side.png",
+      "size": [
+        128,
+        128
+      ],
+      "anchor": [
+        64,
+        120
+      ],
+      "sourceBounds": [
+        135,
+        147,
+        397,
+        755
+      ]
+    },
+    {
+      "file": "minimal-head-0-front.png",
+      "size": [
+        128,
+        128
+      ],
+      "anchor": [
+        64,
+        120
+      ],
+      "sourceBounds": [
+        53,
+        40,
+        487,
+        468
+      ]
+    },
+    {
+      "file": "minimal-head-0-back.png",
+      "size": [
+        128,
+        128
+      ],
+      "anchor": [
+        64,
+        120
+      ],
+      "sourceBounds": [
+        37,
+        39,
+        474,
+        466
+      ]
+    },
+    {
+      "file": "minimal-head-0-side.png",
+      "size": [
+        128,
+        128
+      ],
+      "anchor": [
+        64,
+        120
+      ],
+      "sourceBounds": [
+        35,
+        40,
+        457,
+        450
+      ]
+    },
+    {
+      "file": "minimal-head-1-front.png",
+      "size": [
+        128,
+        128
+      ],
+      "anchor": [
+        64,
+        120
+      ],
+      "sourceBounds": [
+        61,
+        11,
+        476,
+        471
+      ]
+    },
+    {
+      "file": "minimal-head-1-back.png",
+      "size": [
+        128,
+        128
+      ],
+      "anchor": [
+        64,
+        120
+      ],
+      "sourceBounds": [
+        45,
+        11,
+        465,
+        433
+      ]
+    },
+    {
+      "file": "minimal-head-1-side.png",
+      "size": [
+        128,
+        128
+      ],
+      "anchor": [
+        64,
+        120
+      ],
+      "sourceBounds": [
+        42,
+        15,
+        473,
+        446
+      ]
+    }
+  ],
+  "processing": "background removal, crop, aspect-preserving downscale; no anatomical redraw"
+}
