@@ -1,149 +1,8 @@
 {
   "reinforce": {
-    "time": 2.9,
-    "openedPortals": [],
-    "objective": {
-      "phase": "carried",
-      "carrierId": "공격:선수0:MAGPIE:0",
-      "progress": 0
-    },
-    "operation": {
-      "phase": "scouting",
-      "scoutIds": [
-        "공격:선수0:MAGPIE:0"
-      ],
-      "searchSeconds": 25,
-      "phaseStartedAt": 0,
-      "rally": [
-        {
-          "id": "공격:선수0:MAGPIE:0",
-          "position": {
-            "x": 762.5,
-            "y": 180
-          }
-        }
-      ]
-    },
-    "visibleTo": {
-      "공격": [
-        "공격:선수0:MAGPIE:0"
-      ],
-      "수비": [
-        "수비:선수0:REUSS:1"
-      ]
-    },
-    "observedBy": {
-      "공격:선수0:MAGPIE:0": [],
-      "수비:선수0:REUSS:1": []
-    },
-    "identifiedTo": {
-      "공격": [],
-      "수비": []
-    },
-    "gadgets": [],
-    "breaches": [],
-    "units": [
-      {
-        "id": "공격:선수0:MAGPIE:0",
-        "teamName": "공격",
-        "side": "공격",
-        "callSign": "MAGPIE",
-        "position": {
-          "x": 931.7181711033003,
-          "y": 252.50926234719333
-        },
-        "velocity": {
-          "x": 0,
-          "y": 0
-        },
-        "facing": 1.4067665917439036,
-        "hp": 100,
-        "ammo": 30,
-        "magazineSize": 30,
-        "reserveAmmo": 90,
-        "reloadRemaining": 0,
-        "weaponName": "L119A2 카빈",
-        "weaponProfileNote": "게임용 임시 설정 · 실측값 아님",
-        "recoil": 0,
-        "spread": 0,
-        "burst": 0,
-        "lastMovedAt": 2.7,
-        "cooldown": 0,
-        "suppression": 0,
-        "opticMagnification": 1,
-        "goal": "선발조 저자세 수색 · 구역 1/4",
-        "action": "utility",
-        "routeIndex": 0,
-        "formationIndex": 0,
-        "routeStep": 2,
-        "knowledge": {
-          "confidence": 0
-        },
-        "alive": true,
-        "locomotion": "sprint",
-        "lookDirection": 1.4067665917439036,
-        "shieldRaised": false,
-        "traversal": {
-          "portalId": "portal-north-window",
-          "kind": "window",
-          "until": 3.4000000000000004
-        }
-      },
-      {
-        "id": "수비:선수0:REUSS:1",
-        "teamName": "수비",
-        "side": "수비",
-        "callSign": "REUSS",
-        "position": {
-          "x": 3148.8699999999985,
-          "y": 1210
-        },
-        "velocity": {
-          "x": 0,
-          "y": 0
-        },
-        "facing": 0,
-        "hp": 100,
-        "ammo": 20,
-        "magazineSize": 20,
-        "reserveAmmo": 60,
-        "reloadRemaining": 0,
-        "weaponName": "HK417",
-        "weaponProfileNote": "게임용 임시 설정 · 실측값 아님",
-        "recoil": 0,
-        "spread": 0,
-        "burst": 0,
-        "lastMovedAt": 0.9,
-        "cooldown": 0,
-        "suppression": 0,
-        "opticMagnification": 1,
-        "goal": "외벽 보강 설치 중",
-        "action": "utility",
-        "routeIndex": 0,
-        "formationIndex": 0,
-        "routeStep": 0,
-        "knowledge": {
-          "confidence": 0
-        },
-        "alive": true,
-        "locomotion": "walk",
-        "lookDirection": 0,
-        "shieldRaised": false,
-        "utilityUsed": true
-      }
-    ],
-    "fortifications": [
-      {
-        "id": "수비:선수0:REUSS:1:fortification",
-        "owner": "수비:선수0:REUSS:1",
-        "deployedAt": 2.9,
-        "kind": "reinforcement",
-        "wallId": "outer-soft-east"
-      }
-    ]
-  },
-  "shield": {
     "time": 2,
+    "openedHatches": [],
+    "reinforcementRemaining": 5,
     "openedPortals": [],
     "objective": {
       "phase": "carried",
@@ -161,8 +20,8 @@
         {
           "id": "공격:선수0:MAGPIE:0",
           "position": {
-            "x": 762.5,
-            "y": 180
+            "x": 790.2750493437761,
+            "y": 600.0973901574025
           }
         }
       ]
@@ -192,19 +51,26 @@
         "side": "공격",
         "callSign": "MAGPIE",
         "position": {
-          "x": 904.0307199162755,
-          "y": 212.20107717248567
+          "x": 762.5252832019396,
+          "y": 437.8415978729585
         },
         "velocity": {
-          "x": 12.096700948394073,
-          "y": 1.5333846272611993
+          "x": 11.548823009616171,
+          "y": -3.912304863192446
         },
-        "facing": 0.1260880950645895,
+        "facing": -0.32662856448603966,
         "hp": 100,
         "ammo": 30,
         "magazineSize": 30,
         "reserveAmmo": 90,
         "reloadRemaining": 0,
+        "utility": {
+          "camera": 0,
+          "smoke": 0,
+          "grenade": 1,
+          "breach": 0,
+          "preparation": 0
+        },
         "weaponName": "L119A2 카빈",
         "weaponProfileNote": "게임용 임시 설정 · 실측값 아님",
         "recoil": 0,
@@ -218,13 +84,14 @@
         "action": "search",
         "routeIndex": 0,
         "formationIndex": 0,
-        "routeStep": 2,
+        "routeStep": 1,
         "knowledge": {
           "confidence": 0
         },
         "alive": true,
+        "floor": 0,
         "locomotion": "sprint",
-        "lookDirection": 0.12608809506458907,
+        "lookDirection": -0.3266285644860396,
         "shieldRaised": false
       },
       {
@@ -233,25 +100,187 @@
         "side": "수비",
         "callSign": "REUSS",
         "position": {
-          "x": 2700,
-          "y": 1280
+          "x": 1884,
+          "y": 1560
         },
         "velocity": {
           "x": 0,
           "y": 0
         },
-        "facing": 3.537586659638017,
+        "facing": 3.4483727208837247,
         "hp": 100,
         "ammo": 20,
         "magazineSize": 20,
         "reserveAmmo": 60,
         "reloadRemaining": 0,
+        "utility": {
+          "camera": 0,
+          "smoke": 0,
+          "grenade": 0,
+          "breach": 0,
+          "preparation": 0
+        },
         "weaponName": "HK417",
         "weaponProfileNote": "게임용 임시 설정 · 실측값 아님",
         "recoil": 0,
         "spread": 0,
         "burst": 0,
         "lastMovedAt": 0,
+        "cooldown": 0,
+        "suppression": 0,
+        "opticMagnification": 1,
+        "goal": "외벽 보강 설치 중",
+        "action": "utility",
+        "routeIndex": 0,
+        "formationIndex": 0,
+        "routeStep": 0,
+        "knowledge": {
+          "confidence": 0
+        },
+        "alive": true,
+        "floor": 0,
+        "locomotion": "walk",
+        "lookDirection": -2.834812586295862,
+        "shieldRaised": false
+      }
+    ],
+    "fortifications": [
+      {
+        "id": "수비:선수0:REUSS:1:fortification",
+        "owner": "수비:선수0:REUSS:1",
+        "deployedAt": 2,
+        "kind": "reinforcement",
+        "wallId": "outer-east-2"
+      }
+    ]
+  },
+  "shield": {
+    "time": 3.7,
+    "openedHatches": [],
+    "reinforcementRemaining": 6,
+    "openedPortals": [],
+    "objective": {
+      "phase": "carried",
+      "carrierId": "공격:선수0:MAGPIE:0",
+      "progress": 0
+    },
+    "operation": {
+      "phase": "scouting",
+      "scoutIds": [
+        "공격:선수0:MAGPIE:0"
+      ],
+      "searchSeconds": 25,
+      "phaseStartedAt": 0,
+      "rally": [
+        {
+          "id": "공격:선수0:MAGPIE:0",
+          "position": {
+            "x": 790.2750493437761,
+            "y": 600.0973901574025
+          }
+        }
+      ]
+    },
+    "visibleTo": {
+      "공격": [
+        "공격:선수0:MAGPIE:0"
+      ],
+      "수비": [
+        "수비:선수0:REUSS:1"
+      ]
+    },
+    "observedBy": {
+      "공격:선수0:MAGPIE:0": [],
+      "수비:선수0:REUSS:1": []
+    },
+    "identifiedTo": {
+      "공격": [],
+      "수비": []
+    },
+    "gadgets": [],
+    "breaches": [],
+    "units": [
+      {
+        "id": "공격:선수0:MAGPIE:0",
+        "teamName": "공격",
+        "side": "공격",
+        "callSign": "MAGPIE",
+        "position": {
+          "x": 858,
+          "y": 513.5479999999998
+        },
+        "velocity": {
+          "x": 0,
+          "y": 12.193499999999972
+        },
+        "facing": 1.5707963267948966,
+        "hp": 100,
+        "ammo": 30,
+        "magazineSize": 30,
+        "reserveAmmo": 90,
+        "reloadRemaining": 0,
+        "utility": {
+          "camera": 0,
+          "smoke": 0,
+          "grenade": 1,
+          "breach": 0,
+          "preparation": 0
+        },
+        "weaponName": "L119A2 카빈",
+        "weaponProfileNote": "게임용 임시 설정 · 실측값 아님",
+        "recoil": 0,
+        "spread": 0,
+        "burst": 0,
+        "lastMovedAt": 3.7,
+        "cooldown": 0,
+        "suppression": 0,
+        "opticMagnification": 1,
+        "goal": "선발조 저자세 수색 · 구역 1/4",
+        "action": "search",
+        "routeIndex": 0,
+        "formationIndex": 0,
+        "routeStep": 1,
+        "knowledge": {
+          "confidence": 0
+        },
+        "alive": true,
+        "floor": 0,
+        "locomotion": "sprint",
+        "lookDirection": 1.5707963267948966,
+        "shieldRaised": false
+      },
+      {
+        "id": "수비:선수0:REUSS:1",
+        "teamName": "수비",
+        "side": "수비",
+        "callSign": "REUSS",
+        "position": {
+          "x": 1300,
+          "y": 1375
+        },
+        "velocity": {
+          "x": 0,
+          "y": 0
+        },
+        "facing": 6.793788239166628,
+        "hp": 100,
+        "ammo": 20,
+        "magazineSize": 20,
+        "reserveAmmo": 60,
+        "reloadRemaining": 0,
+        "utility": {
+          "camera": 0,
+          "smoke": 0,
+          "grenade": 0,
+          "breach": 0,
+          "preparation": 0
+        },
+        "weaponName": "HK417",
+        "weaponProfileNote": "게임용 임시 설정 · 실측값 아님",
+        "recoil": 0,
+        "spread": 0,
+        "burst": 0,
+        "lastMovedAt": 0.1,
         "cooldown": 0,
         "suppression": 0,
         "opticMagnification": 1,
@@ -264,25 +293,26 @@
           "confidence": 0
         },
         "alive": true,
+        "floor": 0,
         "locomotion": "walk",
-        "lookDirection": -2.74559864754157,
-        "shieldRaised": false,
-        "utilityUsed": true
+        "lookDirection": 0.5106029319870417,
+        "shieldRaised": false
       }
     ],
     "fortifications": [
       {
         "id": "수비:선수0:REUSS:1:fortification",
         "owner": "수비:선수0:REUSS:1",
-        "deployedAt": 2,
+        "deployedAt": 3.7,
         "kind": "shield",
         "cover": {
+          "floor": 0,
           "id": "수비:선수0:REUSS:1:shield",
           "kind": "shield",
           "label": "배치형 차폐 방패",
           "rect": {
-            "x": 2630,
-            "y": 1238,
+            "x": 1346.556432906033,
+            "y": 1362.4549762955178,
             "width": 16,
             "height": 84
           }

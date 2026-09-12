@@ -26,6 +26,7 @@ import halloranWalk from '../operators/halloran-walk-v1.json';
 import seonggakWalk from '../operators/seonggak-walk-v1.json';
 import savelliWalk from '../operators/savelli-walk-v1.json';
 import type { TacticalPoint } from './tacticalMaps';
+import { weaponMuzzleOffset } from '../components/weaponParts';
 import type { RealtimeUnitState } from './realtime/TacticalRealtimeSimulation';
 
 /** 3600×2400 월드에서 몸통 약 24단위, 총구와 충돌 반경이 같은 게임용 비율입니다. */
@@ -120,11 +121,9 @@ export function operatorStateVisual(unit: RealtimeUnitState, time: number): Oper
   return sheet.frames[Math.floor(time * (unit.locomotion === 'crouch' ? 3 : 4)) % sheet.frames.length];
 }
 
-/** 이미지의 피벗·총구를 회전시켜 판정과 중계가 같은 발사 원점을 사용합니다. */
-export function muzzlePosition(callSign: string, position: TacticalPoint, facing: number): TacticalPoint {
-  const visual = operatorVisual(callSign);
-  const x = visual ? (visual.muzzle[0] - visual.pivot[0]) * OPERATOR_SCALE : 40 * TEMPORARY_OPERATOR_SCALE;
-  const y = visual ? (visual.muzzle[1] - visual.pivot[1]) * OPERATOR_SCALE : 0;
-  return { x: position.x + x * Math.cos(facing) - y * Math.sin(facing),
-    y: position.y + x * Math.sin(facing) + y * Math.cos(facing) };
+/** 탑뷰 총기 길이와 오른어깨 기준점을 회전시켜 판정과 중계가 같은 발사 원점을 사용합니다. */
+export function muzzlePosition(weaponName: string, position: TacticalPoint, facing: number): TacticalPoint {
+  const offset=weaponMuzzleOffset(weaponName);
+  return { x: position.x + offset.x * Math.cos(facing) - offset.y * Math.sin(facing),
+    y: position.y + offset.x * Math.sin(facing) + offset.y * Math.cos(facing) };
 }

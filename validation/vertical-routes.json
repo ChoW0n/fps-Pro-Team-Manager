@@ -1,0 +1,76 @@
+[
+  {
+    "route": 5,
+    "transitions": [
+      {
+        "time": 26.3,
+        "type": "action",
+        "actor": "공격:검사0:MAGPIE:0",
+        "side": "공격",
+        "position": {
+          "x": 1080,
+          "y": 1280,
+          "floor": 1
+        },
+        "goal": "floor-changed",
+        "message": "서계단 · 2층",
+        "seenBy": [
+          "공격"
+        ]
+      },
+      {
+        "time": 33.4,
+        "type": "action",
+        "actor": "공격:검사0:MAGPIE:0",
+        "side": "공격",
+        "position": {
+          "x": 1300,
+          "y": 1260
+        },
+        "goal": "floor-changed",
+        "message": "송출 해치 · 1층",
+        "seenBy": [
+          "공격"
+        ]
+      }
+    ],
+    "planted": 43.1
+  },
+  {
+    "route": 6,
+    "transitions": [
+      {
+        "time": 21,
+        "type": "action",
+        "actor": "공격:검사0:MAGPIE:0",
+        "side": "공격",
+        "position": {
+          "x": 1880,
+          "y": 1760,
+          "floor": 1
+        },
+        "goal": "floor-changed",
+        "message": "동계단 · 2층",
+        "seenBy": [
+          "공격"
+        ]
+      },
+      {
+        "time": 30.1,
+        "type": "action",
+        "actor": "공격:검사0:MAGPIE:0",
+        "side": "공격",
+        "position": {
+          "x": 1580,
+          "y": 1500
+        },
+        "goal": "floor-changed",
+        "message": "배전 해치 · 1층",
+        "seenBy": [
+          "공격"
+        ]
+      }
+    ],
+    "planted": 39.8
+  }
+]

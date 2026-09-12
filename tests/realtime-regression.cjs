@@ -14,7 +14,7 @@ const { TacticalRealtimeSimulation, realtimeUnitId, UNIT_RADIUS, updateIdentifie
 const { Player } = require(root + 'domain/Player.ts');
 const { OPERATORS } = require(root + 'domain/Operator.ts');
 const { NAMSAN_MAP } = require(root + 'domain/tacticalMaps.ts');
-const { muzzlePosition, operatorVisual, OPERATOR_SCALE } = require(root + 'domain/operatorVisuals.ts');
+const { muzzlePosition, operatorVisual } = require(root + 'domain/operatorVisuals.ts');
 const { angleDifference, turnTowards, TURN_SPEED, FOCUS_RANGE, PERIPHERAL_RANGE } = require(root + 'domain/realtime/perception.ts');
 const results = [];
 // 고정 선수 입력을 만들어 생성기 난수와 엔진 난수를 분리합니다.
@@ -96,7 +96,7 @@ test('발사 원점 = 동일 틱의 회전된 실제 총구',()=>{
   const engine=new TacticalRealtimeSimulation();
   for(const e of base.events.filter(e=>e.type==='shot')){
     const u=base.snapshots.find(s=>s.time===e.time).units.find(u=>u.id===e.actor);
-    assert(distance(muzzlePosition(u.callSign,u.position,u.facing),e.position)<1e-6);
+    assert(distance(muzzlePosition(u.weaponName,u.position,u.facing),e.position)<1e-6);
     assert(engine.hasLineOfSight(u.position,e.position,NAMSAN_MAP));
     assert(engine.hasLineOfSight(e.position,e.targetPosition,NAMSAN_MAP));
     assert.equal(e.blocked,false);
@@ -141,7 +141,7 @@ test('엄폐물 모서리 경로의 모든 선분 통행 가능',()=>{
 });
 test('12명 원화·총구 메타데이터와 정적 파일 존재',()=>{
   for(const name of ['MAGPIE','COLLIER','해동']){const v=operatorVisual(name);assert(v);for(const f of [v.sprite,v.portrait])assert(fs.statSync(path.join(__dirname,'../artifacts/draft-order-player-generator/public/operators',f)).size>0);
-    const p=muzzlePosition(name,{x:0,y:0},Math.PI/2);assert(Math.abs(p.y-(v.muzzle[0]-v.pivot[0])*OPERATOR_SCALE)<1e-8);
+    const weapon=OPERATORS.find(operator=>operator.callSign===name).firearms[0],p=muzzlePosition(weapon,{x:0,y:0},Math.PI/2);assert(p.x<-6&&p.y>16,'탑뷰 총구는 오른어깨 앞에서 회전');
   }for(const operator of OPERATORS){const visual=operatorVisual(operator.callSign);assert(visual);assert(fs.existsSync(path.join(__dirname,'../artifacts/draft-order-player-generator/public/operators',visual.sprite)));}
 });
 test('모든 문·출입구·A/B 설치 위치가 물리 통행과 일치',()=>{

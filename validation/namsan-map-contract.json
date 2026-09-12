@@ -36,11 +36,7 @@
   ],
   "interiorRotations": 2,
   "crawlPortals": 2,
-  "pending": [
-    "2층·계단·수직 해치",
-    "팀 보강 자원 배분",
-    "층간 교전"
-  ],
+  "floor": 0,
   "planting": [
     {
       "site": "A",

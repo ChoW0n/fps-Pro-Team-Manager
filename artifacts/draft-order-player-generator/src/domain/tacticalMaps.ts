@@ -4,6 +4,7 @@
  */
 
 export interface TacticalPoint {
+  floor?: number;
   x: number;
   y: number;
 }
@@ -16,6 +17,7 @@ export interface TacticalRect {
 }
 
 export interface TacticalWall {
+  floor?: number;
   id: string;
   from: TacticalPoint;
   to: TacticalPoint;
@@ -25,6 +27,7 @@ export interface TacticalWall {
 }
 
 export interface TacticalCover {
+  floor?: number;
   id: string;
   label: string;
   rect: TacticalRect;
@@ -46,6 +49,7 @@ export interface DefenderSetup {
 }
 
 export interface TacticalRoom {
+  floor?: number;
   id: string;
   label: string;
   rect: TacticalRect;
@@ -56,6 +60,7 @@ export interface TacticalRoom {
 }
 
 export interface TacticalPortal {
+  floor?: number;
   id: string;
   label: string;
   center: TacticalPoint;
@@ -72,6 +77,7 @@ export interface TacticalEntrance extends TacticalPortal {
 }
 
 export interface TacticalSite {
+  floor?: number;
   id: 'A' | 'B';
   label: string;
   roomId: string;
@@ -89,7 +95,13 @@ export interface TacticalLoop {
   routeIds: string[];
 }
 
+export interface TacticalFloor { id:number; label:string; bounds:TacticalRect }
+export interface TacticalStair { id:string; label:string; kind:'stair'|'hatch'; center:TacticalPoint; width:number; lowerFloor:number; upperFloor:number; oneWay?:'down'; breachable?:boolean; reinforced?:boolean; open?:boolean }
 export interface TacticalMapDefinition {
+  floors?: TacticalFloor[];
+  stairs?: TacticalStair[];
+  viewFloor?: number;
+  reinforcementBudget?: number;
   id: string;
   name: string;
   width: number;
@@ -230,3 +242,46 @@ export const NAMSAN_MAP:TacticalMapDefinition = {
   loops:[{id:'inner-loop',label:'실내 양측 회전',routeIds:['inner-north','inner-south']},
     {id:'outer-loop',label:'산책로 접근',routeIds:entryData.map(e=>e.id)}],
 };
+
+/** 층 뷰는 동일 지형 배열을 재사용합니다. 파쇄/보강으로 배열이 바뀌면 캐시도 교체합니다. */
+const floorSources = new WeakMap<TacticalMapDefinition,TacticalMapDefinition>();
+const floorViews = new WeakMap<TacticalMapDefinition, {walls:TacticalWall[];covers:TacticalCover[];views:Map<number,TacticalMapDefinition>}>();
+export function layer(map:TacticalMapDefinition, floor=0):TacticalMapDefinition {
+  if(map.viewFloor===floor)return map;
+  map=floorSources.get(map)??map;
+  if(!map.floors?.length)return map;
+  let cached=floorViews.get(map);
+  if(!cached||cached.walls!==map.walls||cached.covers!==map.covers){cached={walls:map.walls,covers:map.covers,views:new Map()};floorViews.set(map,cached);}
+  let view=cached.views.get(floor);if(view)return view;
+  const on=(item:{floor?:number})=>(item.floor??0)===floor;
+  view={...map,viewFloor:floor,walls:map.walls.filter(on),covers:map.covers.filter(on),rooms:map.rooms.filter(on),portals:map.portals.filter(on),
+    entrances:map.entrances.filter(on),sites:map.sites.filter(on),searchPoints:map.searchPoints.filter(on),
+    attackerRoutes:map.attackerRoutes.map(route=>({...route,points:route.points.filter(on)})),
+    defenderSetups:map.defenderSetups.filter(setup=>on(setup.position))};
+  cached.views.set(floor,view);floorSources.set(view,map);return view;
+}
+/** 위치는 층 번호와 함께 복사합니다. 단층 데이터는 기존 좌표 형태를 유지합니다. */
+export const floorPoint=(point:TacticalPoint,floor:number):TacticalPoint=>floor?{...point,floor}:{x:point.x,y:point.y};
+
+// 상층은 기존 기하를 공유하는 별도 충돌 층입니다. 외곽 창문은 막고 두 계단으로만 올라갑니다.
+const upperNames=['기상','전망서','전망동','천문','서계단','송신','전파','안테나','장비','녹음','편집','휴게동','창고','운영','관광','동계단'];
+const groundRooms=NAMSAN_MAP.rooms.filter(room=>room.kind!=='yard');
+NAMSAN_MAP.floors=[{id:0,label:'1F 중계관',bounds:NAMSAN_MAP.building},{id:1,label:'2F 전망·송신',bounds:NAMSAN_MAP.building}];
+NAMSAN_MAP.reinforcementBudget=6;
+NAMSAN_MAP.rooms.push(...groundRooms.map((room,i)=>({...room,id:'upper-'+room.id,floor:1,label:upperNames[i],callout:'2F '+upperNames[i],floorColor:i<4?'#596e76':i%4===0||i%4===3?'#73776a':'#606375'})));
+NAMSAN_MAP.walls.push(...NAMSAN_MAP.walls.filter(w=>!w.id.startsWith('outer-')).map(w=>({...w,id:'upper-'+w.id,floor:1})),
+  ...[[960,960,1920,960],[1920,960,1920,1920],[960,1920,1920,1920],[960,960,960,1920]].map(([x,y,tx,ty],i)=>({...wall('upper-shell-'+i,p(x,y),p(tx,ty),'outer'),floor:1})));
+NAMSAN_MAP.covers.push(...NAMSAN_MAP.covers.filter(c=>/^(desk|rack)-/.test(c.id)).map(c=>({...c,id:'upper-'+c.id,floor:1,label:'상층 '+c.label})));
+NAMSAN_MAP.portals.push(...NAMSAN_MAP.portals.filter(portal=>portal.id.startsWith('link-')).map(portal=>({...portal,id:'upper-'+portal.id,floor:1,center:floorPoint(portal.center,1),fromRoom:'upper-'+portal.fromRoom,toRoom:'upper-'+portal.toRoom})));
+NAMSAN_MAP.searchPoints.push(...NAMSAN_MAP.searchPoints.map(point=>floorPoint(point,1)));
+NAMSAN_MAP.stairs=[
+  {id:'stair-west',label:'서계단',kind:'stair',center:p(1040,1280),width:90,lowerFloor:0,upperFloor:1},
+  {id:'stair-east',label:'동계단',kind:'stair',center:p(1840,1760),width:90,lowerFloor:0,upperFloor:1},
+  {id:'hatch-a',label:'송출 해치',kind:'hatch',center:p(1300,1260),width:80,lowerFloor:0,upperFloor:1,oneWay:'down',breachable:true,open:false},
+  {id:'hatch-b',label:'배전 해치',kind:'hatch',center:p(1580,1500),width:80,lowerFloor:0,upperFloor:1,oneWay:'down',breachable:true,open:false},
+];
+// 수비 한 명만 상층에서 시작합니다. A/B 필수 앵커 두 명은 지상에 남습니다.
+NAMSAN_MAP.defenderSetups[4]={id:'upper-watch',label:'상층 서계단',position:floorPoint(p(1040,1360),1),fallback:floorPoint(p(1080,1280),1)};
+NAMSAN_MAP.attackerRoutes[5]={id:'upper-west',label:'서계단 → 송출 해치',loopId:'inner-loop',points:[...NAMSAN_MAP.attackerRoutes[0].points.slice(0,4),p(1040,1280),floorPoint(p(1040,1280),1),floorPoint(p(1300,1260),1),p(1300,1260),p(1300,1375)]};
+NAMSAN_MAP.attackerRoutes[6]={id:'upper-east',label:'동계단 → 배전 해치',loopId:'inner-loop',points:[...NAMSAN_MAP.attackerRoutes[2].points.slice(0,4),p(1840,1760),floorPoint(p(1840,1760),1),floorPoint(p(1580,1500),1),p(1580,1500),p(1580,1615)]};
+NAMSAN_MAP.loops[0].routeIds=['upper-west','upper-east'];

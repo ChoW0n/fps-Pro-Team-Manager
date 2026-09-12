@@ -1,0 +1,119 @@
+{
+  "transitions": [
+    {
+      "time": 34.4,
+      "type": "action",
+      "actor": "공격:검사4:AUBERT:4",
+      "side": "공격",
+      "position": {
+        "x": 1080,
+        "y": 1280,
+        "floor": 1
+      },
+      "goal": "floor-changed",
+      "message": "서계단 · 2층",
+      "seenBy": [
+        "공격"
+      ]
+    },
+    {
+      "time": 48.7,
+      "type": "action",
+      "actor": "수비:검사4:성곽:9",
+      "side": "수비",
+      "position": {
+        "x": 1000,
+        "y": 1280
+      },
+      "goal": "floor-changed",
+      "message": "서계단 · 1층",
+      "seenBy": [
+        "공격",
+        "수비"
+      ]
+    },
+    {
+      "time": 59.9,
+      "type": "action",
+      "actor": "공격:검사2:해동:2",
+      "side": "공격",
+      "position": {
+        "x": 1080,
+        "y": 1280,
+        "floor": 1
+      },
+      "goal": "floor-changed",
+      "message": "서계단 · 2층",
+      "seenBy": [
+        "공격"
+      ]
+    },
+    {
+      "time": 61.5,
+      "type": "action",
+      "actor": "공격:검사3:ARBEL:3",
+      "side": "공격",
+      "position": {
+        "x": 1080,
+        "y": 1280,
+        "floor": 1
+      },
+      "goal": "floor-changed",
+      "message": "서계단 · 2층",
+      "seenBy": [
+        "공격"
+      ]
+    },
+    {
+      "time": 63.4,
+      "type": "action",
+      "actor": "공격:검사0:MAGPIE:0",
+      "side": "공격",
+      "position": {
+        "x": 1080,
+        "y": 1280,
+        "floor": 1
+      },
+      "goal": "floor-changed",
+      "message": "서계단 · 2층",
+      "seenBy": [
+        "공격"
+      ]
+    },
+    {
+      "time": 65.9,
+      "type": "action",
+      "actor": "공격:검사1:COLLIER:1",
+      "side": "공격",
+      "position": {
+        "x": 1080,
+        "y": 1280,
+        "floor": 1
+      },
+      "goal": "floor-changed",
+      "message": "서계단 · 2층",
+      "seenBy": [
+        "공격"
+      ]
+    },
+    {
+      "time": 67,
+      "type": "action",
+      "actor": "공격:검사2:해동:2",
+      "side": "공격",
+      "position": {
+        "x": 1300,
+        "y": 1260
+      },
+      "goal": "floor-changed",
+      "message": "송출 해치 · 1층",
+      "seenBy": [
+        "공격",
+        "수비"
+      ]
+    }
+  ],
+  "winner": "수비",
+  "reason": "time-expired",
+  "seconds": 70
+}

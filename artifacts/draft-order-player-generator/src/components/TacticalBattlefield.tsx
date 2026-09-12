@@ -1,3 +1,4 @@
+import { layer } from '../domain/tacticalMaps';
 import { electronic, gadgetPosition, GADGET_LABELS } from '../domain/realtime/gadgetRules';
 import { memo, useId, useMemo, type ReactElement } from 'react';
 import { battlefieldMap, type Fortification } from '../domain/realtime/fortifications';
@@ -151,12 +152,13 @@ export function TacticalBattlefield({ map:baseMap, units, operators, events, tim
   time: number; objective?: BombState; selectedId: string | null; onSelect: (id: string) => void; viewBox?: string; visionUnits?: BattleUnit[]; gadgets?:RealtimeGadget[];breaches?:RealtimeBreach[];fortifications?:Fortification[]; miniature?: boolean;
 }): ReactElement {
   const maskId=useId().replaceAll(':','');
-  const map=useMemo(()=>battlefieldMap(baseMap,breaches,fortifications),[baseMap,breaches,fortifications]);
+  const map=useMemo(()=>layer(battlefieldMap(baseMap,breaches,fortifications),baseMap.viewFloor??0),[baseMap,breaches,fortifications]);
   const smokes=useMemo(()=>gadgets.filter(gadget=>gadget.kind==='smoke'&&time>=gadget.activeAt&&time<gadget.until),[gadgets,time]);
   const sight=useMemo(()=>visionUnits?.map(unit=>({id:unit.id,points:visionPolygon(unit,map,smokes),position:unit.position})),[visionUnits,map,smokes]);
   return <svg className={miniature ? 'battle-mini-map' : 'battlefield'} viewBox={viewBox ?? `0 0 ${map.width} ${map.height}`}
     aria-label={miniature ? '전체 전황 전략 보기' : '인물과 총기가 표시되는 실시간 경기'}>
     <Interior map={map} detail={!miniature && Boolean(viewBox && Number(viewBox.split(' ')[2]) < map.width / 2)} />
+    {(map.stairs??[]).map(stair=><g key={stair.id} transform={`translate(${stair.center.x} ${stair.center.y})`}><rect x={-stair.width/2} y={-stair.width/2} width={stair.width} height={stair.width} fill={stair.open?'#16333D':'#877650'} stroke="#F5D997" strokeWidth="3"/>{stair.kind==='stair'&&[-30,-15,0,15,30].map(y=><path key={y} d={`M-40 ${y} h80`} stroke="#E8D9AD" strokeWidth="3"/>)}<rect x={-stair.width/2} y="-12" width={stair.width} height="24" fill="#101C24"/><text y="5" textAnchor="middle" fill="#FFF0BC" fontSize="14">{stair.label}{stair.kind==='hatch'?' ↓':''}</text></g>)}
     {visionUnits&&<><defs><mask id={maskId}><rect width={map.width} height={map.height} fill="white"/>{sight!.map(unit=><g key={unit.id}><polygon points={unit.points} fill="black"/></g>)}</mask></defs><rect width={map.width} height={map.height} fill="#03080D" opacity=".86" mask={`url(#${maskId})`} pointerEvents="none"/></>}
     {objective?.devicePosition && <g transform={`translate(${objective.devicePosition.x} ${objective.devicePosition.y})`} aria-label="실제 해체 장치 위치">
       <rect x="-12" y="-9" width="24" height="18" rx="2" fill="#242d31" stroke="#FFC53D" strokeWidth="2" />
