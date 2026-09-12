@@ -8,7 +8,7 @@
   "rows": [
     {
       "seed": 3,
-      "ms": 1488,
+      "ms": 1381,
       "duration": 42.8,
       "winner": "공격",
       "reason": "defenders-eliminated",
@@ -28,7 +28,7 @@
     },
     {
       "seed": 11,
-      "ms": 1984,
+      "ms": 1832,
       "duration": 42.8,
       "winner": "공격",
       "reason": "defenders-eliminated",
@@ -48,7 +48,7 @@
     },
     {
       "seed": 23,
-      "ms": 2098,
+      "ms": 1881,
       "duration": 42.8,
       "winner": "공격",
       "reason": "defenders-eliminated",
@@ -68,7 +68,7 @@
     },
     {
       "seed": 41,
-      "ms": 1952,
+      "ms": 1876,
       "duration": 42.8,
       "winner": "공격",
       "reason": "defenders-eliminated",
@@ -88,7 +88,7 @@
     },
     {
       "seed": 51,
-      "ms": 1960,
+      "ms": 1846,
       "duration": 43,
       "winner": "공격",
       "reason": "defenders-eliminated",
@@ -108,7 +108,7 @@
     },
     {
       "seed": 81,
-      "ms": 1991,
+      "ms": 1778,
       "duration": 42.8,
       "winner": "공격",
       "reason": "defenders-eliminated",
@@ -128,7 +128,7 @@
     },
     {
       "seed": 107,
-      "ms": 2188,
+      "ms": 1862,
       "duration": 43,
       "winner": "공격",
       "reason": "defenders-eliminated",
@@ -148,7 +148,7 @@
     },
     {
       "seed": 149,
-      "ms": 1929,
+      "ms": 1894,
       "duration": 42.8,
       "winner": "공격",
       "reason": "defenders-eliminated",

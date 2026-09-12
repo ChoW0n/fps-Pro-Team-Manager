@@ -965,7 +965,7 @@ export class TacticalRealtimeSimulation {
             unit.utility.camera--;unit.action='utility';unit.goal='관측 카메라 설치 · 거점 접근 감시';
             log({time:now,type:'utility',actor:unit.id,position:{...unit.position},message:unit.goal,goal:'camera-deployed',side:unit.side});continue;
           }
-          if(unit.side==='공격'&&seen&&visualContactDuration>.3+(1-skills.utilityPrecision/100)*.7) {
+          if(!preparationLocked&&unit.side==='공격'&&seen&&visualContactDuration>.3+(1-skills.utilityPrecision/100)*.7) {
             const gap=distance(unit.position,seen.position);
             const smoke=unit.utility.smoke>0;
             if(smoke&&gap>200&&!gadgets.some(gadget=>gadget.kind==='smoke'&&(gadget.floor??0)===(unit.floor??0)&&gadget.side===unit.side&&distance(gadget.position,unit.position)<230)) {

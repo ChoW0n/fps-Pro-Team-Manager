@@ -1,0 +1,28 @@
+[
+  {
+    "file": "exec-dd66c254-665a-4ccf-be75-e366ea7276d5.png",
+    "sha256": "b7dfad785c52d7cd9f6002041f4e5ef022c20d79329c82555112608d3a420806",
+    "size": [
+      1774,
+      887
+    ],
+    "mode": "RGB",
+    "bytes": 1780067,
+    "transparentFraction": 0.0,
+    "accepted": false,
+    "reason": "RGB checkerboard baked in; alpha and 512x256 output constraints failed; not integrated"
+  },
+  {
+    "file": "exec-8a1e8e79-74d3-457b-a550-cba829d0fbff.png",
+    "sha256": "4a324758a6928d09d3309bb19145eaf90eeff2374b724de9a3aa22efe02f9fdb",
+    "size": [
+      1774,
+      887
+    ],
+    "mode": "RGB",
+    "bytes": 1928224,
+    "transparentFraction": 0.0,
+    "accepted": false,
+    "reason": "RGB checkerboard baked in; alpha and 512x256 output constraints failed; not integrated"
+  }
+]

@@ -275,7 +275,7 @@ if(fail.length){
 }
 fs.mkdirSync(path.join(__dirname,'../validation'),{recursive:true});
 fs.writeFileSync(path.join(__dirname,'../validation/qa-verify.json'),
-  JSON.stringify({at:new Date().toISOString(),commit:require('node:child_process').execFileSync('git',['rev-parse','HEAD']).toString().trim(),populationSeed,gamesPerGroup:GAMES,executions:inputs.length,map:BREACHLINE_MAP.id,scope:'고정 난수로 생성한 10팀, 원문 150초·5진입로 교차 입력. 현 UI 180초/전체 선택 모집단과 구별. 과거 수치와 동일 입력 아님.',rows},null,2)+'\n');
+  JSON.stringify({at:new Date().toISOString(),commit:require('node:child_process').execFileSync('git',['rev-parse','HEAD']).toString().trim(),populationSeed,engineSha256:require('node:crypto').createHash('sha256').update(fs.readFileSync(path.join(__dirname,R,'realtime/TacticalRealtimeSimulation.ts'))).digest('hex'),gamesPerGroup:GAMES,executions:inputs.length,map:BREACHLINE_MAP.id,scope:'고정 난수로 생성한 10팀, 원문 150초·5진입로 교차 입력. 현 UI 180초/전체 선택 모집단과 구별. 과거 수치와 동일 입력 아님.',rows},null,2)+'\n');
 console.log('\n결과 기록: validation/qa-verify.json');
 const lineups=[],lookup=new Map();
 const intern=value=>{const key=JSON.stringify(value);if(!lookup.has(key)){lookup.set(key,lineups.length);lineups.push(value);}return lookup.get(key);};

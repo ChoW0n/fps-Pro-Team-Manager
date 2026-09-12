@@ -18,13 +18,11 @@
     },
     {
       "name": "분산 3+2는 실제 서로 다른 경로에서 출발하고 중복 경로는 거절",
-      "pass": false,
-      "error": "The expression evaluated to a falsy value:\n\n  assert(snapshot.units[0].position.y===map.attackerRoutes[0].points[0].y&&snapshot.units[4].position.y===map.attackerRoutes[2].points[0].y)\n"
+      "pass": true
     },
     {
       "name": "분산 선발조도 각 진입로로 복귀·합류한 뒤 함께 재진입",
-      "pass": false,
-      "error": "Expected values to be strictly deep-equal:\n+ actual - expected\n\n  [\n+   'preparing',\n    'scouting',\n-   'returning',\n-   'regrouping',\n-   'entering'\n  ]\n"
+      "pass": true
     },
     {
       "name": "reinforce 실제 이동·2초 설치·지형 변경·run/session 일치",
@@ -36,15 +34,13 @@
     },
     {
       "name": "보강은 일반 파쇄를 막고 MEDVED의 4초 관통 장약에는 실제 통로를 내줌",
-      "pass": false,
-      "error": "The expression evaluated to a falsy value:\n\n  assert(start&&done&&done.time-start.time>=3.99)\n"
+      "pass": true
     },
     {
       "name": "실제 탄착 압박·시야 노출 전 발사 금지·원본 지도 보존",
-      "pass": false,
-      "error": "The expression evaluated to a falsy value:\n\n  assert(result.snapshots.some(snapshot=>snapshot.units.some(unit=>(unit.suppression??0)>0)))\n"
+      "pass": true
     }
   ],
-  "passed": 6,
+  "passed": 10,
   "total": 10
 }
