@@ -41,7 +41,24 @@ export function TacticalRoundLive({input,map=NAMSAN_MAP,roundNumber=1,directorSi
     return()=>{stopped=true;fallbackStop?.();workerRef.current?.terminate();workerRef.current=null;};
   },[input,map,directorSide,participants]);
   useEffect(()=>{workerRef.current?.postMessage({type:'controls',controls:{paused,speed}});},[paused,speed]);
-  useEffect(()=>{for(const event of events){const key=`${event.time}:${event.actor}:${event.goal}:${event.type}`;if(heardEvents.current.has(key))continue;heardEvents.current.add(key);playMatchAudio(event);}if(heardEvents.current.size>180)heardEvents.current=new Set([...heardEvents.current].slice(-120));},[events]);
+  useEffect(()=>{
+    const snapshot=tick?.snapshot;if(!snapshot)return;
+    const listener=snapshot.units.find(unit=>unit.id===(focusedId??selectedId)&&unit.side===directorSide)
+      ??snapshot.units.find(unit=>unit.side===directorSide&&unit.alive);
+    for(const event of events){
+      const key=`${event.time}:${event.actor}:${event.goal}:${event.type}`;
+      if(heardEvents.current.has(key))continue;
+      heardEvents.current.add(key);
+      // Consume muted/stale events too, so resume and accelerated playback never replay a backlog.
+      if(paused||speed!==1||tick.time-event.time>.25||!listener)continue;
+      if(event.side!==directorSide&&!event.seenBy?.includes(directorSide))continue;
+      const actor=snapshot.units.find(unit=>unit.id===event.actor);
+      const distance=event.position?Math.hypot(event.position.x-listener.position.x,event.position.y-listener.position.y):0;
+      const pan=event.position?(event.position.x-listener.position.x)/700:0;
+      playMatchAudio(event,actor?.weaponName??'',pan,1/(1+distance/320),Math.max(0,event.time-(tick.time-.1)));
+    }
+    if(heardEvents.current.size>180)heardEvents.current=new Set([...heardEvents.current].slice(-120));
+  },[events,tick,paused,speed,directorSide,focusedId,selectedId]);
   const units=tick?.snapshot.units??[],time=tick?.time??0,own=units.filter(unit=>unit.side===directorSide);
   // 자동 중계 카드도 실제 카메라 선수의 이름·체력·탄약을 표시합니다.
   const viewedId=mode==='broadcast'?focusedId??selectedId:selectedId;

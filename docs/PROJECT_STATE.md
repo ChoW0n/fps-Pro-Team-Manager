@@ -1,3 +1,5 @@
+> 2026-09-12 추가 QA: 총성 oscillator 제거·총기 데이터 연결, 가젯 탑뷰 v4 및 설치 방향 고정. 캐릭터 빈손 3포즈는 검수용 시제품만 추가. 실총 녹음 고증·캐릭터 접점·브라우저 청음은 미완료. 상세: docs/presentation-and-sound-qa-current.md, docs/OPERATOR_SPRITE_GUIDE.md.
+
 # 최신 QA — 연출·사운드·적 접촉 (2026-09-12)
 
 `presentation-and-sound-qa.md`를 현행 `main`의 실제 준비 입력 20시드로 재측정했다. 경기당 사건 2,341개 중 현재 중계 코드가 직접 처리하는 사건은 3.0%이며, 공격팀이 살아 있는 적을 직접 보는 시간은 5.2%다. 숨은 적의 현재 좌표를 공개하지 않고 실제 직접 관측·3초 마지막 목격·실제 소리/정보 접촉으로 적 존재감을 전달하는 후속안을 확정했다. 근거는 `docs/presentation-and-sound-qa-current.md`, `tests/presentation-audit.cjs`, `validation/presentation-audit.json`이다. 스프라이트·오디오 구현과 브라우저 검증은 아직 하지 않았다.

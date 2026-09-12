@@ -15,7 +15,7 @@ export function canvasSize(width:number,height:number,ratio:number):{width:numbe
   return {width:Math.max(1,Math.floor(width*dpr)),height:Math.max(1,Math.floor(height*dpr))};
 }
 const ROOT = `${import.meta.env.BASE_URL}operators/`;
-const DEVICE_ATLAS = `${import.meta.env.BASE_URL}effects/tactical-device-states-v3.png`;
+const DEVICE_ATLAS = `${import.meta.env.BASE_URL}effects/tactical-device-states-v4.png`;
 const EVENT_ATLAS = `${import.meta.env.BASE_URL}effects/tactical-event-effects-v3.png`;
 type Props = { tick: RealtimeTick | null; events: RealtimeEvent[]; map: TacticalMapDefinition; side: OperatorSide; selectedId: string | null; mode: 'broadcast' | 'follow' | 'full'; floor?: number; speed: number; paused: boolean; onSelect: (id: string) => void; playerNames?: ReadonlyMap<string,string>; onFocus?: (id: string | null) => void };
 
@@ -171,11 +171,17 @@ export function BroadcastCanvas(props: Props): ReactElement {
         if(gadget.side!==p.side&&!vision.some(friend=>observer.canObserve(friend,point,map,occluders,time)))continue;
         if(gadget.kind==='smoke'&&time>=gadget.activeAt){visibleSmokes.push(gadget);continue;}
         if(electronic(gadget)){const disabled=(gadget.disabledUntil??0)>time,cell=gadget.kind==='probe'?(disabled?1:0):gadget.kind==='camera'?(disabled?3:2):gadget.kind==='power'?(disabled?5:4):(gadget.charges??0)>0?6:7;
-          if(!deviceSprite(cell,point.x,point.y,46,46,disabled?.52:1)){ctx.fillStyle=disabled?'#697174':'#465D65';ctx.strokeStyle='#A8BBB5';ctx.lineWidth=2;ctx.fillRect(point.x-8,point.y-7,16,14);ctx.strokeRect(point.x-8,point.y-7,16,14);ctx.font='bold 10px sans-serif';ctx.fillStyle='#D7E6DC';ctx.textAlign='center';ctx.fillText(({camera:'C',probe:'P',power:'P',interceptor:'I'} as Record<string,string>)[gadget.kind],point.x,point.y+4);}
+          const wall=gadget.wallId?map.walls.find(w=>w.id===gadget.wallId):undefined;
+          const angle=wall?Math.atan2(wall.to.y-wall.from.y,wall.to.x-wall.from.x):gadget.facing??0;
+          const size=gadget.kind==='probe'?22:gadget.kind==='camera'?26:gadget.kind==='power'?28:30;
+          ctx.save();ctx.translate(point.x,point.y);ctx.rotate(angle);
+          // Contact shadow stays within the footprint; wall-bound devices align to the wall tangent.
+          ctx.fillStyle='#00000038';ctx.fillRect(-size*.32,-size*.2+1,size*.64,size*.4);
+          if(!deviceSprite(cell,0,0,size,size,disabled?.6:1)){ctx.fillStyle=disabled?'#697174':'#465D65';ctx.strokeStyle='#A8BBB5';ctx.lineWidth=2;ctx.fillRect(-8,-7,16,14);ctx.strokeRect(-8,-7,16,14);ctx.font='bold 10px sans-serif';ctx.fillStyle='#D7E6DC';ctx.textAlign='center';ctx.fillText(({camera:'C',probe:'P',power:'P',interceptor:'I'} as Record<string,string>)[gadget.kind],0,4);}ctx.restore();
           if(gadget.side===p.side){label(GADGET_LABELS[gadget.kind]+((gadget.disabledUntil??0)>time?' · 정지':gadget.kind==='interceptor'?` · ${gadget.charges}발`:''),point.x,point.y+18*cssUnit);}continue;
         }
         const projectileCell=({smoke:8,emp:9,grenade:11} as Record<string,number>)[gadget.kind];
-        if(projectileCell!==undefined&&gadget.thrownAt!==undefined&&!deviceSprite(projectileCell,point.x,point.y,34,34)){ctx.beginPath();ctx.arc(point.x,point.y,5,0,Math.PI*2);ctx.fillStyle='#FFC53D';ctx.fill();} else if(projectileCell===undefined) {ctx.beginPath();ctx.arc(point.x,point.y,gadget.kind==='camera'?7:5,0,Math.PI*2);ctx.fillStyle=gadget.kind==='camera'?'#6EA8FF':'#FFC53D';ctx.fill();}
+        if(projectileCell!==undefined&&gadget.thrownAt!==undefined&&!deviceSprite(projectileCell,point.x,point.y,14,14)){ctx.beginPath();ctx.arc(point.x,point.y,5,0,Math.PI*2);ctx.fillStyle='#FFC53D';ctx.fill();} else if(projectileCell===undefined) {ctx.beginPath();ctx.arc(point.x,point.y,gadget.kind==='camera'?7:5,0,Math.PI*2);ctx.fillStyle=gadget.kind==='camera'?'#6EA8FF':'#FFC53D';ctx.fill();}
       }
       const objective=snapshot.objective,device=objective?.devicePosition;
       if(device&&(device.floor??0)===visibleFloor&&(objective.activeUntil||p.side==='공격'||vision.some(friend=>observer.canObserve(friend,device,map,snapshot.gadgets,time)))){ctx.fillStyle='#16272F';ctx.fillRect(device.x-12,device.y-9,24,18);ctx.strokeStyle='#FFC53D';ctx.strokeRect(device.x-12,device.y-9,24,18);ctx.fillStyle='#2FD4C4';ctx.fillRect(device.x-6,device.y-4,9,6);}
