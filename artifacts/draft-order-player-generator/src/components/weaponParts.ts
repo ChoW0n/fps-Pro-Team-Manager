@@ -38,7 +38,7 @@ export function paintWeaponPart(ctx:CanvasRenderingContext2D,name:string,accent?
   line([[-29,-2],[-41,-2],[-41,5]],ink,outline+1);line([[-29,-2],[-41,-2],[-41,5]],edge,.8);
  }else{
   poly(part.stock,polymer);
-  const rear=-part.length;
+  const rear=Math.min(...part.stock.map(([x])=>x));
   box(rear,-2,1.5,7,dark,false);
   if(arFamily){
    poly([[rear+3,-1],[rear+9,-1],[rear+6,1],[rear+3,3]],dark,false);
