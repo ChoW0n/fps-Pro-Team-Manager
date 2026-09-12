@@ -3,6 +3,7 @@ import type { OperatorSide } from '../domain/Operator';
 import { paintMinimalOperator } from './minimalOperator';
 import { TacticalRealtimeSimulation, type RealtimeEvent, type RealtimeTick, type RealtimeUnitState } from '../domain/realtime/TacticalRealtimeSimulation';
 import { battlefieldMap } from '../domain/realtime/fortifications';
+import { electronic, gadgetPosition, GADGET_LABELS } from '../domain/realtime/gadgetRules';
 import { angleDifference } from '../domain/realtime/perception';
 import { cameraViewport, combatCamera, rememberContacts, visionPolygon } from '../domain/realtime/spectatorView';
 import type { TacticalMapDefinition } from '../domain/tacticalMaps';
@@ -130,11 +131,15 @@ export function BroadcastCanvas(props: Props): ReactElement {
         if(!vision.some(friend=>observer.canObserve(friend,portal.center,map,snapshot.gadgets,time)))continue;
         const opened=snapshot.openedPortals?.includes(portal.id);ctx.save();ctx.translate(portal.center.x,portal.center.y);if(portal.axis==='vertical')ctx.rotate(Math.PI/2);ctx.fillStyle=portal.traversal==='window'?(opened?'#A7CDCE33':'#86CEDB88'):'#B7A984';ctx.fillRect(-portal.width/2,-6,portal.width,12);ctx.strokeStyle='#D9E4D8';ctx.lineWidth=2;ctx.strokeRect(-portal.width/2,-8,portal.width,16);if(opened){ctx.beginPath();ctx.moveTo(-portal.width/2,-12);ctx.lineTo(-portal.width/2+8,3);ctx.lineTo(-portal.width/2+15,-8);ctx.stroke();}ctx.restore();
       }
-      for(const gadget of snapshot.gadgets??[]){if(time>=gadget.until)continue;const flight=gadget.from&&gadget.landedAt&&gadget.thrownAt!==undefined?Math.max(0,Math.min(1,(time-gadget.thrownAt)/(gadget.landedAt-gadget.thrownAt))):1;const point=gadget.from?{x:gadget.from.x+(gadget.position.x-gadget.from.x)*flight,y:gadget.from.y+(gadget.position.y-gadget.from.y)*flight}:gadget.position;
+      for(const gadget of snapshot.gadgets??[]){if(time>=gadget.until)continue;const point=gadgetPosition(gadget,time);
         // 연막 자체를 볼 때만 자기 차폐를 제외합니다. 적 선수 판정과 다른 연막·벽은 그대로 유지합니다.
         const occluders=gadget.kind==='smoke'?(snapshot.gadgets??[]).filter(other=>other.id!==gadget.id):snapshot.gadgets;
         if(gadget.side!==p.side&&!vision.some(friend=>observer.canObserve(friend,point,map,occluders,time)))continue;
         if(gadget.kind==='smoke'&&time>=gadget.activeAt){paintSmoke(ctx,smokeTexture,point.x,point.y,gadget.radius,time-gadget.activeAt,gadget.until-gadget.activeAt);continue;}
+        if(electronic(gadget)){ctx.fillStyle=(gadget.disabledUntil??0)>time?'#697174':'#465D65';ctx.strokeStyle='#A8BBB5';ctx.lineWidth=2;ctx.fillRect(point.x-8,point.y-7,16,14);ctx.strokeRect(point.x-8,point.y-7,16,14);
+          ctx.font='bold 10px sans-serif';ctx.fillStyle='#D7E6DC';ctx.textAlign='center';ctx.fillText(({camera:'C',drone:'D',power:'P',interceptor:'I'} as Record<string,string>)[gadget.kind],point.x,point.y+4);
+          if(gadget.side===p.side){ctx.font='10px sans-serif';ctx.fillText(GADGET_LABELS[gadget.kind]+((gadget.disabledUntil??0)>time?' · 정지':gadget.kind==='interceptor'?` · ${gadget.charges}발`:''),point.x,point.y+22);}continue;
+        }
         ctx.beginPath();ctx.arc(point.x,point.y,gadget.kind==='camera'?7:5,0,Math.PI*2);ctx.fillStyle=gadget.kind==='camera'?'#6EA8FF':'#FFC53D';ctx.fill();}
       const objective=snapshot.objective,device=objective?.devicePosition;
       if(device&&(objective.activeUntil||p.side==='공격'||vision.some(friend=>observer.canObserve(friend,device,map,snapshot.gadgets,time)))){ctx.fillStyle='#16272F';ctx.fillRect(device.x-12,device.y-9,24,18);ctx.strokeStyle='#FFC53D';ctx.strokeRect(device.x-12,device.y-9,24,18);ctx.fillStyle='#2FD4C4';ctx.fillRect(device.x-6,device.y-4,9,6);}
@@ -148,7 +153,8 @@ export function BroadcastCanvas(props: Props): ReactElement {
         // 다운은 사망과 다른 실제 상태입니다. 자세별 원화 전에는 명확한 구조 표식을 사용합니다.
         if(unit.downed){ctx.save();ctx.strokeStyle='#FFC53D';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(unit.position.x-5,unit.position.y-23);ctx.lineTo(unit.position.x+5,unit.position.y-23);ctx.moveTo(unit.position.x,unit.position.y-28);ctx.lineTo(unit.position.x,unit.position.y-18);ctx.stroke();if(unit.downed.progress>0){ctx.beginPath();ctx.arc(unit.position.x,unit.position.y,21,-Math.PI/2,-Math.PI/2+Math.PI*2*unit.downed.progress);ctx.stroke();}ctx.restore();}
         if(unit.side===p.side){hitTargets.push({id:unit.id,x:ox+(unit.position.x-camera.x)*scale,y:oy+(unit.position.y-camera.y)*scale});if(unit.id===p.selectedId){ctx.strokeStyle='#FFC53D';ctx.lineWidth=1.5;ctx.beginPath();ctx.arc(unit.position.x,unit.position.y,18,0,Math.PI*2);ctx.stroke();}}
-        if(unit.side===p.side&&!unit.downed&&(unit.suppression??0)>=.4){ctx.fillStyle='#FFC53D';ctx.font='bold 15px sans-serif';ctx.textAlign='center';ctx.fillText('!',unit.position.x,unit.position.y-25);if(unit.id===focusId){ctx.font='10px sans-serif';ctx.fillText('탄착 압박 · 엄폐',unit.position.x,unit.position.y-40);}}
+        if(unit.side===p.side&&!unit.downed&&unit.tacticalWarning){ctx.fillStyle='#FFC53D';ctx.font='bold 15px sans-serif';ctx.textAlign='center';ctx.fillText('!',unit.position.x,unit.position.y-25);if(unit.id===focusId||unit.id===p.selectedId){ctx.font='10px sans-serif';ctx.fillText(unit.tacticalWarning==='long-range'?'장거리 위험 · 우회 판단':'탄착 압박 · 엄폐',unit.position.x,unit.position.y-40);}}
+        if(unit.side===p.side&&(unit.id===focusId||unit.id===p.selectedId)&&['utility','reposition'].includes(unit.action)){ctx.fillStyle='#D8E4DE';ctx.font='10px sans-serif';ctx.textAlign='center';ctx.fillText(unit.goal,unit.position.x,unit.position.y+43);}
         if(p.mode==='full'||unit.id===focusId){ctx.font='10px sans-serif';ctx.textAlign='center';ctx.fillStyle='#EDF2F0';ctx.fillText(unit.callSign,unit.position.x,unit.position.y+29);}
       }
       for(const event of events){const age=time-event.time;if(!['shot','impact','utility'].includes(event.type)||age>Math.max(.65,event.travelSeconds??0)||!event.position||!vision.some(friend=>observer.canObserve(friend,event.position!,map,snapshot.gadgets,time)))continue;

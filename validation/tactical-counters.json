@@ -1,0 +1,38 @@
+{
+  "tests": [
+    {
+      "name": "두 발 요격은 차폐·적대 관계·비행 시간·잔량을 요구",
+      "pass": true
+    },
+    {
+      "name": "EMP는 벽 너머 아군 포함 전자장비를 8초 정지하고 자동 복구",
+      "pass": true
+    },
+    {
+      "name": "요격된 EMP는 전력 노드를 정지시키지 못함",
+      "pass": true
+    },
+    {
+      "name": "30m 고숙련 SMG의 예상 효율이 중숙련 DMR보다 낮으며 거리 낙차는 연속적",
+      "pass": true
+    },
+    {
+      "name": "실제 성곽 전력 설치는 MEDVED를 멈추고 해동 EMP 이후 보강 통로 개방",
+      "pass": true
+    },
+    {
+      "name": "A/B 각각 세 개 실제 입구는 모든 외부 진입로에서 통행 가능",
+      "pass": true
+    },
+    {
+      "name": "SAVELLI는 실제 2초 설치 후 두 발 요격기를 남김",
+      "pass": true
+    },
+    {
+      "name": "이동 드론은 통행 가능한 지형만 이동하고 스냅샷 위치를 보존",
+      "pass": true
+    }
+  ],
+  "passed": 8,
+  "limits": "Deterministic engine checks, not browser play or completed balance calibration."
+}

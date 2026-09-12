@@ -32,9 +32,12 @@ export const WEAPON_HANDLING: Record<string,WeaponHandling> = {
 /** 알려지지 않은 이름은 보수적인 카빈 제어 모델을 사용합니다. */
 export function weaponHandling(name: string): WeaponHandling { return WEAPON_HANDLING[name] ?? carbine; }
 /** 선수 조준·숙련과 멈춰 조준한 시간은 탄퍼짐과 잔여 반동을 줄입니다. */
-export function shotCone(profile: WeaponHandling, control: number, recoil: number, settled: number, exposure=1): number {
+export function shotCone(profile: WeaponHandling, control: number, recoil: number, settled: number, exposure=1, range=0): number {
   const skill=Math.max(0,Math.min(1,control));
-  return profile.cone+(1-skill)*.047+recoil*(1-skill*.65)+Math.max(0,.45-settled)*.06+(1-exposure)*.016;
+  const base=profile.cone+(1-skill)*.047+recoil*(1-skill*.65)+Math.max(0,.45-settled)*.06+(1-exposure)*.016;
+  // 유효 거리 밖의 작은 조준 오차를 연속적으로 확대합니다. AI 예상과 실제 탄도가 같은 식을 씁니다.
+  const over=Math.max(0,range/profile.comfortableDistance-1);
+  return Math.min(.45,base*(1+over*over*(profile.family==='smg'||profile.family==='carbine'?1.5:.35)));
 }
 /** 먼 거리에서는 방아쇠를 끊고 조준을 회복합니다. 발사 속도 상한은 별도로 지킵니다. */
 export function shotInterval(profile: WeaponHandling, range: number, control: number, burst: number): number {

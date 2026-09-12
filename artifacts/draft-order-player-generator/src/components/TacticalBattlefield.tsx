@@ -1,3 +1,4 @@
+import { electronic, gadgetPosition, GADGET_LABELS } from '../domain/realtime/gadgetRules';
 import { memo, useId, useMemo, type ReactElement } from 'react';
 import { battlefieldMap, type Fortification } from '../domain/realtime/fortifications';
 import { visionPolygon } from '../domain/realtime/spectatorView';
@@ -77,13 +78,6 @@ function Soldier({ unit, operator, selected, onSelect, time }: {
        {unit.alive&&<text y="30" textAnchor="middle" className="battle-label">{unit.callSign}</text>}
     </g>
   </g>;
-}
-
-/** 투척 시작·착지 시각에 정의된 가젯 궤적만 그립니다. */
-function gadgetPosition(gadget:RealtimeGadget,time:number):{x:number;y:number} {
-  if(!gadget.from||gadget.thrownAt===undefined||gadget.landedAt===undefined||time>=gadget.landedAt)return gadget.position;
-  const amount=Math.max(0,Math.min(1,(time-gadget.thrownAt)/(gadget.landedAt-gadget.thrownAt)));
-  return {x:gadget.from.x+(gadget.position.x-gadget.from.x)*amount,y:gadget.from.y+(gadget.position.y-gadget.from.y)*amount};
 }
 
 /** 문 폭과 축을 시각 표식의 사각형으로 변환합니다. */
@@ -170,8 +164,8 @@ export function TacticalBattlefield({ map:baseMap, units, operators, events, tim
       <path d="M-5 -9 v-4 h10 v4" fill="none" stroke="#c1c8c5" strokeWidth="2" />
       {!miniature && <text y="-20" textAnchor="middle" className="battle-label">{objective.phase === 'dropped' ? '유실 장치' : objective.phase === 'planting' ? '설치 중' : '해체 장치'}</text>}
     </g>}
-    {gadgets.filter(gadget=>gadget.until>time).map(gadget=><g key={gadget.id} transform={`translate(${gadgetPosition(gadget,time).x} ${gadgetPosition(gadget,time).y})`} aria-label={gadget.kind==='smoke'?'실제 연막':gadget.kind==='camera'?'관측 카메라':'수류탄 신관'}>
-      {gadget.kind==='smoke'&&time>=gadget.activeAt?<g fill="#A7B4B8" opacity=".94"><circle r={gadget.radius} fill="#7C919A"/>{[-1,0,1].map((n,index)=><ellipse key={n} cx={n*gadget.radius*.35} cy={index%2?20:-13} rx={gadget.radius*.65} ry={gadget.radius*.72} opacity=".65"/>)}</g>:gadget.kind==='camera'?<g><path d="M-12 -6 h20 v12 h-20 Z M8 -4 l6 -5 v18 l-6 -5 Z" fill="#53676F" stroke="#9CB0B9" strokeWidth="2"/><circle cx="0" cy="0" r="4" fill="#6EA8FF"/></g>:gadget.kind==='grenade'?<g><circle r="7" fill="#63724B" stroke="#FFC53D" strokeWidth="2"/><circle r="18" fill="none" stroke="#F0873C" strokeWidth="2" strokeDasharray={`${Math.max(0,(gadget.activeAt-time)*70)} 120`}/></g>:null}
+    {gadgets.filter(gadget=>gadget.until>time).map(gadget=><g key={gadget.id} transform={`translate(${gadgetPosition(gadget,time).x} ${gadgetPosition(gadget,time).y})`} aria-label={GADGET_LABELS[gadget.kind]}>
+      {gadget.kind==='smoke'&&time>=gadget.activeAt?<g fill="#A7B4B8" opacity=".94"><circle r={gadget.radius} fill="#7C919A"/>{[-1,0,1].map((n,index)=><ellipse key={n} cx={n*gadget.radius*.35} cy={index%2?20:-13} rx={gadget.radius*.65} ry={gadget.radius*.72} opacity=".65"/>)}</g>:gadget.kind==='camera'?<g><path d="M-12 -6 h20 v12 h-20 Z M8 -4 l6 -5 v18 l-6 -5 Z" fill="#53676F" stroke="#9CB0B9" strokeWidth="2"/><circle cx="0" cy="0" r="4" fill="#6EA8FF"/></g>:gadget.kind==='grenade'?<g><circle r="7" fill="#63724B" stroke="#FFC53D" strokeWidth="2"/><circle r="18" fill="none" stroke="#F0873C" strokeWidth="2" strokeDasharray={`${Math.max(0,(gadget.activeAt-time)*70)} 120`}/></g>:electronic(gadget)?<g opacity={(gadget.disabledUntil??0)>time?.4:1}><rect x="-9" y="-8" width="18" height="16" fill="#465D65" stroke="#A8BBB5"/><text y="24" textAnchor="middle" className="battle-label">{GADGET_LABELS[gadget.kind]}</text></g>:<circle r="7" fill="#83AFAA"/>}
     </g>)}
     {units.map(unit => {
       const operator = operators.get(unit.id);

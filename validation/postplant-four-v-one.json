@@ -6,7 +6,7 @@
       "winner": "공격",
       "reason": "bombs-defused",
       "seconds": 52,
-      "attackerDeaths": 2
+      "attackerDeaths": 3
     },
     {
       "seed": 41,
@@ -20,14 +20,14 @@
       "winner": "공격",
       "reason": "bombs-defused",
       "seconds": 52,
-      "attackerDeaths": 2
+      "attackerDeaths": 3
     },
     {
       "seed": 149,
       "winner": "공격",
       "reason": "bombs-defused",
       "seconds": 52,
-      "attackerDeaths": 2
+      "attackerDeaths": 3
     }
   ]
 }

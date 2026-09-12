@@ -5,19 +5,19 @@ export type PartLoader = (file:string) => HTMLImageElement;
 const MASKED = new Set(['COLLIER','MEDVED','REUSS','MARCHAND','성곽','SAVELLI']);
 
 // 창작 군장의 식별용 조합입니다. 실부대 지급품이나 미구현 가젯 효과를 뜻하지 않습니다.
-const KITS:Record<string,{color:string;pouches:number;pack:number;tool:'shells'|'radio'|'optic'|'probe'|'case'|'charge'|'plate'|'roll'|'coil'|'lamp'}>={
+const KITS:Record<string,{color:string;pouches:number;pack:number;tool:'shells'|'radio'|'optic'|'probe'|'case'|'charge'|'plate'|'roll'|'coil'|'lamp'|'drone'|'battery'|'interceptor'}>={
   MAGPIE:{color:'#706B50',pouches:3,pack:9,tool:'shells'},
   COLLIER:{color:'#39484B',pouches:4,pack:8,tool:'radio'},
-  '해동':{color:'#526052',pouches:3,pack:10,tool:'optic'},
-  ARBEL:{color:'#817858',pouches:2,pack:8,tool:'probe'},
-  AUBERT:{color:'#455360',pouches:2,pack:13,tool:'case'},
+  '해동':{color:'#526052',pouches:3,pack:10,tool:'coil'},
+  ARBEL:{color:'#817858',pouches:2,pack:8,tool:'roll'},
+  AUBERT:{color:'#455360',pouches:2,pack:13,tool:'drone'},
   MEDVED:{color:'#66644C',pouches:3,pack:14,tool:'charge'},
   REUSS:{color:'#46534C',pouches:2,pack:15,tool:'plate'},
   BRANDT:{color:'#56605A',pouches:2,pack:9,tool:'roll'},
   MARCHAND:{color:'#3E4B57',pouches:4,pack:11,tool:'coil'},
   HALLORAN:{color:'#7B795C',pouches:3,pack:12,tool:'roll'},
-  '성곽':{color:'#586352',pouches:3,pack:17,tool:'plate'},
-  SAVELLI:{color:'#434E48',pouches:2,pack:10,tool:'lamp'},
+  '성곽':{color:'#586352',pouches:3,pack:17,tool:'battery'},
+  SAVELLI:{color:'#434E48',pouches:2,pack:10,tool:'interceptor'},
 };
 
 /** 몸체 위에 조끼·파우치·운반 장비를 같은 축척으로 조립합니다. 양쪽 장비는 대칭입니다. */
@@ -37,7 +37,10 @@ function paintKit(ctx:CanvasRenderingContext2D,callSign:string,view:'front'|'bac
   }
   // 어깨 바깥 장비를 남겨 축소된 중계에서도 각 인물의 윤곽이 구별되게 합니다.
   const x=view==='side'?-12:-kit.pack/2-3;
-  if(kit.tool==='plate'){box(x,-16,3,24,'#8B9386');box(x+4,-17,2,23,'#5D6966');}
+  if(kit.tool==='drone'){box(x-3,-13,9,10,'#59666B');for(const y of [-12,-6]){box(x-5,y,2,4,'#252C2B');box(x+6,y,2,4,'#252C2B');}box(x,-11,3,3,'#899B91');}
+  else if(kit.tool==='battery'){box(x-3,-13,9,15,'#65715A');box(x-1,-16,5,3,'#303C37');ctx.beginPath();ctx.moveTo(x+6,-10);ctx.lineTo(x+9,-10);ctx.lineTo(x+9,5);ctx.lineTo(x+3,5);ctx.stroke();}
+  else if(kit.tool==='interceptor'){box(x-2,-16,7,6,'#718078');for(const dx of [0,4])box(x+dx,-9,2,15,'#343E3B');box(x,-18,3,2,'#879991');}
+  else if(kit.tool==='plate'){box(x,-16,3,24,'#8B9386');box(x+4,-17,2,23,'#5D6966');}
   else if(kit.tool==='charge'){for(const dx of [0,4])box(x+dx,-17,3,20,'#90896E');}
   else if(kit.tool==='roll'){box(x-2,-9,6,19,'#8A8970');box(x-2,-4,6,2,'#343E35');}
   else if(kit.tool==='probe'||kit.tool==='radio'){box(x,-12,5,10,'#303C3D');ctx.beginPath();ctx.moveTo(x+2,-12);ctx.lineTo(x+(kit.tool==='probe'?5:2),-24);ctx.stroke();}

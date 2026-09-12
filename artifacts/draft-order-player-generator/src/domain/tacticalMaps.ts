@@ -77,6 +77,7 @@ export interface TacticalSite {
   center: TacticalPoint;
   plantAnchors: TacticalPoint[];
   defendAnchors: TacticalPoint[];
+  approaches?: {id:string;label:string;point:TacticalPoint}[];
 }
 
 export interface TacticalLoop {
@@ -184,11 +185,13 @@ export const BREACHLINE_MAP: TacticalMapDefinition = {
       id: 'A', label: 'A 사이트 · 관제 데이터', roomId: 'objective-a-hall',
       bounds: rect(2360, 1050, 560, 300), center: p(2640, 1200),
       plantAnchors: [p(2480, 1160), p(2750, 1210)], defendAnchors: [p(2460, 1280), p(2820, 1120), p(2700, 1280), p(2350, 1190), p(2900, 1150)],
+      approaches:[{id:'west',label:'서측 아트리움',point:p(2280,1200)},{id:'north',label:'북측 관제문',point:p(2640,1000)},{id:'south',label:'남측 적재문',point:p(2640,1400)}],
     },
     {
       id: 'B', label: 'B 사이트 · 냉각 코어', roomId: 'objective-b-hall',
       bounds: rect(1700, 1460, 500, 360), center: p(1950, 1640),
       plantAnchors: [p(1830, 1580), p(2090, 1720)], defendAnchors: [p(1800, 1760), p(2120, 1510), p(1740, 1680), p(2180, 1660), p(2050, 1870)],
+      approaches:[{id:'north',label:'북측 홀',point:p(1940,1400)},{id:'west',label:'서측 서비스문',point:p(1620,1540)},{id:'east',label:'동측 적재장',point:p(2240,1840)}],
     },
   ],
   loops: [
