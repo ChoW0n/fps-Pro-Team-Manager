@@ -5,7 +5,7 @@ require.extensions['.ts']=compile;require.extensions['.tsx']=compile;
 const {createCanvas}=require('@napi-rs/canvas');
 const root='../artifacts/draft-order-player-generator/src/';
 const {paintBattleMap}=require(root+'components/BroadcastCanvas.tsx');
-const {BREACHLINE_MAP:base}=require(root+'domain/tacticalMaps.ts');
+const {NAMSAN_MAP:base}=require(root+'domain/tacticalMaps.ts');
 const {battlefieldMap}=require(root+'domain/realtime/fortifications.ts');
 const scenes=require('../validation/fortification-scenes.json');
 const canvas=createCanvas(1200,760),context=canvas.getContext('2d');

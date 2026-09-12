@@ -181,7 +181,7 @@ function Home() {
   const [homeTeam]=useState<Team>(interactiveTeams[0]),[awayTeam]=useState<Team>(interactiveTeams[1]);
   useEffect(()=>{scheduleOptionalConsoleValidation();},[]);
   return <main className={`game-shell ${playing?'is-playing':''}`} style={{backgroundImage:`linear-gradient(90deg,#0E11131A,#0E1113BA),url(${import.meta.env.BASE_URL}art/operations-bay.webp)`}}>
-    <nav className="game-nav" aria-label="게임 메뉴"><b>DRAFT ORDER</b><span>북부 연구동 / 폭탄전</span>{playing&&<button onClick={()=>setPlaying(false)}>작전실</button>}</nav>
+    <nav className="game-nav" aria-label="게임 메뉴"><b>DRAFT ORDER</b><span>남산 중계관 / 폭탄전</span>{playing&&<button onClick={()=>setPlaying(false)}>작전실</button>}</nav>
     {playing?<TacticalMatch homeTeam={homeTeam} awayTeam={awayTeam} quick={quick} onBack={()=>setPlaying(false)}/>
       :<GameLobby team={homeTeam} onStart={fast=>{setQuick(fast);setPlaying(true);}}/>}
   </main>;

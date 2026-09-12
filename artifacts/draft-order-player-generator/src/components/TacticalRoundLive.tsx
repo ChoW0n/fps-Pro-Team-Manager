@@ -3,7 +3,7 @@ import type { OperatorSide } from '../domain/Operator';
 import { TacticalRealtimeSimulation, realtimeUnitId, type TacticalDirectorCommand, type RealtimeEvent, type RealtimeTick, type TacticalRealtimeSimulationInput, type TacticalRealtimeResult } from '../domain/realtime/TacticalRealtimeSimulation';
 import { startRoundPlayback } from '../domain/realtime/roundPlayback';
 import { BOMB_RESULT_LABELS } from '../domain/realtime/BombObjective';
-import { BREACHLINE_MAP, type TacticalMapDefinition } from '../domain/tacticalMaps';
+import { NAMSAN_MAP, type TacticalMapDefinition } from '../domain/tacticalMaps';
 import { BroadcastCanvas } from './BroadcastCanvas';
 import { OperatorEmblem } from './OperatorEmblem';
 import { OperatorArt } from './TacticalBattlefield';
@@ -14,7 +14,7 @@ export interface TacticalRoundLiveProps { input:TacticalRealtimeSimulationInput;
 function clock(seconds:number):string { const n=Math.max(0,Math.ceil(seconds));return `${Math.floor(n/60)}:${String(n%60).padStart(2,'0')}`; }
 
 /** 감독은 하나의 경기 중계를 보며 선수 선택·관전 속도와 엔진에 전달할 전술 지시를 조작합니다. */
-export function TacticalRoundLive({input,map=BREACHLINE_MAP,roundNumber=1,directorSide='공격',score=[0,0],onComplete}:TacticalRoundLiveProps):ReactElement {
+export function TacticalRoundLive({input,map=NAMSAN_MAP,roundNumber=1,directorSide='공격',score=[0,0],onComplete}:TacticalRoundLiveProps):ReactElement {
   const complete=useRef(onComplete);complete.current=onComplete;
   const [tick,setTick]=useState<RealtimeTick|null>(null),[events,setEvents]=useState<RealtimeEvent[]>([]),[result,setResult]=useState<TacticalRealtimeResult|null>(null);
   const [selectedId,setSelectedId]=useState<string|null>(null),[mode,setMode]=useState<'broadcast'|'follow'|'full'>('broadcast');

@@ -1,14 +1,14 @@
 import type { OperatorSide } from './Operator';
 import type { Team } from './Team';
 import { availableOperators, completeOperatorDraft, type OperatorSelection } from './operatorDraft';
-import { BREACHLINE_MAP, type TacticalMapDefinition } from './tacticalMaps';
+import { NAMSAN_MAP, type TacticalMapDefinition } from './tacticalMaps';
 import type { TacticalRealtimeResult, TacticalRealtimeSimulationInput } from './realtime/TacticalRealtimeSimulation';
 
 export interface RoundObservation { observer:OperatorSide; entry?:number; site?:'A'|'B'; operators:string[]; smoke:boolean; won:boolean }
 export interface OpponentPlan { entry:number; site:'A'|'B'; attackStyle:NonNullable<TacticalRealtimeSimulationInput['attackStyle']>; defenseStyle:NonNullable<TacticalRealtimeSimulationInput['defenseStyle']>; anticipatedEntry?:number; revision:number }
 
 /** 상대의 확정 작전을 읽지 않고 관측 스냅샷과 공개된 설치 사건만 복기합니다. */
-export function observeRound(result:TacticalRealtimeResult, observer:OperatorSide, map:TacticalMapDefinition=BREACHLINE_MAP):RoundObservation {
+export function observeRound(result:TacticalRealtimeResult, observer:OperatorSide, map:TacticalMapDefinition=NAMSAN_MAP):RoundObservation {
   const operators=new Set<string>();let entry:number|undefined;
   for(const snapshot of result.snapshots) {
     const visible=new Set(snapshot.visibleTo?.[observer]??[]);

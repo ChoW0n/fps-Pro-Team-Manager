@@ -7,7 +7,7 @@ const React=require(app+'/node_modules/react'),{renderToStaticMarkup}=require(ap
 const {combatCamera}=require(app+'/src/domain/realtime/spectatorView.ts');
 const {TacticalBattlefield}=require(app+'/src/components/TacticalBattlefield.tsx');
 const {TacticalRealtimeSimulation,realtimeUnitId}=require(app+'/src/domain/realtime/TacticalRealtimeSimulation.ts');
-const {BREACHLINE_MAP:map}=require(app+'/src/domain/tacticalMaps.ts');
+const {NAMSAN_MAP:map}=require(app+'/src/domain/tacticalMaps.ts');
 const {OPERATORS}=require(app+'/src/domain/Operator.ts'),{Player}=require(app+'/src/domain/Player.ts');
 const side=name=>OPERATORS.filter(o=>o.side===name).slice(0,5).map((operator,index)=>({operator,side:name,teamName:name,player:new Player('검증 선수 '+index,'검증',operator.role,20,75,75,75,75,75,[operator],20,75,65,70,70,70,70)}));
 const input={attackers:side('공격'),defenders:side('수비'),seed:41,maxSeconds:180,scoutPlan:{indices:[0,1],seconds:40,entryRoute:0},defenseStyle:'crossfire',anticipatedEntry:0};

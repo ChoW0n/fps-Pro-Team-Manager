@@ -9,7 +9,7 @@ import { electronic, gadgetActive, GADGET_LABELS, poweredWall, resolveElectronic
 import type { Operator, OperatorSide } from '../Operator';
 import type { Player } from '../Player';
 import type { TacticalMapDefinition, TacticalPoint, TacticalRect } from '../tacticalMaps';
-import { BREACHLINE_MAP } from '../tacticalMaps';
+import { NAMSAN_MAP } from '../tacticalMaps';
 import { breachWalls } from './breachGeometry';
 import type { Fortification } from './fortifications';
 import { weaponHandling, shotCone, shotInterval, estimatedShotQuality, WORLD_UNITS_PER_METRE } from './weaponHandling';
@@ -249,7 +249,7 @@ export class TacticalRealtimeSimulation {
   private readonly navigationLinks = new WeakMap<RealtimeVector[], boolean[][]>();
   private readonly holdingPoints = new WeakMap<TacticalMapDefinition,Map<string,RealtimeVector>>();
   /** 세션의 기준 지형을 보관합니다. */
-  public constructor(map: TacticalMapDefinition = BREACHLINE_MAP) { this.map = map; }
+  public constructor(map: TacticalMapDefinition = NAMSAN_MAP) { this.map = map; }
 
   /** 공격·수비를 서로 다른 진입 전략으로 10Hz 진행하는 틱 제너레이터입니다. */
   public *runTicks(
@@ -387,6 +387,8 @@ export class TacticalRealtimeSimulation {
     const portalReservations = new Map<string, PortalReservation>();
     const openedPortals = new Set<string>();
     let navigationNodes = this.buildNavigationNodes(map);
+    // 문 모서리에서 위협이 다시 보인 직후에는 안전이 잠시 유지되어야 구조 접근을 재개합니다.
+    const rescueRetryAt = new Map<string, number>();
     const scoutDestinations = new Map<string,RealtimeVector[]>(),scoutSweepIndex=new Map<string,number>();
     const scoutUnits=units.filter(unit=>operation.snapshot().scoutIds.includes(unit.id));
     for(const [scoutIndex,unit] of scoutUnits.entries()) {
@@ -712,8 +714,10 @@ export class TacticalRealtimeSimulation {
         const knownDanger=unit.knowledge.lastKnownPosition&&now-(unit.knowledge.lastKnownAt??-Infinity)<3
           &&distance(unit.position,unit.knowledge.lastKnownPosition)<700&&this.hasLineOfSight(unit.position,unit.knowledge.lastKnownPosition,map);
         const nearbyGunfire=recentSound&&this.hasLineOfSight(unit.position,recentSound.source,map);
-        const rescueSafe=!seen&&!nearbyGunfire&&!knownDanger&&(unit.suppression??0)<.2&&!observedGrenade&&!grenadeEscapes.has(unit.id)&&!objectiveUrgent&&!['plant','disable'].includes(unit.action)
+        const rescueSafeNow=!seen&&!nearbyGunfire&&!knownDanger&&(unit.suppression??0)<.2&&!observedGrenade&&!grenadeEscapes.has(unit.id)&&!objectiveUrgent&&!['plant','disable'].includes(unit.action)
           &&now-(unit.lastDamageAt??-Infinity)>.3&&!unit.traversal;
+        if(!rescueSafeNow)rescueRetryAt.set(unit.id,now+.8);
+        const rescueSafe=rescueSafeNow&&now>=(rescueRetryAt.get(unit.id)??0);
         const casualty=rescueSafe?units.filter(friend=>friend.side===unit.side&&friend.alive&&friend.downed&&!rescueClaims.has(friend.id)&&distance(unit.position,friend.position)<280)
           .sort((a,b)=>distance(unit.position,a.position)-distance(unit.position,b.position)||a.id.localeCompare(b.id))
           .find(friend=>distance(unit.position,friend.position)<=INJURY_RULES.reviveRange||this.findPath(unit.position,friend.position,map,navigationNodes).length>0):undefined;
@@ -1046,7 +1050,10 @@ export class TacticalRealtimeSimulation {
           : undefined;
         const operationMoving = Boolean(operationGoal && distance(unit.position,operationGoal)>24);
         const objectiveSite = map.sites.find(site => site.id === objectiveState.siteId) ?? plannedSite;
-        const plantPoint = objectiveSite.plantAnchors[0];
+        const routeOrigin = map.attackerRoutes[unit.routeIndex % map.attackerRoutes.length].points.find(point =>
+          point.x>map.building.x&&point.x<map.building.x+map.building.width&&point.y>map.building.y&&point.y<map.building.y+map.building.height) ?? unit.position;
+        // 두 방의 설치 선택은 자기 진입 방향으로 고정하고 비공개 적 위치는 참고하지 않습니다.
+        const plantPoint = [...objectiveSite.plantAnchors].sort((a,b)=>distance(a,routeOrigin)-distance(b,routeOrigin))[0];
         const guardPoint=guardAssignments.get(unit.id)?.point??objectiveSite.defendAnchors[unit.formationIndex%objectiveSite.defendAnchors.length];
         const guarding=activeDevice&&unit.side==='공격'&&distance(unit.position,guardPoint)<30;
         if(guarding&&!seen&&!lastKnownPosition) {

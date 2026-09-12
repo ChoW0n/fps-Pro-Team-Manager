@@ -2,7 +2,7 @@
 exports.rescueUnderCover = function rescueUnderCover(seed=41) {
   const root='../../artifacts/draft-order-player-generator/src/domain/';
   const {TacticalRealtimeSimulation}=require(root+'realtime/TacticalRealtimeSimulation.ts');
-  const {OPERATORS}=require(root+'Operator.ts'),{Player}=require(root+'Player.ts'),{BREACHLINE_MAP:map}=require(root+'tacticalMaps.ts');
+  const {OPERATORS}=require(root+'Operator.ts'),{Player}=require(root+'Player.ts'),{NAMSAN_MAP:map}=require(root+'tacticalMaps.ts');
   const side=name=>OPERATORS.filter(operator=>operator.side===name).slice(0,2).map((operator,index)=>({operator,side:name,teamName:name,
     player:new Player('구조'+index,'구조'+index,operator.role,20,name==='공격'?(index?95:30):70,75,75,75,75,[operator],20,75,50,70,70,70,70)}));
   class RescueArena extends TacticalRealtimeSimulation {

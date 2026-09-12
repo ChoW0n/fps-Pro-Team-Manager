@@ -11,7 +11,7 @@ import type {
   TacticalRoundResult,
 } from '../domain/TacticalRoundSimulation';
 import type { RealtimeUnitState } from '../domain/realtime/TacticalRealtimeSimulation';
-import { BREACHLINE_MAP, type TacticalMapDefinition, type TacticalPoint } from '../domain/tacticalMaps';
+import { NAMSAN_MAP, type TacticalMapDefinition, type TacticalPoint } from '../domain/tacticalMaps';
 
 const REPLAY_PHASES = ['수색', '브리칭', '교전', '결과'] as const;
 const ROLE_RING_COLORS: Record<Operator['role'], number> = {
@@ -834,12 +834,12 @@ export function TacticalRoundReplay({ result, operators = OPERATORS }: TacticalR
       const width = Math.max(320, host.clientWidth);
       const height = Math.max(220, host.clientHeight);
       application.renderer.resize(width, height);
-      const scale = Math.min(width / BREACHLINE_MAP.width, height / BREACHLINE_MAP.height);
+      const scale = Math.min(width / NAMSAN_MAP.width, height / NAMSAN_MAP.height);
       const world = application.stage.getChildByName('tactical-world') as Container | undefined;
       if (world) {
         world.scale.set(scale);
-        world.x = (width - BREACHLINE_MAP.width * scale) / 2;
-        world.y = (height - BREACHLINE_MAP.height * scale) / 2;
+        world.x = (width - NAMSAN_MAP.width * scale) / 2;
+        world.y = (height - NAMSAN_MAP.height * scale) / 2;
       }
     };
 
@@ -867,7 +867,7 @@ export function TacticalRoundReplay({ result, operators = OPERATORS }: TacticalR
       renderDynamicLayer(
         dynamicState,
         result,
-        BREACHLINE_MAP,
+        NAMSAN_MAP,
         timing,
         playbackRef.current,
         scale,
@@ -899,7 +899,7 @@ export function TacticalRoundReplay({ result, operators = OPERATORS }: TacticalR
       dynamicLayer.name = 'dynamic-layer';
       world.addChild(mapLayer, dynamicLayer);
       application.stage.addChild(world);
-      drawMapLayer(mapLayer, BREACHLINE_MAP, 1);
+      drawMapLayer(mapLayer, NAMSAN_MAP, 1);
       resizeScene();
       const observer = new ResizeObserver(resizeScene);
       observer.observe(host);
@@ -945,7 +945,7 @@ export function TacticalRoundReplay({ result, operators = OPERATORS }: TacticalR
         <div>
           <p className="tactical-eyebrow">LIVE ROUND READOUT / 07</p>
           <h1>소리의 방향이 각도를 바꾼다</h1>
-          <p className="tactical-subtitle">BREACHLINE · 중앙 격벽 · 감독실 중계 시점</p>
+          <p className="tactical-subtitle">남산 중계관 · 송출 시설 · 감독실 중계 시점</p>
         </div>
         <div className={`tactical-live-indicator ${tempo.isSlow ? 'is-slow' : ''}`}>
           <span className={paused ? 'is-paused' : ''} />
@@ -977,7 +977,7 @@ export function TacticalRoundReplay({ result, operators = OPERATORS }: TacticalR
           <div className="tactical-map-heading">
             <div>
               <span className="tactical-panel-label">TACTICAL EYE / {phase}</span>
-              <h2>{BREACHLINE_MAP.name}</h2>
+              <h2>{NAMSAN_MAP.name}</h2>
             </div>
             <span className="tactical-map-readout">
               INFO {(result.informationAmount * 100).toFixed(0)}% · {tempo.label}
