@@ -1,7 +1,8 @@
 // 엔진의 실제 기하로 맵 수정 전후를 측정합니다. 목표 미달을 합격으로 바꾸지 않습니다.
 const fs=require('node:fs');require('./qa-preparation-batch.cjs');
 const root='../artifacts/draft-order-player-generator/src/domain/';
-const {NAMSAN_MAP:map}=require(root+'tacticalMaps.ts');
+const {NAMSAN_MAP,layer}=require(root+'tacticalMaps.ts');
+const map=layer(NAMSAN_MAP,0);
 const {TacticalRealtimeSimulation}=require(root+'realtime/TacticalRealtimeSimulation.ts');
 const engine=new TacticalRealtimeSimulation(),metre=40,points=[];
 // 실내 표본은 방 경계 안이며 실제 몸 반경으로 설 수 있는 지점으로 제한합니다.

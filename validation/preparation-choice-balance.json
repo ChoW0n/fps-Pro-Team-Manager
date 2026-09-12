@@ -1,0 +1,736 @@
+{
+  "scope": "고정 진입로 1개·8시드의 준비 세 축 조합. 전체 밸런스 증명은 아님.",
+  "summary": [
+    {
+      "intel": "direct",
+      "attackStyle": "balanced",
+      "games": 8,
+      "attackWins": 7,
+      "winRate": 0.875,
+      "entered": 8,
+      "averageSeconds": 55.575
+    },
+    {
+      "intel": "direct",
+      "attackStyle": "smoke",
+      "games": 8,
+      "attackWins": 7,
+      "winRate": 0.875,
+      "entered": 8,
+      "averageSeconds": 55.575
+    },
+    {
+      "intel": "direct",
+      "attackStyle": "breach",
+      "games": 8,
+      "attackWins": 7,
+      "winRate": 0.875,
+      "entered": 8,
+      "averageSeconds": 55.575
+    },
+    {
+      "intel": "recon",
+      "attackStyle": "balanced",
+      "games": 8,
+      "attackWins": 8,
+      "winRate": 1,
+      "entered": 8,
+      "averageSeconds": 98.42500000000001
+    },
+    {
+      "intel": "recon",
+      "attackStyle": "smoke",
+      "games": 8,
+      "attackWins": 8,
+      "winRate": 1,
+      "entered": 8,
+      "averageSeconds": 98.42500000000001
+    },
+    {
+      "intel": "recon",
+      "attackStyle": "breach",
+      "games": 8,
+      "attackWins": 8,
+      "winRate": 1,
+      "entered": 8,
+      "averageSeconds": 98.42500000000001
+    },
+    {
+      "intel": "careful",
+      "attackStyle": "balanced",
+      "games": 8,
+      "attackWins": 8,
+      "winRate": 1,
+      "entered": 8,
+      "averageSeconds": 89.63749999999999
+    },
+    {
+      "intel": "careful",
+      "attackStyle": "smoke",
+      "games": 8,
+      "attackWins": 8,
+      "winRate": 1,
+      "entered": 8,
+      "averageSeconds": 89.63749999999999
+    },
+    {
+      "intel": "careful",
+      "attackStyle": "breach",
+      "games": 8,
+      "attackWins": 8,
+      "winRate": 1,
+      "entered": 8,
+      "averageSeconds": 89.63749999999999
+    }
+  ],
+  "rows": [
+    {
+      "intel": "direct",
+      "attackStyle": "balanced",
+      "seed": 1,
+      "winner": "공격",
+      "reason": "defenders-eliminated",
+      "duration": 57.3,
+      "entered": true
+    },
+    {
+      "intel": "direct",
+      "attackStyle": "balanced",
+      "seed": 2,
+      "winner": "공격",
+      "reason": "defenders-eliminated",
+      "duration": 66.1,
+      "entered": true
+    },
+    {
+      "intel": "direct",
+      "attackStyle": "balanced",
+      "seed": 3,
+      "winner": "공격",
+      "reason": "defenders-eliminated",
+      "duration": 45,
+      "entered": true
+    },
+    {
+      "intel": "direct",
+      "attackStyle": "balanced",
+      "seed": 4,
+      "winner": "공격",
+      "reason": "defenders-eliminated",
+      "duration": 62.3,
+      "entered": true
+    },
+    {
+      "intel": "direct",
+      "attackStyle": "balanced",
+      "seed": 5,
+      "winner": "공격",
+      "reason": "defenders-eliminated",
+      "duration": 45.8,
+      "entered": true
+    },
+    {
+      "intel": "direct",
+      "attackStyle": "balanced",
+      "seed": 6,
+      "winner": "공격",
+      "reason": "defenders-eliminated",
+      "duration": 54,
+      "entered": true
+    },
+    {
+      "intel": "direct",
+      "attackStyle": "balanced",
+      "seed": 7,
+      "winner": "공격",
+      "reason": "defenders-eliminated",
+      "duration": 57.3,
+      "entered": true
+    },
+    {
+      "intel": "direct",
+      "attackStyle": "balanced",
+      "seed": 8,
+      "winner": "수비",
+      "reason": "attackers-eliminated",
+      "duration": 56.8,
+      "entered": true
+    },
+    {
+      "intel": "direct",
+      "attackStyle": "smoke",
+      "seed": 1,
+      "winner": "공격",
+      "reason": "defenders-eliminated",
+      "duration": 57.3,
+      "entered": true
+    },
+    {
+      "intel": "direct",
+      "attackStyle": "smoke",
+      "seed": 2,
+      "winner": "공격",
+      "reason": "defenders-eliminated",
+      "duration": 66.1,
+      "entered": true
+    },
+    {
+      "intel": "direct",
+      "attackStyle": "smoke",
+      "seed": 3,
+      "winner": "공격",
+      "reason": "defenders-eliminated",
+      "duration": 45,
+      "entered": true
+    },
+    {
+      "intel": "direct",
+      "attackStyle": "smoke",
+      "seed": 4,
+      "winner": "공격",
+      "reason": "defenders-eliminated",
+      "duration": 62.3,
+      "entered": true
+    },
+    {
+      "intel": "direct",
+      "attackStyle": "smoke",
+      "seed": 5,
+      "winner": "공격",
+      "reason": "defenders-eliminated",
+      "duration": 45.8,
+      "entered": true
+    },
+    {
+      "intel": "direct",
+      "attackStyle": "smoke",
+      "seed": 6,
+      "winner": "공격",
+      "reason": "defenders-eliminated",
+      "duration": 54,
+      "entered": true
+    },
+    {
+      "intel": "direct",
+      "attackStyle": "smoke",
+      "seed": 7,
+      "winner": "공격",
+      "reason": "defenders-eliminated",
+      "duration": 57.3,
+      "entered": true
+    },
+    {
+      "intel": "direct",
+      "attackStyle": "smoke",
+      "seed": 8,
+      "winner": "수비",
+      "reason": "attackers-eliminated",
+      "duration": 56.8,
+      "entered": true
+    },
+    {
+      "intel": "direct",
+      "attackStyle": "breach",
+      "seed": 1,
+      "winner": "공격",
+      "reason": "defenders-eliminated",
+      "duration": 57.3,
+      "entered": true
+    },
+    {
+      "intel": "direct",
+      "attackStyle": "breach",
+      "seed": 2,
+      "winner": "공격",
+      "reason": "defenders-eliminated",
+      "duration": 66.1,
+      "entered": true
+    },
+    {
+      "intel": "direct",
+      "attackStyle": "breach",
+      "seed": 3,
+      "winner": "공격",
+      "reason": "defenders-eliminated",
+      "duration": 45,
+      "entered": true
+    },
+    {
+      "intel": "direct",
+      "attackStyle": "breach",
+      "seed": 4,
+      "winner": "공격",
+      "reason": "defenders-eliminated",
+      "duration": 62.3,
+      "entered": true
+    },
+    {
+      "intel": "direct",
+      "attackStyle": "breach",
+      "seed": 5,
+      "winner": "공격",
+      "reason": "defenders-eliminated",
+      "duration": 45.8,
+      "entered": true
+    },
+    {
+      "intel": "direct",
+      "attackStyle": "breach",
+      "seed": 6,
+      "winner": "공격",
+      "reason": "defenders-eliminated",
+      "duration": 54,
+      "entered": true
+    },
+    {
+      "intel": "direct",
+      "attackStyle": "breach",
+      "seed": 7,
+      "winner": "공격",
+      "reason": "defenders-eliminated",
+      "duration": 57.3,
+      "entered": true
+    },
+    {
+      "intel": "direct",
+      "attackStyle": "breach",
+      "seed": 8,
+      "winner": "수비",
+      "reason": "attackers-eliminated",
+      "duration": 56.8,
+      "entered": true
+    },
+    {
+      "intel": "recon",
+      "attackStyle": "balanced",
+      "seed": 1,
+      "winner": "공격",
+      "reason": "defenders-eliminated",
+      "duration": 90.2,
+      "entered": true
+    },
+    {
+      "intel": "recon",
+      "attackStyle": "balanced",
+      "seed": 2,
+      "winner": "공격",
+      "reason": "defenders-eliminated",
+      "duration": 91.2,
+      "entered": true
+    },
+    {
+      "intel": "recon",
+      "attackStyle": "balanced",
+      "seed": 3,
+      "winner": "공격",
+      "reason": "defenders-eliminated",
+      "duration": 80.8,
+      "entered": true
+    },
+    {
+      "intel": "recon",
+      "attackStyle": "balanced",
+      "seed": 4,
+      "winner": "공격",
+      "reason": "defenders-eliminated",
+      "duration": 84.2,
+      "entered": true
+    },
+    {
+      "intel": "recon",
+      "attackStyle": "balanced",
+      "seed": 5,
+      "winner": "공격",
+      "reason": "defenders-eliminated",
+      "duration": 80,
+      "entered": true
+    },
+    {
+      "intel": "recon",
+      "attackStyle": "balanced",
+      "seed": 6,
+      "winner": "공격",
+      "reason": "defenders-eliminated",
+      "duration": 121.2,
+      "entered": true
+    },
+    {
+      "intel": "recon",
+      "attackStyle": "balanced",
+      "seed": 7,
+      "winner": "공격",
+      "reason": "defenders-eliminated",
+      "duration": 80.2,
+      "entered": true
+    },
+    {
+      "intel": "recon",
+      "attackStyle": "balanced",
+      "seed": 8,
+      "winner": "공격",
+      "reason": "bombs-defused",
+      "duration": 159.6,
+      "entered": true
+    },
+    {
+      "intel": "recon",
+      "attackStyle": "smoke",
+      "seed": 1,
+      "winner": "공격",
+      "reason": "defenders-eliminated",
+      "duration": 90.2,
+      "entered": true
+    },
+    {
+      "intel": "recon",
+      "attackStyle": "smoke",
+      "seed": 2,
+      "winner": "공격",
+      "reason": "defenders-eliminated",
+      "duration": 91.2,
+      "entered": true
+    },
+    {
+      "intel": "recon",
+      "attackStyle": "smoke",
+      "seed": 3,
+      "winner": "공격",
+      "reason": "defenders-eliminated",
+      "duration": 80.8,
+      "entered": true
+    },
+    {
+      "intel": "recon",
+      "attackStyle": "smoke",
+      "seed": 4,
+      "winner": "공격",
+      "reason": "defenders-eliminated",
+      "duration": 84.2,
+      "entered": true
+    },
+    {
+      "intel": "recon",
+      "attackStyle": "smoke",
+      "seed": 5,
+      "winner": "공격",
+      "reason": "defenders-eliminated",
+      "duration": 80,
+      "entered": true
+    },
+    {
+      "intel": "recon",
+      "attackStyle": "smoke",
+      "seed": 6,
+      "winner": "공격",
+      "reason": "defenders-eliminated",
+      "duration": 121.2,
+      "entered": true
+    },
+    {
+      "intel": "recon",
+      "attackStyle": "smoke",
+      "seed": 7,
+      "winner": "공격",
+      "reason": "defenders-eliminated",
+      "duration": 80.2,
+      "entered": true
+    },
+    {
+      "intel": "recon",
+      "attackStyle": "smoke",
+      "seed": 8,
+      "winner": "공격",
+      "reason": "bombs-defused",
+      "duration": 159.6,
+      "entered": true
+    },
+    {
+      "intel": "recon",
+      "attackStyle": "breach",
+      "seed": 1,
+      "winner": "공격",
+      "reason": "defenders-eliminated",
+      "duration": 90.2,
+      "entered": true
+    },
+    {
+      "intel": "recon",
+      "attackStyle": "breach",
+      "seed": 2,
+      "winner": "공격",
+      "reason": "defenders-eliminated",
+      "duration": 91.2,
+      "entered": true
+    },
+    {
+      "intel": "recon",
+      "attackStyle": "breach",
+      "seed": 3,
+      "winner": "공격",
+      "reason": "defenders-eliminated",
+      "duration": 80.8,
+      "entered": true
+    },
+    {
+      "intel": "recon",
+      "attackStyle": "breach",
+      "seed": 4,
+      "winner": "공격",
+      "reason": "defenders-eliminated",
+      "duration": 84.2,
+      "entered": true
+    },
+    {
+      "intel": "recon",
+      "attackStyle": "breach",
+      "seed": 5,
+      "winner": "공격",
+      "reason": "defenders-eliminated",
+      "duration": 80,
+      "entered": true
+    },
+    {
+      "intel": "recon",
+      "attackStyle": "breach",
+      "seed": 6,
+      "winner": "공격",
+      "reason": "defenders-eliminated",
+      "duration": 121.2,
+      "entered": true
+    },
+    {
+      "intel": "recon",
+      "attackStyle": "breach",
+      "seed": 7,
+      "winner": "공격",
+      "reason": "defenders-eliminated",
+      "duration": 80.2,
+      "entered": true
+    },
+    {
+      "intel": "recon",
+      "attackStyle": "breach",
+      "seed": 8,
+      "winner": "공격",
+      "reason": "bombs-defused",
+      "duration": 159.6,
+      "entered": true
+    },
+    {
+      "intel": "careful",
+      "attackStyle": "balanced",
+      "seed": 1,
+      "winner": "공격",
+      "reason": "defenders-eliminated",
+      "duration": 91.6,
+      "entered": true
+    },
+    {
+      "intel": "careful",
+      "attackStyle": "balanced",
+      "seed": 2,
+      "winner": "공격",
+      "reason": "defenders-eliminated",
+      "duration": 91.6,
+      "entered": true
+    },
+    {
+      "intel": "careful",
+      "attackStyle": "balanced",
+      "seed": 3,
+      "winner": "공격",
+      "reason": "defenders-eliminated",
+      "duration": 83,
+      "entered": true
+    },
+    {
+      "intel": "careful",
+      "attackStyle": "balanced",
+      "seed": 4,
+      "winner": "공격",
+      "reason": "defenders-eliminated",
+      "duration": 90,
+      "entered": true
+    },
+    {
+      "intel": "careful",
+      "attackStyle": "balanced",
+      "seed": 5,
+      "winner": "공격",
+      "reason": "defenders-eliminated",
+      "duration": 91.6,
+      "entered": true
+    },
+    {
+      "intel": "careful",
+      "attackStyle": "balanced",
+      "seed": 6,
+      "winner": "공격",
+      "reason": "defenders-eliminated",
+      "duration": 93.8,
+      "entered": true
+    },
+    {
+      "intel": "careful",
+      "attackStyle": "balanced",
+      "seed": 7,
+      "winner": "공격",
+      "reason": "defenders-eliminated",
+      "duration": 90,
+      "entered": true
+    },
+    {
+      "intel": "careful",
+      "attackStyle": "balanced",
+      "seed": 8,
+      "winner": "공격",
+      "reason": "defenders-eliminated",
+      "duration": 85.5,
+      "entered": true
+    },
+    {
+      "intel": "careful",
+      "attackStyle": "smoke",
+      "seed": 1,
+      "winner": "공격",
+      "reason": "defenders-eliminated",
+      "duration": 91.6,
+      "entered": true
+    },
+    {
+      "intel": "careful",
+      "attackStyle": "smoke",
+      "seed": 2,
+      "winner": "공격",
+      "reason": "defenders-eliminated",
+      "duration": 91.6,
+      "entered": true
+    },
+    {
+      "intel": "careful",
+      "attackStyle": "smoke",
+      "seed": 3,
+      "winner": "공격",
+      "reason": "defenders-eliminated",
+      "duration": 83,
+      "entered": true
+    },
+    {
+      "intel": "careful",
+      "attackStyle": "smoke",
+      "seed": 4,
+      "winner": "공격",
+      "reason": "defenders-eliminated",
+      "duration": 90,
+      "entered": true
+    },
+    {
+      "intel": "careful",
+      "attackStyle": "smoke",
+      "seed": 5,
+      "winner": "공격",
+      "reason": "defenders-eliminated",
+      "duration": 91.6,
+      "entered": true
+    },
+    {
+      "intel": "careful",
+      "attackStyle": "smoke",
+      "seed": 6,
+      "winner": "공격",
+      "reason": "defenders-eliminated",
+      "duration": 93.8,
+      "entered": true
+    },
+    {
+      "intel": "careful",
+      "attackStyle": "smoke",
+      "seed": 7,
+      "winner": "공격",
+      "reason": "defenders-eliminated",
+      "duration": 90,
+      "entered": true
+    },
+    {
+      "intel": "careful",
+      "attackStyle": "smoke",
+      "seed": 8,
+      "winner": "공격",
+      "reason": "defenders-eliminated",
+      "duration": 85.5,
+      "entered": true
+    },
+    {
+      "intel": "careful",
+      "attackStyle": "breach",
+      "seed": 1,
+      "winner": "공격",
+      "reason": "defenders-eliminated",
+      "duration": 91.6,
+      "entered": true
+    },
+    {
+      "intel": "careful",
+      "attackStyle": "breach",
+      "seed": 2,
+      "winner": "공격",
+      "reason": "defenders-eliminated",
+      "duration": 91.6,
+      "entered": true
+    },
+    {
+      "intel": "careful",
+      "attackStyle": "breach",
+      "seed": 3,
+      "winner": "공격",
+      "reason": "defenders-eliminated",
+      "duration": 83,
+      "entered": true
+    },
+    {
+      "intel": "careful",
+      "attackStyle": "breach",
+      "seed": 4,
+      "winner": "공격",
+      "reason": "defenders-eliminated",
+      "duration": 90,
+      "entered": true
+    },
+    {
+      "intel": "careful",
+      "attackStyle": "breach",
+      "seed": 5,
+      "winner": "공격",
+      "reason": "defenders-eliminated",
+      "duration": 91.6,
+      "entered": true
+    },
+    {
+      "intel": "careful",
+      "attackStyle": "breach",
+      "seed": 6,
+      "winner": "공격",
+      "reason": "defenders-eliminated",
+      "duration": 93.8,
+      "entered": true
+    },
+    {
+      "intel": "careful",
+      "attackStyle": "breach",
+      "seed": 7,
+      "winner": "공격",
+      "reason": "defenders-eliminated",
+      "duration": 90,
+      "entered": true
+    },
+    {
+      "intel": "careful",
+      "attackStyle": "breach",
+      "seed": 8,
+      "winner": "공격",
+      "reason": "defenders-eliminated",
+      "duration": 85.5,
+      "entered": true
+    }
+  ]
+}

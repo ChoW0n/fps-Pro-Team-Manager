@@ -1,6 +1,6 @@
 import { FOCUS_HALF_ANGLE, PERIPHERAL_HALF_ANGLE, angleDifference, sightRange } from './perception';
 import type { OperatorSide } from '../Operator';
-import type { TacticalMapDefinition, TacticalPoint } from '../tacticalMaps';
+import { layer, type TacticalMapDefinition, type TacticalPoint } from '../tacticalMaps';
 import type { RealtimeEvent, RealtimeGadget, RealtimeUnitState } from './TacticalRealtimeSimulation';
 
 export type ObservedContact = { position: TacticalPoint; seenAt: number };
@@ -46,6 +46,8 @@ export function cameraViewport(map: Pick<TacticalMapDefinition, 'width' | 'heigh
 
 /** 시야 마스크의 광선은 벽·엄폐물 앞에서 끝납니다. 관측 범위는 AI와 같은 전방·주변 식별 범위를 사용합니다. */
 export function visionPolygon(unit: RealtimeUnitState, map: TacticalMapDefinition, smokes:readonly RealtimeGadget[]=[]): string {
+  map=layer(map,unit.floor??unit.position.floor??0);
+  smokes=smokes.filter(smoke=>(smoke.floor??smoke.position.floor??0)===(unit.floor??unit.position.floor??0));
   const segments=map.walls.filter(wall=>wall.kind!=='door-gap').map(wall=>[wall.from,wall.to]);
   for(const cover of map.covers) {
     const r=cover.rect,p=[{x:r.x,y:r.y},{x:r.x+r.width,y:r.y},{x:r.x+r.width,y:r.y+r.height},{x:r.x,y:r.y+r.height}];

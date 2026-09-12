@@ -8,7 +8,7 @@ const {operatorVisual,operatorStateVisual,muzzlePosition}=require(root+'/src/dom
 function check(callSign,locomotion='walk'){
   const unit={callSign,alive:true,action:'approach',locomotion,velocity:{x:30,y:0},facing:0,position:{x:100,y:200},reloadRemaining:0};
   const rate=locomotion==='crouch'?3:4;
-  const original=JSON.stringify(unit),muzzle=muzzlePosition(callSign,unit.position,unit.facing);
+  const original=JSON.stringify(unit),muzzle=muzzlePosition(OPERATORS.find(operator=>operator.callSign===callSign).firearms[0],unit.position,unit.facing);
   const frames=Array.from({length:4},(_,index)=>operatorStateVisual(unit,index/rate+.00001));
   assert.equal(new Set(frames.map(frame=>JSON.stringify(frame.region))).size,4);
   assert(frames.every(frame=>frame.sprite===frames[0].sprite));
@@ -19,7 +19,7 @@ function check(callSign,locomotion='walk'){
   }
   assert.equal(operatorStateVisual(unit,NaN),operatorVisual(callSign));
   assert(!operatorStateVisual({...unit,downed:{mode:'stabilize'}},.5).sprite.includes('-walk-'));
-  assert.deepEqual(muzzlePosition(callSign,unit.position,unit.facing),muzzle);
+  assert.deepEqual(muzzlePosition(OPERATORS.find(operator=>operator.callSign===callSign).firearms[0],unit.position,unit.facing),muzzle);
   assert.equal(JSON.stringify(unit),original,'표현은 입력·난수·물리 상태를 변경하지 않습니다');
   return {callSign,action:locomotion,frames:frames.length,sprite:frames[0].sprite};
 }

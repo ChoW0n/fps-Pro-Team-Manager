@@ -1,0 +1,208 @@
+{
+  "games": 20,
+  "averageSeconds": 65.38499999999999,
+  "headRate": 0.08373590982286634,
+  "maxKills": 4,
+  "rows": [
+    {
+      "seed": 1,
+      "seconds": 57.3,
+      "shots": 41,
+      "impacts": 40,
+      "heads": 4,
+      "headRate": 0.1,
+      "maxKills": 2,
+      "winner": "공격"
+    },
+    {
+      "seed": 2,
+      "seconds": 66.1,
+      "shots": 36,
+      "impacts": 36,
+      "heads": 1,
+      "headRate": 0.027777777777777776,
+      "maxKills": 3,
+      "winner": "공격"
+    },
+    {
+      "seed": 3,
+      "seconds": 45,
+      "shots": 27,
+      "impacts": 24,
+      "heads": 2,
+      "headRate": 0.08333333333333333,
+      "maxKills": 3,
+      "winner": "공격"
+    },
+    {
+      "seed": 4,
+      "seconds": 62.3,
+      "shots": 44,
+      "impacts": 42,
+      "heads": 5,
+      "headRate": 0.11904761904761904,
+      "maxKills": 3,
+      "winner": "공격"
+    },
+    {
+      "seed": 5,
+      "seconds": 45.8,
+      "shots": 23,
+      "impacts": 20,
+      "heads": 3,
+      "headRate": 0.15,
+      "maxKills": 3,
+      "winner": "공격"
+    },
+    {
+      "seed": 6,
+      "seconds": 54,
+      "shots": 39,
+      "impacts": 35,
+      "heads": 1,
+      "headRate": 0.02857142857142857,
+      "maxKills": 2,
+      "winner": "공격"
+    },
+    {
+      "seed": 7,
+      "seconds": 57.3,
+      "shots": 44,
+      "impacts": 40,
+      "heads": 3,
+      "headRate": 0.075,
+      "maxKills": 4,
+      "winner": "공격"
+    },
+    {
+      "seed": 8,
+      "seconds": 56.8,
+      "shots": 43,
+      "impacts": 36,
+      "heads": 2,
+      "headRate": 0.05555555555555555,
+      "maxKills": 2,
+      "winner": "수비"
+    },
+    {
+      "seed": 9,
+      "seconds": 44.3,
+      "shots": 26,
+      "impacts": 23,
+      "heads": 1,
+      "headRate": 0.043478260869565216,
+      "maxKills": 3,
+      "winner": "공격"
+    },
+    {
+      "seed": 10,
+      "seconds": 67.3,
+      "shots": 36,
+      "impacts": 32,
+      "heads": 2,
+      "headRate": 0.0625,
+      "maxKills": 2,
+      "winner": "공격"
+    },
+    {
+      "seed": 11,
+      "seconds": 110.1,
+      "shots": 19,
+      "impacts": 18,
+      "heads": 1,
+      "headRate": 0.05555555555555555,
+      "maxKills": 4,
+      "winner": "공격"
+    },
+    {
+      "seed": 12,
+      "seconds": 69.5,
+      "shots": 35,
+      "impacts": 34,
+      "heads": 5,
+      "headRate": 0.14705882352941177,
+      "maxKills": 3,
+      "winner": "공격"
+    },
+    {
+      "seed": 13,
+      "seconds": 50.3,
+      "shots": 34,
+      "impacts": 31,
+      "heads": 4,
+      "headRate": 0.12903225806451613,
+      "maxKills": 2,
+      "winner": "공격"
+    },
+    {
+      "seed": 14,
+      "seconds": 110.1,
+      "shots": 19,
+      "impacts": 17,
+      "heads": 2,
+      "headRate": 0.11764705882352941,
+      "maxKills": 4,
+      "winner": "공격"
+    },
+    {
+      "seed": 15,
+      "seconds": 66.1,
+      "shots": 36,
+      "impacts": 36,
+      "heads": 3,
+      "headRate": 0.08333333333333333,
+      "maxKills": 3,
+      "winner": "공격"
+    },
+    {
+      "seed": 16,
+      "seconds": 57.3,
+      "shots": 37,
+      "impacts": 34,
+      "heads": 4,
+      "headRate": 0.11764705882352941,
+      "maxKills": 4,
+      "winner": "공격"
+    },
+    {
+      "seed": 17,
+      "seconds": 68.5,
+      "shots": 38,
+      "impacts": 36,
+      "heads": 3,
+      "headRate": 0.08333333333333333,
+      "maxKills": 3,
+      "winner": "공격"
+    },
+    {
+      "seed": 18,
+      "seconds": 63.7,
+      "shots": 41,
+      "impacts": 35,
+      "heads": 2,
+      "headRate": 0.05714285714285714,
+      "maxKills": 1,
+      "winner": "공격"
+    },
+    {
+      "seed": 19,
+      "seconds": 51.8,
+      "shots": 28,
+      "impacts": 27,
+      "heads": 1,
+      "headRate": 0.037037037037037035,
+      "maxKills": 1,
+      "winner": "공격"
+    },
+    {
+      "seed": 20,
+      "seconds": 104.1,
+      "shots": 28,
+      "impacts": 25,
+      "heads": 3,
+      "headRate": 0.12,
+      "maxKills": 2,
+      "winner": "공격"
+    }
+  ]
+}

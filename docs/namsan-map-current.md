@@ -37,15 +37,19 @@
 
 원시 근거: `validation/namsan-map-contract.json`, `validation/namsan-level-design.json`, `validation/namsan-suites.json`, `validation/namsan-ai-audit.json`. 타입 검사와 프로덕션 빌드 통과. 15개 기존 스위트 모두 통과했고 최종 결과 JSON에 남겼다. 최종 스폰 1개 조정 후에는 영향받는 4개 스위트와 지도 계약·배치를 다시 검사했다.
 
-`validation/namsan-map-review.png`는 게임의 공통 Canvas 지도 렌더러를 Skia에서 실행한 정적 출력이며 브라우저 플레이 캡처가 아니다. 재생성은 `REVIEW_FONT`에 한글 글꼴 경로를 지정하고 `node tests/render-map-review.cjs`를 실행한다. 검토 출력은 Google Fonts의 Noto Sans KR로 확인했다.
+`validation/namsan-map-1f.png`와 `validation/namsan-map-2f.png`는 게임의 공통 Canvas 지도 렌더러를 Skia에서 실행한 정적 출력이며 브라우저 플레이 캡처가 아니다. 재생성은 `REVIEW_FONT`에 한글 글꼴 경로를 지정하고 `node tests/render-map-review.cjs`를 실행한다. 검토 출력은 Google Fonts의 Noto Sans KR로 확인했다.
+
+## 완료한 확장
+
+- 2층 16개 방, 서·동 계단, 송출·배전의 아래방향 해치를 추가했다. 같은 좌표라도 층이 다르면 이동·일반 관측·가젯 효과가 섞이지 않는다. 열린 해치 안에서만 위→아래 관측·사격이 가능하다.
+- 해치는 2초, 보강 해치는 MEDVED 장약 1개와 4초로 개방한다. 팀 보강 자원 6개는 준비 화면에서 배분하거나 경기 중 공용 보강으로 사용한다.
+- 준비·관전 지도는 층을 전환해 보고 계단·해치 상태를 표시한다. 남산 전망탑과 중계관 외관 원화는 준비 화면 장소 소개에 연결했다.
+- `vertical-combat`, `vertical-map-contract`, `vertical-routes`가 층 차단·보강·두 상층 경로의 상행→해치 개방·하강→설치를 실제 엔진에서 검사한다.
 
 ## 아직 미완료
 
-- 2층, 두 계단, 수직 해치, 층별 관측/이동 차단과 층간 사격.
-- 팀 보강 자원 배분 및 해치 보강. 현재 공용 보강/성곽/MEDVED 동작은 유지한다.
-- 랜드마크 실루엣·고유 가구·주변 산책로 등 최종 아트. 현재 반복 가구는 전술 블록아웃이다.
-- 연속 공간/다양한 선수 모집단에서의 밸런스와 브라우저 경기 진입 실검증.
+- 연속 공간/다양한 선수 모집단의 장기 밸런스와 브라우저 경기 진입 실검증.
 
 개인 `game-simulation-qa`에는 지도 교체 때의 경로·표본 정의·양쪽 방 실제 설치·검사 이전 절차를 보완했다. 이번 지도 좌표는 스킬에 넣지 않았다.
 
-다음 추천: 2층/계단/해치의 이동·차단 계약을 먼저 구현한 뒤 랜드마크 아트를 적용한다. 보강 자원과 층간 사격은 기존 단계 순서를 유지한다.
+다음 추천: 브라우저에서 준비 화면의 세 선택과 경기 진입을 직접 확인하고, 다양한 선수 모집단에서 장기 밸런스를 측정한다.

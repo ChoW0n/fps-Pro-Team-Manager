@@ -2,7 +2,8 @@
 const assert=require('node:assert/strict'),fs=require('node:fs');
 require('./qa-preparation-batch.cjs');
 const root='../artifacts/draft-order-player-generator/src/domain/';
-const {NAMSAN_MAP:map}=require(root+'tacticalMaps.ts');
+const {NAMSAN_MAP,layer}=require(root+'tacticalMaps.ts');
+const map=layer(NAMSAN_MAP,0);
 const {TacticalRealtimeSimulation}=require(root+'realtime/TacticalRealtimeSimulation.ts');
 const engine=new TacticalRealtimeSimulation(),nodes=engine.buildNavigationNodes(map),inside=(p,r)=>p.x>r.x&&p.x<r.x+r.width&&p.y>r.y&&p.y<r.y+r.height;
 const rooms=map.rooms.filter(r=>r.kind!=='yard'),points=[];
@@ -36,7 +37,7 @@ function reachable(start,goal,excluded){const seen=new Set([start]),queue=[start
 assert(reachable(map.sites[0].roomIds[0],map.sites[1].roomIds[0],new Set([map.sites[0].roomIds[1],map.sites[1].roomIds[1]])));
 assert(reachable(map.sites[0].roomIds[1],map.sites[1].roomIds[1],new Set([map.sites[0].roomIds[0],map.sites[1].roomIds[0]])));
 assert(map.portals.filter(p=>p.traversal==='crawl').length>=2);
-const report={map:map.id,indoorAreaMetres:rooms.reduce((sum,r)=>sum+r.rect.width*r.rect.height/1600,0),rooms:rooms.length,gridStep:40,standableSamples:points.length,lineOfSight:{longestMetres:longest,openPairs:open,over25mPairs:over},spawnIndoorSightLines:0,sites:siteRows,interiorRotations:2,crawlPortals:map.portals.filter(p=>p.traversal==='crawl').length,pending:['2층·계단·수직 해치','팀 보강 자원 배분','층간 교전']};
+const report={map:map.id,indoorAreaMetres:rooms.reduce((sum,r)=>sum+r.rect.width*r.rect.height/1600,0),rooms:rooms.length,gridStep:40,standableSamples:points.length,lineOfSight:{longestMetres:longest,openPairs:open,over25mPairs:over},spawnIndoorSightLines:0,sites:siteRows,interiorRotations:2,crawlPortals:map.portals.filter(p=>p.traversal==='crawl').length,floor:0};
 fs.writeFileSync('validation/namsan-map-contract.json',JSON.stringify(report,null,2)+'\n');console.log(JSON.stringify(report));
 // 방 이름만 둘로 나뉜 것이 아니라 실제 운반자가 양쪽 방에 각각 설치할 수 있어야 합니다.
 const {fixture}=require('./qa-preparation-batch.cjs');

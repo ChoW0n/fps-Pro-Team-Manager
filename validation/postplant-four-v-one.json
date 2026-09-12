@@ -4,30 +4,30 @@
     {
       "seed": 11,
       "winner": "공격",
-      "reason": "bombs-defused",
-      "seconds": 52,
-      "attackerDeaths": 3
+      "reason": "defenders-eliminated",
+      "seconds": 41.3,
+      "attackerDeaths": 0
     },
     {
       "seed": 41,
       "winner": "공격",
-      "reason": "bombs-defused",
-      "seconds": 52,
-      "attackerDeaths": 2
+      "reason": "defenders-eliminated",
+      "seconds": 41.3,
+      "attackerDeaths": 0
     },
     {
       "seed": 81,
       "winner": "공격",
-      "reason": "bombs-defused",
-      "seconds": 52,
-      "attackerDeaths": 3
+      "reason": "defenders-eliminated",
+      "seconds": 41.3,
+      "attackerDeaths": 0
     },
     {
       "seed": 149,
       "winner": "공격",
-      "reason": "bombs-defused",
-      "seconds": 52,
-      "attackerDeaths": 3
+      "reason": "defenders-eliminated",
+      "seconds": 41.3,
+      "attackerDeaths": 0
     }
   ]
 }

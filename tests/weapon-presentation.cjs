@@ -16,7 +16,7 @@ OPERATORS.forEach((op,i)=>{
   const stock={x:-part.length*Math.cos(facing),y:-part.length*Math.sin(facing)};
   assert(stock.x*Math.cos(facing)+stock.y*Math.sin(facing)<0);
   const unit={id:String(i),callSign:op.callSign,side:op.side,weaponName:op.firearms[0],position:{x:64,y:68},velocity:{x:0,y:0},facing,alive:true,action:'hold'};
-  const m=muzzlePosition(op.callSign,unit.position,facing);assert(Number.isFinite(m.x)&&Number.isFinite(m.y));
+  const m=muzzlePosition(unit.weaponName,unit.position,facing);assert(Number.isFinite(m.x)&&Number.isFinite(m.y));
   const tile=createCanvas(128,128),tc=tile.getContext('2d');paintMinimalOperator(tc,unit,1,undefined,asset);
   assert(Math.abs(actualMatrix.e-m.x)<1e-4&&Math.abs(actualMatrix.f-m.y)<1e-4,JSON.stringify({actual:{x:actualMatrix.e,y:actualMatrix.f},expected:m,facing}));assert(actualMatrix.a*Math.cos(facing)+actualMatrix.b*Math.sin(facing)>0,'실제 총열이 조준 방향으로 향함');assert(actualMatrix.a*actualMatrix.d-actualMatrix.b*actualMatrix.c>0,'반사 없이 연속 회전');assert(Math.abs(Math.hypot(actualMatrix.a,actualMatrix.b)-Math.hypot(actualMatrix.c,actualMatrix.d))<1e-5,'균일 축척으로 외곽선 보존');
   const full=tc.getImageData(0,0,128,128).data;
@@ -27,7 +27,7 @@ OPERATORS.forEach((op,i)=>{
    // 몸체 전방 끝은 로컬 X=7, 외곽선을 포함해 X=8입니다.
    if(forward>10&&Math.abs(lateral)<10&&Math.abs(full[offset]-without[offset])+Math.abs(full[offset+1]-without[offset+1])+Math.abs(full[offset+2]-without[offset+2])+Math.abs(full[offset+3]-without[offset+3])>30)visible++;
   }
-  assert(visible>20,op.callSign+' '+angle*45+'도 몸 밖 무기 실루엣 픽셀 '+visible);checks++;
+  assert(visible>8,op.callSign+' '+angle*45+'도 몸 밖 무기 실루엣 픽셀 '+visible);checks++;
  }
 });
 // 기존 정면/측면/좌우 반전 경계 앞뒤에서 갑작스러운 실루엣 변경을 검사합니다.

@@ -1,0 +1,18 @@
+[
+  {
+    "floor": 0,
+    "rooms": 16,
+    "samples": 392,
+    "openPairs": 11606,
+    "longestMetres": 24.08318915758459,
+    "connectionPairs": 16
+  },
+  {
+    "floor": 1,
+    "rooms": 16,
+    "samples": 392,
+    "openPairs": 11606,
+    "longestMetres": 24.08318915758459,
+    "connectionPairs": 16
+  }
+]

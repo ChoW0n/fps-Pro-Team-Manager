@@ -45,9 +45,9 @@ if(process.argv[2]){
     if(visual.portrait)assert(fs.statSync(root+'/public/operators/'+visual.portrait).size>0);
     assert.equal(operatorPoseVisual(operator.callSign,false),visual);
     if(operator.callSign!=='COLLIER')assert.equal(operatorPoseVisual(operator.callSign,true),visual,'다른 인물의 다운 원화를 빌려 쓰지 않습니다');
-    const before=muzzlePosition(operator.callSign,{x:100,y:200},.73);
+    const before=muzzlePosition(operator.firearms[0],{x:100,y:200},.73);
     operatorPoseVisual(operator.callSign,true);
-    assert.deepEqual(muzzlePosition(operator.callSign,{x:100,y:200},.73),before,'표현 변경이 발사 원점을 바꾸면 안 됩니다');
+    assert.deepEqual(muzzlePosition(operator.firearms[0],{x:100,y:200},.73),before,'표현 변경이 발사 원점을 바꾸면 안 됩니다');
     return {callSign:operator.callSign,weapon:operator.firearms[0],sprite,animationPackComplete:false};
   });
   const downed=checkSprite(operatorPoseVisual('COLLIER',true));

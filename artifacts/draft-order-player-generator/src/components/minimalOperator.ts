@@ -65,7 +65,7 @@ export function paintMinimalOperator(ctx:CanvasRenderingContext2D,unit:RealtimeU
   const moving=Math.hypot(unit.velocity.x,unit.velocity.y)>1&&unit.alive;
   const step=!reducedMotion&&moving&&!down?Math.sin(time*(unit.locomotion==='sprint'?15:10)):0;
   const age=shotAt===undefined?1:time-shotAt,kick=!reducedMotion&&age>0&&age<.14?Math.sin(age/.14*Math.PI)*1.2:0;
-  const muzzle=muzzlePosition(unit.callSign,unit.position,unit.facing),c=Math.cos(unit.facing),s=Math.sin(unit.facing);
+  const muzzle=muzzlePosition(unit.weaponName??'',unit.position,unit.facing),c=Math.cos(unit.facing),s=Math.sin(unit.facing);
   const dx=muzzle.x-unit.position.x,dy=muzzle.y-unit.position.y;
   const tip={x:dx*c+dy*s,y:-dx*s+dy*c};
   const ink='#10191C',shade='#29373A',light='#859080',outline=2;
@@ -104,25 +104,28 @@ export function paintMinimalOperator(ctx:CanvasRenderingContext2D,unit:RealtimeU
     const workHand={x:support[0]+(part.magazinePoint[0]-support[0])*reach,y:support[1]+(part.magazinePoint[1]-support[1])*reach};
     const hands=gunStowed?[]:[{x:tip.x+(grip[0]-kick),y:tip.y+grip[1]},{x:tip.x+(workHand.x-kick),y:tip.y+workHand.y}];
     // 팔꿈치를 가진 두 구간으로 연결합니다. 투척에서도 팔 길이를 확대하지 않습니다.
-    const arm=(side:number,elbow:{x:number;y:number},hand:{x:number;y:number})=>{
-      ctx.strokeStyle=ink;ctx.lineWidth=7;ctx.beginPath();ctx.moveTo(2,side*10);ctx.lineTo(elbow.x,elbow.y);ctx.lineTo(hand.x,hand.y);ctx.stroke();ctx.strokeStyle=kit.color;ctx.lineWidth=3;ctx.stroke();
+    const arm=(side:number,hand:{x:number;y:number})=>{
+      const shoulder={x:2,y:side*10},dx=hand.x-shoulder.x,dy=hand.y-shoulder.y,d=Math.max(.001,Math.hypot(dx,dy));
+      const upper=9,lower=8,reach=Math.min(d,upper+lower-.01),along=(upper*upper-lower*lower+reach*reach)/(2*reach),height=Math.sqrt(Math.max(0,upper*upper-along*along));
+      const ux=dx/d,uy=dy/d,bend=side;const elbow={x:shoulder.x+ux*along-uy*height*bend,y:shoulder.y+uy*along+ux*height*bend};
+      ctx.strokeStyle=ink;ctx.lineWidth=7;ctx.beginPath();ctx.moveTo(shoulder.x,shoulder.y);ctx.lineTo(elbow.x,elbow.y);ctx.lineTo(hand.x,hand.y);ctx.stroke();ctx.strokeStyle=kit.color;ctx.lineWidth=3;ctx.stroke();
     };
-    hands.forEach((hand,i)=>arm(i?1:-1,{x:hand.x*.5,y:(i?10:-10)+3},hand));
+    hands.forEach((hand,i)=>arm(i?1:-1,hand));
     // 총기 원화 전체를 그대로 조립합니다. 실제 발사 시 총구는 엔진 위치에 정렬합니다.
     ctx.save();ctx.translate(tip.x,tip.y);if(gunStowed){const lower=installing?1:1-throwProgress;ctx.translate(-7*lower,9*lower);}ctx.translate(-kick,0);
     paintWeaponPart(ctx,unit.weaponName??'',_asset);
     if(unit.shieldRaised){ctx.fillStyle=shade;ctx.strokeStyle=ink;ctx.lineWidth=outline/.75;ctx.fillRect(-5,-18,7,36);ctx.strokeRect(-5,-18,7,36);ctx.fillStyle=light;ctx.fillRect(-4,-9,5,9);}ctx.restore();
     if(installing){
       hands.push({x:13,y:-6},{x:13,y:7});
-      hands.forEach((hand,i)=>arm(i?1:-1,{x:7,y:i?13:-12},hand));
+      hands.forEach((hand,i)=>arm(i?1:-1,hand));
     }else if(throwing){
       // 상완 9, 전완 8의 길이를 보존하며 회전합니다. 발사체 위치/피해 판정은 바꾸지 않습니다.
       const pose=throwArmPose(throwProgress);
-      arm(1,pose.elbow,pose.hand);hands.push(pose.hand);
-      const resting={x:2,y:-1};arm(-1,{x:-3,y:-8},resting);hands.push(resting);
+      arm(1,pose.hand);hands.push(pose.hand);
+      const resting={x:2,y:-1};arm(-1,resting);hands.push(resting);
     }
     ctx.strokeStyle=ink;ctx.lineWidth=outline;ctx.fillStyle=kit.color;
-    for(const hand of hands){ctx.beginPath();ctx.ellipse(hand.x,hand.y,2.5,2.1,0,0,Math.PI*2);ctx.fill();ctx.stroke();}
+    for(const hand of hands){ctx.beginPath();ctx.ellipse(hand.x,hand.y,4,3.3,0,0,Math.PI*2);ctx.fill();ctx.stroke();}
 
   }
   ctx.restore();return true;
