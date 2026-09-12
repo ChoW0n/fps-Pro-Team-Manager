@@ -9,6 +9,8 @@ const {BREACHLINE_MAP:map}=require(app+'/src/domain/tacticalMaps.ts');const {OPE
 const side=name=>OPERATORS.filter(o=>o.side===name).slice(0,5).map((operator,index)=>({operator,side:name,teamName:name,player:new Player('검사'+index,'선수'+index,operator.role,20,75,75,75,75,75,[operator],20,75,65,70,70,70,70)}));
 const input={attackers:side('공격'),defenders:side('수비'),seed:41,maxSeconds:180,scoutPlan:{indices:[],seconds:25,entryRoute:0}};
 const result=new TacticalRealtimeSimulation().run(input);
+// 이전 교착 수정 뒤 달라진 실제 경기에서 자세별 사건을 찾습니다. 상태를 조작하지 않습니다.
+const injuryFixtures=[result];
 const shot=result.events.filter(event=>event.type==='shot'&&event.side==='공격').sort((a,b)=>Math.hypot(a.targetPosition.x-a.position.x,a.targetPosition.y-a.position.y)-Math.hypot(b.targetPosition.x-b.position.x,b.targetPosition.y-b.position.y))[0];
 if(!shot)throw Error('실제 발사 없음');const tick={time:shot.time,snapshot:result.snapshots.find(snapshot=>snapshot.time===shot.time),events:[]};
 const output=process.env.DRAFT_REVIEW_DIR??path.resolve(__dirname,'../validation');fs.mkdirSync(output,{recursive:true});
@@ -16,7 +18,7 @@ const decoded=path.join(output,'.canvas-decoded');fs.mkdirSync(decoded,{recursiv
 // Skia 바인딩이 일부 정상 PNG/WebP를 거부해 테스트에서만 재인코딩합니다. 배포 원본은 수정하지 않습니다.
 execFileSync('python3',['-c',`from PIL import Image\nfrom pathlib import Path\ns=Path(${JSON.stringify(app+'/public/operators')});d=Path(${JSON.stringify(decoded)})\nfor p in s.glob('minimal-*.png'):\n Image.open(p).verify()\n Image.open(p).save(d/(p.stem+'.png'))`]);
 // 디코드한 파일명도 기록하여 새 자세의 실제 drawImage 호출을 검증합니다.
-class LocalImage extends Image {set src(url){const name=url.split('/').at(-1),png=path.join(decoded,name.replace(/\.webp$/,'.png'));this.assetName=name;super.src=fs.existsSync(png)?png:app+'/public/operators/'+(url.includes('/weapons/')?'weapons/':'')+name;}}
+class LocalImage extends Image {set src(url){const name=url.split('/').at(-1),png=path.join(decoded,name.replace(/\.webp$/,'.png'));this.assetName=name;super.src=fs.existsSync(png)?png:app+'/public/operators/'+(url.includes('/weapons/top/')?'weapons/top/':url.includes('/weapons/')?'weapons/':'')+name;}}
 global.Image=LocalImage;global.window={devicePixelRatio:1,matchMedia:()=>({matches:false})};global.document={createElement:()=>createCanvas(1,1)};
 let callback;global.requestAnimationFrame=fn=>{callback=fn;return 1;};global.cancelAnimationFrame=()=>{};
 const weaponRenderer=require(app+'/src/components/weaponParts.ts'),paintWeapon=weaponRenderer.paintWeaponPart;let weaponDraws=0;weaponRenderer.paintWeaponPart=(...args)=>{const drawn=paintWeapon(...args);if(drawn)weaponDraws++;return drawn;};
@@ -36,7 +38,8 @@ const {operatorStateVisual}=require(app+'/src/domain/operatorVisuals.ts');
    &&(name!=='collier-downed'||u.downed.mode==='stabilize')
    &&(name!=='collier-crawl'||u.downed.mode==='crawl'&&Math.hypot(u.velocity.x,u.velocity.y)>.01);
  const needsInjury=name==='downed'||name.startsWith('collier-');
- const injurySnapshot=needsInjury?result.snapshots.find(s=>s.units.some(casualty)):undefined;
+ let injuryResult=result,injurySnapshot=needsInjury?result.snapshots.find(s=>s.units.some(casualty)):undefined;
+ if(needsInjury&&!injurySnapshot){for(let index=0;index<40&&!injurySnapshot;index++){injuryFixtures[index]??=new TacticalRealtimeSimulation().run({...input,seed:41+index});injuryResult=injuryFixtures[index];injurySnapshot=injuryResult.snapshots.find(s=>s.units.some(casualty));}}
  if(needsInjury)assert(injurySnapshot,'실제 다운/기어가는 장면 필요: '+name);
  const walking=(unit,time)=>unit.side==='공격'&&operatorStateVisual(unit,time)?.sprite.endsWith(name==='crouch'?'-crouch-v1.webp':'-walk-v1.webp');
  const walkSnapshot=name==='walk'||name==='crouch'?result.snapshots.find(s=>s.units.some(u=>walking(u,s.time))):undefined;
@@ -44,7 +47,7 @@ const {operatorStateVisual}=require(app+'/src/domain/operatorVisuals.ts');
  const selectedSnapshot=name==='team-visibility'?result.snapshots[0]:walkSnapshot??injurySnapshot;
  const renderedTick=selectedSnapshot?{time:selectedSnapshot.time,snapshot:selectedSnapshot,events:[]}:tick;
  const viewed=name==='team-visibility'?result.snapshots[0].units[0].id:walkSnapshot?.units.find(u=>walking(u,walkSnapshot.time))?.id??injurySnapshot?.units.find(casualty)?.id??shot.actor;
- BroadcastCanvas({tick:renderedTick,events:result.events,map,side:'공격',selectedId:viewed,mode:name==='tactical'?'full':'follow',speed:1,paused:true,onSelect:id=>{selected=id;}});
+ BroadcastCanvas({tick:renderedTick,events:needsInjury?injuryResult.events:result.events,map,side:'공격',selectedId:viewed,mode:name==='tactical'?'full':'follow',speed:1,paused:true,onSelect:id=>{selected=id;}});
  const cleanup=effects.map(fn=>fn());const times=[];let stamp=performance.now();
  // 첫 프레임에서 이미지 요청이 시작됩니다. 그 전에 기다리면 빈 스프라이트를 검사하게 됩니다.
  callback(stamp+=16.67);await new Promise(resolve=>setTimeout(resolve,50));

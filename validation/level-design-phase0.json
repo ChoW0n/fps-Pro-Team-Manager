@@ -1,0 +1,96 @@
+{
+  "map": "breachline-02",
+  "indoorSamples": 1721,
+  "lineOfSight": {
+    "longestMetres": 48.703182647543684,
+    "pair": [
+      {
+        "x": 1120,
+        "y": 880
+      },
+      {
+        "x": 2960,
+        "y": 1520
+      }
+    ],
+    "openPairs": 8153,
+    "over25mPairs": 496,
+    "over25mPercent": 6.083650190114068,
+    "targetLongestMetres": 25,
+    "targetOverPercent": 10
+  },
+  "oversizedRooms": [
+    {
+      "id": "admin-lobby",
+      "widthMetres": 12.5,
+      "heightMetres": 12.5
+    },
+    {
+      "id": "office-north",
+      "widthMetres": 14,
+      "heightMetres": 12.5
+    },
+    {
+      "id": "server-lab",
+      "widthMetres": 14,
+      "heightMetres": 12.5
+    },
+    {
+      "id": "control-room",
+      "widthMetres": 19,
+      "heightMetres": 12.5
+    },
+    {
+      "id": "central-atrium",
+      "widthMetres": 43,
+      "heightMetres": 10
+    },
+    {
+      "id": "objective-a-hall",
+      "widthMetres": 19,
+      "heightMetres": 10
+    },
+    {
+      "id": "maintenance",
+      "widthMetres": 14,
+      "heightMetres": 12.5
+    },
+    {
+      "id": "south-service",
+      "widthMetres": 14,
+      "heightMetres": 12.5
+    },
+    {
+      "id": "objective-b-hall",
+      "widthMetres": 15.5,
+      "heightMetres": 12.5
+    },
+    {
+      "id": "loading-bay",
+      "widthMetres": 19,
+      "heightMetres": 12.5
+    }
+  ],
+  "siteEntrances": [
+    {
+      "site": "A",
+      "portals": [
+        "portal-control-a"
+      ]
+    },
+    {
+      "site": "B",
+      "portals": [
+        "portal-b-hall",
+        "portal-service-b",
+        "portal-b-loading"
+      ]
+    }
+  ],
+  "spawnStraightLineMetres": {
+    "min": 18.167622299024163,
+    "max": 59.63430220938282,
+    "ratio": 3.2824494712544716
+  },
+  "verticalConnections": 0
+}

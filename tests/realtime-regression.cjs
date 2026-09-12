@@ -149,6 +149,9 @@ test('모든 문·출입구·A/B 설치 위치가 물리 통행과 일치',()=>{
   assert.equal(new Set(map.portals.map(p=>p.id)).size,map.portals.length);
   for(const portal of map.portals)assert(engine.canStand(portal.center,map),portal.id);
   for(const entrance of map.entrances)assert(engine.canTraverse(entrance.outside,entrance.inside,map),entrance.id);
+  // 문 바깥 기준점을 가까이 옮겨도 실제 스폰에서 그 지점까지 몸 반경을 지키며 도달해야 합니다.
+  const nodes=engine.buildNavigationNodes(map);
+  map.entrances.forEach((entrance,index)=>{const start=map.attackerRoutes[index].points[0],path=engine.findPath(start,entrance.outside,map,nodes);assert(path.length,entrance.id+' 외곽 접근');for(let i=0;i<path.length;i++)assert(engine.canTraverse(i?path[i-1]:start,path[i],map),entrance.id+' 접근 선분');assert(Math.hypot(path.at(-1).x-entrance.outside.x,path.at(-1).y-entrance.outside.y)<1e-6);});
   for(const site of map.sites)for(const point of [...site.plantAnchors,...site.defendAnchors])assert(engine.canStand(point,map),site.id);
 });
 test('양 사이트는 모든 공격 진입 지점에서 도달 가능',()=>{

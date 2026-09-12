@@ -1,0 +1,89 @@
+{
+  "games": 10,
+  "attackWins": 5,
+  "cycleTicks": 745,
+  "waitingUnitTicks": 4298,
+  "longestWait": 26.6,
+  "rows": [
+    {
+      "route": 0,
+      "seed": 1,
+      "winner": "수비",
+      "cycles": 71,
+      "wait": 393,
+      "longest": 10.7
+    },
+    {
+      "route": 0,
+      "seed": 2,
+      "winner": "수비",
+      "cycles": 71,
+      "wait": 399,
+      "longest": 10.7
+    },
+    {
+      "route": 1,
+      "seed": 1,
+      "winner": "공격",
+      "cycles": 41,
+      "wait": 178,
+      "longest": 3.5
+    },
+    {
+      "route": 1,
+      "seed": 2,
+      "winner": "수비",
+      "cycles": 40,
+      "wait": 186,
+      "longest": 3.5
+    },
+    {
+      "route": 2,
+      "seed": 1,
+      "winner": "공격",
+      "cycles": 0,
+      "wait": 181,
+      "longest": 2.7
+    },
+    {
+      "route": 2,
+      "seed": 2,
+      "winner": "공격",
+      "cycles": 0,
+      "wait": 181,
+      "longest": 2.7
+    },
+    {
+      "route": 3,
+      "seed": 1,
+      "winner": "공격",
+      "cycles": 260,
+      "wait": 1050,
+      "longest": 26.6
+    },
+    {
+      "route": 3,
+      "seed": 2,
+      "winner": "공격",
+      "cycles": 260,
+      "wait": 1050,
+      "longest": 26.6
+    },
+    {
+      "route": 4,
+      "seed": 1,
+      "winner": "수비",
+      "cycles": 1,
+      "wait": 340,
+      "longest": 8.9
+    },
+    {
+      "route": 4,
+      "seed": 2,
+      "winner": "수비",
+      "cycles": 1,
+      "wait": 340,
+      "longest": 8.9
+    }
+  ]
+}

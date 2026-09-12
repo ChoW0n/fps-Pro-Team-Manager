@@ -173,12 +173,13 @@ export const BREACHLINE_MAP: TacticalMapDefinition = {
     { id: 'portal-service-b', label: '냉각동 내부문', center: p(1620, 1540), width: 80, axis: 'vertical', fromRoom: 'south-service', toRoom: 'objective-b-hall' },
     { id: 'portal-b-loading', label: '적재장 내부문', center: p(2240, 1840), width: 80, axis: 'vertical', fromRoom: 'objective-b-hall', toRoom: 'loading-bay' },
   ],
+  // outside는 스폰이 아니라 문 바로 바깥 통과 기준점입니다. 스폰→차폐 우회는 attackerRoutes와 경로 탐색이 담당합니다.
   entrances: [
-    { id: 'entrance-north', label: '북측 창문 진입', center: p(900, 300), width: 120, axis: 'horizontal', fromRoom: 'north-approach', toRoom: 'admin-lobby', outside: p(900, 180), inside: p(900, 420) },
-    { id: 'entrance-west', label: '서문 정문 진입', center: p(400, 1040), width: 80, axis: 'vertical', fromRoom: 'west-gate', toRoom: 'central-atrium', outside: p(260, 1040), inside: p(520, 1040) },
-    { id: 'entrance-south', label: '남쪽 적재장 진입', center: p(2360, 2100), width: 90, axis: 'horizontal', fromRoom: 'south-approach', toRoom: 'loading-bay', outside: p(2360, 2240), inside: p(2360, 1960) },
-    { id: 'entrance-east', label: '동쪽 서비스 진입', center: p(3200, 1600), width: 80, axis: 'vertical', fromRoom: 'east-courtyard', toRoom: 'loading-bay', outside: p(3340, 1600), inside: p(3060, 1600) },
-    { id: 'entrance-maintenance', label: '남서 유지보수 해치', center: p(700, 2100), width: 70, axis: 'horizontal', fromRoom: 'south-approach', toRoom: 'maintenance', outside: p(700, 2240), inside: p(700, 1960) },
+    { id: 'entrance-north', label: '북측 창문 진입', center: p(900, 300), width: 120, axis: 'horizontal', fromRoom: 'north-approach', toRoom: 'admin-lobby', outside: p(900, 270), inside: p(900, 420) },
+    { id: 'entrance-west', label: '서문 정문 진입', center: p(400, 1040), width: 80, axis: 'vertical', fromRoom: 'west-gate', toRoom: 'central-atrium', outside: p(370, 1040), inside: p(520, 1040) },
+    { id: 'entrance-south', label: '남쪽 적재장 진입', center: p(2360, 2100), width: 90, axis: 'horizontal', fromRoom: 'south-approach', toRoom: 'loading-bay', outside: p(2360, 2130), inside: p(2360, 1960) },
+    { id: 'entrance-east', label: '동쪽 서비스 진입', center: p(3200, 1600), width: 80, axis: 'vertical', fromRoom: 'east-courtyard', toRoom: 'loading-bay', outside: p(3230, 1600), inside: p(3060, 1600) },
+    { id: 'entrance-maintenance', label: '남서 유지보수 해치', center: p(700, 2100), width: 70, axis: 'horizontal', fromRoom: 'south-approach', toRoom: 'maintenance', outside: p(700, 2130), inside: p(700, 1960) },
   ],
   sites: [
     {
@@ -256,7 +257,8 @@ export const BREACHLINE_MAP: TacticalMapDefinition = {
   ],
   covers: [
     // 실제 차체와 교차 차폐판이 사선을 끊습니다. 보이지 않는 무적·굴곡은 사용하지 않습니다.
-    {id:'spawn-north-truck',label:'북측 접근 차폐 트럭',kind:'truck',rect:rect(750,240,160,45)},
+    // 창문 중심 x=900의 몸 반경 통로를 비우면서 서쪽 대기열을 차폐합니다.
+    {id:'spawn-north-truck',label:'북측 접근 차폐 트럭',kind:'truck',rect:rect(700,240,160,45)},
     {id:'spawn-west-truck',label:'서측 접근 차폐 트럭',kind:'truck',rect:rect(300,925,42,240)},
     {id:'spawn-south-truck',label:'남측 접근 차폐 트럭',kind:'truck',rect:rect(2270,2155,240,42)},
     {id:'spawn-east-truck',label:'동측 접근 차폐 트럭',kind:'truck',rect:rect(3270,1490,42,230)},

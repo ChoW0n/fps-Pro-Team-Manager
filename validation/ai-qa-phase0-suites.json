@@ -1,0 +1,62 @@
+[
+  {
+    "suite": "bomb-objective",
+    "exitCode": 0
+  },
+  {
+    "suite": "navigation-traffic",
+    "exitCode": 0
+  },
+  {
+    "suite": "realtime-regression",
+    "exitCode": 0
+  },
+  {
+    "suite": "preparation-operation",
+    "exitCode": 0
+  },
+  {
+    "suite": "tactical-match",
+    "exitCode": 0
+  },
+  {
+    "suite": "tactical-pressure",
+    "exitCode": 0
+  },
+  {
+    "suite": "tactical-counters",
+    "exitCode": 0
+  },
+  {
+    "suite": "injury-regression",
+    "exitCode": 0
+  },
+  {
+    "suite": "combat-overhaul",
+    "exitCode": 0
+  },
+  {
+    "suite": "entry-formation",
+    "exitCode": 0
+  },
+  {
+    "suite": "director-playback",
+    "exitCode": 0
+  },
+  {
+    "suite": "spectator-continuity",
+    "exitCode": 0
+  },
+  {
+    "suite": "playback-navigation",
+    "exitCode": 0
+  },
+  {
+    "suite": "vision-corners",
+    "exitCode": 0
+  },
+  {
+    "suite": "utility-inventory",
+    "exitCode": 0
+  }
+]

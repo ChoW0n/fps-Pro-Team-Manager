@@ -63,7 +63,9 @@ export interface RealtimeUnitState {
   position: RealtimeVector; velocity: RealtimeVector; facing: number; lookDirection?: number; locomotion?: 'walk' | 'sprint' | 'crouch' | 'crawl' | 'vault'; traversal?: { portalId: string; kind: 'window' | 'vault' | 'crawl'; until: number }; hp: number;
   ammo: number; magazineSize: number; reserveAmmo: number; reloadRemaining: number;
   weaponName: string; weaponProfileNote: string;
-  shieldRaised?: boolean; utilityUsed?: boolean;
+  shieldRaised?: boolean;
+  // 공용 준비와 고유 장비·수류탄은 서로의 사용 기회를 소모하지 않습니다.
+  utility: { camera: number; smoke: number; grenade: number; breach: number; preparation: number };
   specialUsed?: boolean;
   tacticalWarning?: 'long-range' | 'suppressed';
   recoil?: number; spread?: number; burst?: number; lastMovedAt?: number; decision?: string;
@@ -167,6 +169,7 @@ interface NavigationPlan {
   index: number;
   goal: RealtimeVector;
   detourUntil?: number;
+  trafficWaitSince?: number;
 }
 
 export const UNIT_RADIUS = 12;
@@ -279,7 +282,9 @@ export class TacticalRealtimeSimulation {
       const group=input.attackers.map((_,i)=>i).filter(i=>assignedRoute(i)===assignedRoute(index));
       // 즉시 진입조는 외곽에서 2m 간격을 확보합니다. 선발 수색의 출발 배치는 유지합니다.
       const length=distance(from,to)||1,offset=(group.indexOf(index)-(group.length-1)/2)*(scoutPlan.indices.length?34:80);
-      const point={x:from.x-(to.y-from.y)/length*offset,y:from.y+(to.x-from.x)/length*offset};
+      // 북측 경로의 첫 구간은 외벽과 평행합니다. 그 직각으로 펼치면 마지막 선수가 실내에서 시작합니다.
+      const alongFacade = !scoutPlan.indices.length && (from.y < map.building.y || from.y > map.building.y + map.building.height);
+      const point=alongFacade?{x:from.x+offset,y:from.y}:{x:from.x-(to.y-from.y)/length*offset,y:from.y+(to.x-from.x)/length*offset};
       if(!this.canStand(point,map)) throw new Error('진입 방향의 합류 위치가 지형과 겹칩니다.');
       return point;
     });
@@ -294,6 +299,16 @@ export class TacticalRealtimeSimulation {
         magazineSize: weapon.profile.magazineSize,
         reserveAmmo: weapon.profile.reserveAmmo,
         reloadRemaining: 0,
+        utility: {
+          camera: u.side === '수비' && (u.operator.callSign === 'MARCHAND' || input.defensePreparation === 'camera'
+            && i === input.attackers.length + input.defenders.length - 1
+            && !input.defenders.some(member => member.operator.callSign === 'MARCHAND')) ? 1 : 0,
+          smoke: u.side === '공격' && u.operator.callSign === 'ARBEL' ? 1 : 0,
+          grenade: u.side === '공격' ? 1 : 0,
+          breach: u.side === '공격' && u.operator.callSign === 'MEDVED' ? 1 : 0,
+          preparation: u.side === '수비' && i === input.attackers.length + input.defenders.length - 1
+            && input.defensePreparation && input.defensePreparation !== 'camera' ? 1 : 0,
+        },
         weaponName: weapon.name,
         weaponProfileNote: weapon.profile.note,
         recoil:0, spread:0, burst:0, lastMovedAt:0, cooldown: 0,
@@ -804,7 +819,7 @@ export class TacticalRealtimeSimulation {
         }
         unit.shieldRaised=unit.callSign==='REUSS'&&Boolean(seen)&&(unit.cooldown>0||losingPosition);
         // 준비 화면에서 선택한 공용 장비를 실제 이동·설치 후 지형에 추가합니다.
-        if(unit.side==='수비'&&!unit.utilityUsed&&input.defensePreparation&&input.defensePreparation!=='camera'
+        if(unit.side==='수비'&&unit.utility.preparation>0&&input.defensePreparation&&input.defensePreparation!=='camera'
           &&unit.formationIndex===input.defenders.length-1&&!activeDevice&&now<35&&!unit.traversal&&unit.reloadRemaining<=0) {
           let job=preparationJobs.get(unit.id);
           if(!job&&!seen) {
@@ -846,7 +861,7 @@ export class TacticalRealtimeSimulation {
                     navigationNodes=this.buildNavigationNodes(map);pathCache.clear();
                     this.holdingPoints.delete(map);
                     log({time:now,type:'utility',actor:unit.id,position:{...unit.position},goal:job.wallId?'wall-reinforced':'shield-deployed',message:job.wallId?'외벽 보강 완료 · 일반 파쇄 차단':'차폐 방패 설치 완료 · 사선 차단',side:unit.side});
-                    unit.utilityUsed=true;
+                    unit.utility.preparation--;
                   }
                   preparationJobs.delete(unit.id);
                 }
@@ -905,35 +920,33 @@ export class TacticalRealtimeSimulation {
         if(pendingBreach.has(unit.id)){unit.action='utility';unit.goal=poweredWall(gadgets,pendingBreach.get(unit.id)!.wallId,now)?'전력 차단 대기 · EMP 지원 필요':'파쇄 장약 설치 · 엄호 필요';continue;}
         const camera=gadgets.find(gadget=>electronic(gadget)&&gadget.side!==unit.side&&distance(gadget.position,unit.position)<90&&this.canObserve(unit,gadget.position,map,gadgets,now));
         if(camera){gadgets.splice(gadgets.indexOf(camera),1);unit.action='utility';unit.cooldown=.7;log({time:now,type:'utility',actor:unit.id,position:{...camera.position},message:'발견한 '+GADGET_LABELS[camera.kind]+' 제거',goal:camera.kind+'-destroyed',side:unit.side});continue;}
-        if(!unit.utilityUsed&&unit.reloadRemaining<=0&&now>.2) {
-          if(unit.side==='수비'&&!seen&&now<18&&(!input.defensePreparation||input.defensePreparation==='camera'||unit.formationIndex!==input.defenders.length-1)
-            &&(me.operator.role==='BLOCKING'||me.operator.role==='DEFENSIVE_SETUP'||input.defensePreparation==='camera'&&unit.formationIndex===input.defenders.length-1)) {
+        if(unit.reloadRemaining<=0&&!unit.traversal&&now>.2) {
+          if(unit.utility.camera>0&&!seen&&now<18) {
             gadgets.push({id:unit.id+':camera',kind:'camera',side:unit.side,owner:unit.id,position:{...unit.position},activeAt:now+1,until:actionSeconds+50,radius:480});
-            unit.utilityUsed=true;unit.action='utility';unit.goal='관측 카메라 설치 · 거점 접근 감시';
+            unit.utility.camera--;unit.action='utility';unit.goal='관측 카메라 설치 · 거점 접근 감시';
             log({time:now,type:'utility',actor:unit.id,position:{...unit.position},message:unit.goal,goal:'camera-deployed',side:unit.side});continue;
           }
           if(unit.side==='공격'&&seen&&visualContactDuration>.3+(1-skills.utilityPrecision/100)*.7) {
             const gap=distance(unit.position,seen.position);
-            const smoke=input.attackStyle==='smoke'||me.operator.role==='SEARCH'||unit.id===objectiveState.carrierId
-              ||skills.distancePreference<40&&gap>weaponHandling(unit.weaponName).comfortableDistance;
+            const smoke=unit.utility.smoke>0;
             if(smoke&&gap>200&&!gadgets.some(gadget=>gadget.kind==='smoke'&&gadget.side===unit.side&&distance(gadget.position,unit.position)<230)) {
               const amount=Math.min(.6,110/gap),position={x:unit.position.x+(seen.position.x-unit.position.x)*amount,y:unit.position.y+(seen.position.y-unit.position.y)*amount};
               gadgets.push({id:unit.id+':smoke',kind:'smoke',side:unit.side,owner:unit.id,position,from:{...unit.position},thrownAt:now,landedAt:now+.35,activeAt:now+.35,until:now+10,radius:95});
-              unit.utilityUsed=true;unit.action='utility';unit.goal='연막 투척 · 긴 사선 차단 후 전진';
+              unit.utility.smoke--;unit.action='utility';unit.goal='연막 투척 · 긴 사선 차단 후 전진';
               log({time:now,type:'utility',actor:unit.id,position,message:unit.goal,goal:'smoke-thrown',side:unit.side});continue;
             }
-            if(!smoke&&gap>160&&gap<440&&this.hasLineOfSight(unit.position,seen.position,map)&&living(unit.side).every(friend=>distance(friend.position,seen.position)>150)) {
+            if(unit.utility.grenade>0&&gap>160&&gap<440&&this.hasLineOfSight(unit.position,seen.position,map)&&living(unit.side).every(friend=>distance(friend.position,seen.position)>150)) {
               gadgets.push({id:unit.id+':grenade',kind:'grenade',side:unit.side,owner:unit.id,position:{...seen.position},from:{...unit.position},thrownAt:now,landedAt:now+gap/360,activeAt:now+gap/360+1.2,until:now+gap/360+1.3,radius:145});
-              unit.utilityUsed=true;unit.action='utility';unit.goal='수류탄으로 확인한 엄폐 위치 압박';
+              unit.utility.grenade--;unit.action='utility';unit.goal='수류탄으로 확인한 엄폐 위치 압박';
               log({time:now,type:'utility',actor:unit.id,position:{...seen.position},message:unit.goal,goal:'grenade-thrown',side:unit.side});continue;
             }
           }
-          if(unit.side==='공격'&&(unit.callSign==='MEDVED'||input.attackStyle==='breach'&&me.operator.role==='ENTRY')&&!seen) {
+          if(unit.utility.breach>0&&!seen) {
             const wall=map.walls.find(wall=>wall.breachable === true && (!wall.reinforced||unit.callSign==='MEDVED') && distance(wall.from,wall.to)>180&&pointToSegmentDistance(unit.position,wall.from,wall.to)<70
               && distance(unit.position,wall.from)>65&&distance(unit.position,wall.to)>65);
             if(wall){const dx=wall.to.x-wall.from.x,dy=wall.to.y-wall.from.y,t=clamp(((unit.position.x-wall.from.x)*dx+(unit.position.y-wall.from.y)*dy)/(dx*dx+dy*dy),.1,.9);
               const hard=unit.callSign==='MEDVED',seconds=wall.reinforced?4:2;
-              const position={x:wall.from.x+dx*t,y:wall.from.y+dy*t};pendingBreach.set(unit.id,{wallId:wall.id,position,ready:now+seconds,hard});unit.utilityUsed=true;unit.action='utility';
+              const position={x:wall.from.x+dx*t,y:wall.from.y+dy*t};pendingBreach.set(unit.id,{wallId:wall.id,position,ready:now+seconds,hard});unit.utility.breach--;unit.action='utility';
               log({time:now,type:'utility',actor:unit.id,position,message:wall.reinforced?'보강 관통 장약 · 4초 엄호 필요':'파쇄 장약 설치 시작',goal:'breach-started',side:unit.side});continue;}
           }
         }
@@ -1266,7 +1279,7 @@ export class TacticalRealtimeSimulation {
         updateIdentifiedOperators(side,identified.get(side)!,units,visibleTo[side],gadgets,events.slice(eventCursor),position=>units.some(observer=>observer.alive&&observer.side===side&&this.canObserve(observer,position,map,gadgets,now)));
       }
       const identifiedTo=Object.fromEntries((['공격','수비'] as OperatorSide[]).map(side=>[side,[...identified.get(side)!]])) as Record<OperatorSide,string[]>;
-      const snapshot = { time: now, openedPortals: [...openedPortals], objective: bombState, operation: operationState, visibleTo, observedBy, identifiedTo, gadgets:gadgets.map(gadget=>({...gadget,position:{...gadget.position}})), breaches:[...breaches], units: units.map((u) => ({ ...u, position: { ...u.position }, velocity: { ...u.velocity }, knowledge: { ...u.knowledge },downed:u.downed?{...u.downed}:undefined,reviving:u.reviving?{...u.reviving,actorPosition:{...u.reviving.actorPosition},targetPosition:{...u.reviving.targetPosition}}:undefined })) };
+      const snapshot = { time: now, openedPortals: [...openedPortals], objective: bombState, operation: operationState, visibleTo, observedBy, identifiedTo, gadgets:gadgets.map(gadget=>({...gadget,position:{...gadget.position}})), breaches:[...breaches], units: units.map((u) => ({ ...u, utility: { ...u.utility }, position: { ...u.position }, velocity: { ...u.velocity }, knowledge: { ...u.knowledge },downed:u.downed?{...u.downed}:undefined,reviving:u.reviving?{...u.reviving,actorPosition:{...u.reviving.actorPosition},targetPosition:{...u.reviving.targetPosition}}:undefined })) };
       const recorded:RealtimeSnapshot={...snapshot,fortifications:fortifications.map(item=>({...item,cover:item.cover?{...item.cover,rect:{...item.cover.rect}}:undefined}))};
       snapshots.push(recorded);
       const command = yield { time: now, snapshot:recorded, events: events.slice(eventCursor) };
@@ -1615,6 +1628,7 @@ export class TacticalRealtimeSimulation {
         reservations.set(key,current);
       }
       if (current && current.ownerId !== unit.id) {
+        if (owner && this.makeRoom(unit, owner, plan, map, units, now)) return;
         this.holdMovement(unit, '문 통과 순서 대기 · 동료 통행 확보', yieldUntil, now, 0.2, log);
         return;
       }
@@ -1663,11 +1677,14 @@ export class TacticalRealtimeSimulation {
     const blocker = units
       .filter((candidate) => candidate.alive && candidate.side === unit.side && candidate.id !== unit.id)
       .filter((candidate) => distance(candidate.position, next) < TEAMMATE_CLEARANCE)
-      .sort((left, right) => left.id.localeCompare(right.id))[0];
+      .sort((left, right) => distance(left.position, next) - distance(right.position, next)
+        || left.id.localeCompare(right.id))[0];
     if (blocker) {
       // 같은 방향으로 움직이는 선두는 잠깐 기다립니다. 매 틱 좌우 회피를 바꾸지 않습니다.
       const following = blocker.velocity.x * dx + blocker.velocity.y * dy > 0
         && pointToSegmentDistance(blocker.position, unit.position, waypoint) < TEAMMATE_CLEARANCE;
+      // 멈추거나 마주 선 후순위는 대기열을 만들기 전에 공간부터 내줍니다.
+      if (!following && this.makeRoom(unit, blocker, plan, map, units, now)) return;
       const clearance = TEAMMATE_CLEARANCE + 8;
       const ahead = (blocker.position.x - unit.position.x) * dx / length
         + (blocker.position.y - unit.position.y) * dy / length;
@@ -1694,8 +1711,36 @@ export class TacticalRealtimeSimulation {
     }
     unit.velocity = { x: next.x - unit.position.x, y: next.y - unit.position.y };
     unit.position = next;
+    plan.trafficWaitSince = undefined;
     // 통행에 실패한 시도만으로 몸을 좌우로 돌리지 않습니다.
     unit.lookDirection = Math.atan2(dy, dx);
+  }
+  /** 후순위는 먼저 옆으로 비키고, 선순위도 1.5초 정체하면 공간을 찾습니다. 몸과 벽은 통과하지 않습니다. */
+  private makeRoom(unit: RealtimeUnitState, blocker: RealtimeUnitState, plan: NavigationPlan,
+    map: TacticalMapDefinition, units: RealtimeUnitState[], now: number): boolean {
+    plan.trafficWaitSince ??= now;
+    const priority = (unit.formationIndex ?? 0) - (blocker.formationIndex ?? 0) || unit.id.localeCompare(blocker.id);
+    if (priority <= 0 && now - plan.trafficWaitSince < 1.5) return false;
+    const away = Math.atan2(unit.position.y - blocker.position.y, unit.position.x - blocker.position.x);
+    const friends = units.filter(other => other.alive && other.side === unit.side && other.id !== unit.id);
+    // 옆으로 비킨 직후 원래 경로로 되돌아가 떨지 않도록, 확보한 양보 지점까지 먼저 걷습니다.
+    const step = unit.downed ? 2 : 4;
+    const candidate = [TEAMMATE_CLEARANCE + 8, 16, step].flatMap(length =>
+      [Math.PI / 2, -Math.PI / 2, Math.PI / 4, -Math.PI / 4, 0].map(turn => ({
+        x: unit.position.x + Math.cos(away + turn) * length,
+        y: unit.position.y + Math.sin(away + turn) * length,
+      }))).find(point => this.canTraverse(unit.position, point, map)
+      && distance(point, blocker.position) > distance(unit.position, blocker.position) + .05
+      && friends.every(other => pointToSegmentDistance(other.position, unit.position, point)
+        >= Math.min(UNIT_RADIUS * 2 + .1, distance(other.position, unit.position))));
+    if (!candidate) return false;
+    plan.points.splice(plan.index, 0, candidate);
+    const scale = Math.min(1, step / distance(unit.position, candidate));
+    unit.velocity = { x: (candidate.x - unit.position.x) * scale, y: (candidate.y - unit.position.y) * scale };
+    unit.position = { x: unit.position.x + unit.velocity.x, y: unit.position.y + unit.velocity.y };
+    unit.lookDirection = Math.atan2(unit.velocity.y, unit.velocity.x);
+    if (unit.action !== 'reload') { unit.action = 'reposition'; unit.goal = '통행 공간 확보 · 동료 옆으로 이동'; }
+    return true;
   }
   /** 마지막 위치를 확인한 유닛이 주변을 훑도록, 기억한 지점 주변의 탐색 지점을 만듭니다. */
   private searchDestination(center: TacticalPoint, unit: RealtimeUnitState, _now: number, map: TacticalMapDefinition): RealtimeVector {

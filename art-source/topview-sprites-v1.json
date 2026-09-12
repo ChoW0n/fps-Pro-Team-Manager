@@ -1,0 +1,170 @@
+[
+  {
+    "id": "hk416",
+    "source": "exec-4d3d3eb3-ca8a-4321-a4f7-b5adc148944c.png",
+    "size": [
+      2172,
+      724
+    ],
+    "opaqueBounds": [
+      17,
+      215,
+      2156,
+      511
+    ]
+  },
+  {
+    "id": "x95",
+    "source": "exec-a40d7f0e-811a-42ed-afbc-41310e7a5b70.png",
+    "size": [
+      2172,
+      724
+    ],
+    "opaqueBounds": [
+      35,
+      221,
+      2137,
+      508
+    ]
+  },
+  {
+    "id": "mpx",
+    "source": "exec-c40cc3e5-d925-4cd6-8f3e-7e6c7224674f.png",
+    "size": [
+      2172,
+      724
+    ],
+    "opaqueBounds": [
+      50,
+      220,
+      2122,
+      449
+    ]
+  },
+  {
+    "id": "val",
+    "source": "exec-3cc127dd-9fc7-4f81-8928-c490f42f78f6.png",
+    "size": [
+      2172,
+      724
+    ],
+    "opaqueBounds": [
+      44,
+      264,
+      2129,
+      428
+    ]
+  },
+  {
+    "id": "hk417",
+    "source": "exec-9cdd5bcd-a2ed-4a78-9c1a-d5bfa85819ef.png",
+    "size": [
+      2172,
+      724
+    ],
+    "opaqueBounds": [
+      31,
+      262,
+      2141,
+      430
+    ]
+  },
+  {
+    "id": "psg",
+    "source": "exec-a10cd5cd-8c1b-415d-a908-cbb7d546b0c3.png",
+    "size": [
+      2172,
+      724
+    ],
+    "opaqueBounds": [
+      18,
+      267,
+      2154,
+      441
+    ]
+  },
+  {
+    "id": "p90",
+    "source": "exec-c79a8aa5-1f6f-4e28-9379-2984d054a2ab.png",
+    "size": [
+      2172,
+      724
+    ],
+    "opaqueBounds": [
+      34,
+      195,
+      2138,
+      517
+    ]
+  },
+  {
+    "id": "c14",
+    "source": "exec-d22cc2db-aed3-47d7-9b70-4f429801c8d5.png",
+    "size": [
+      2172,
+      724
+    ],
+    "opaqueBounds": [
+      26,
+      279,
+      2141,
+      474
+    ]
+  },
+  {
+    "id": "k1a",
+    "source": "exec-5027aa1f-bc05-4e00-a8a5-a3857f915db3.png",
+    "size": [
+      2172,
+      724
+    ],
+    "opaqueBounds": [
+      57,
+      269,
+      2118,
+      456
+    ]
+  },
+  {
+    "id": "arx",
+    "source": "exec-3b1710ec-ac66-4485-9cac-df70485d8a35.png",
+    "size": [
+      2172,
+      724
+    ],
+    "opaqueBounds": [
+      31,
+      227,
+      2140,
+      473
+    ]
+  },
+  {
+    "id": "mp5sd",
+    "source": "exec-cc6320a3-b501-4c8b-8051-0da3aa556173.png",
+    "size": [
+      2172,
+      724
+    ],
+    "opaqueBounds": [
+      24,
+      255,
+      2149,
+      445
+    ]
+  },
+  {
+    "id": "l119",
+    "source": "exec-74b2aca8-cfb5-4f3a-a423-7b61fafa4137.png",
+    "size": [
+      2172,
+      724
+    ],
+    "opaqueBounds": [
+      38,
+      247,
+      2133,
+      505
+    ]
+  }
+]
