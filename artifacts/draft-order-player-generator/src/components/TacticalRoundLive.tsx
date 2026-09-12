@@ -11,6 +11,7 @@ import { isMatchAudioMuted, playMatchAudio, setMatchAudioMuted, stopMatchAudio, 
 import './matchBroadcast.css';
 
 export interface TacticalRoundLiveProps { input:TacticalRealtimeSimulationInput; map?:TacticalMapDefinition; roundNumber?:number; directorSide?:OperatorSide; score?:[number,number]; onComplete?:(result:TacticalRealtimeResult)=>void }
+interface DecisionFeedItem { id:string; text:string; time:number }
 /** 방송 시간은 실제 경기 시각에서 계산합니다. */
 function clock(seconds:number):string { const n=Math.max(0,Math.ceil(seconds));return `${Math.floor(n/60)}:${String(n%60).padStart(2,'0')}`; }
 
@@ -20,18 +21,32 @@ export function TacticalRoundLive({input,map=NAMSAN_MAP,roundNumber=1,directorSi
   const [tick,setTick]=useState<RealtimeTick|null>(null),[events,setEvents]=useState<RealtimeEvent[]>([]),[result,setResult]=useState<TacticalRealtimeResult|null>(null);
   const [selectedId,setSelectedId]=useState<string|null>(null),[mode,setMode]=useState<'broadcast'|'follow'|'full'>('broadcast');
   const [focusedId,setFocusedId]=useState<string|null>(null);
+  const [decisionFeed,setDecisionFeed]=useState<DecisionFeedItem[]>([]);
   const [paused,setPaused]=useState(false),[speed,setSpeed]=useState(1),[error,setError]=useState('');
   const [muted,setMuted]=useState(isMatchAudioMuted);
   const [viewFloor,setViewFloor]=useState<number|undefined>(undefined);
   const workerRef=useRef<Worker|null>(null),controls=useRef({paused,speed});controls.current={paused,speed};
   const heardEvents=useRef(new Set<string>());
+  const seenDecisions=useRef(new Map<string,string>());
   const participants=useMemo(()=>new Map([...input.attackers,...input.defenders].map((unit,index)=>[realtimeUnitId(unit,index),unit])),[input]);
   useEffect(()=>{
     let stopped=false,reported=false,fallbackStop:(()=>void)|undefined;
     const first=[...participants].find(([,unit])=>unit.side===directorSide);
-    setSelectedId(first?.[0]??null);setTick(null);setEvents([]);setResult(null);setError('');setPaused(false);heardEvents.current.clear();controls.current.paused=false;
+    setSelectedId(first?.[0]??null);setTick(null);setEvents([]);setResult(null);setError('');setPaused(false);setDecisionFeed([]);heardEvents.current.clear();seenDecisions.current.clear();controls.current.paused=false;
     /** 실시간 틱과 최종 통지를 분리해 라운드 점수를 한 번만 기록합니다. */
-    const receiveTick=(next:RealtimeTick):void=>{if(stopped)return;setTick(next);setEvents(previous=>[...previous,...next.events].slice(-120));};
+    const receiveTick=(next:RealtimeTick):void=>{
+      if(stopped)return;
+      setTick(next);setEvents(previous=>[...previous,...next.events].slice(-120));
+      const changed:DecisionFeedItem[]=[];
+      for(const unit of next.snapshot.units) {
+        if(unit.side!==directorSide||!unit.alive||!unit.decision)continue;
+        if(seenDecisions.current.get(unit.id)===unit.decision)continue;
+        seenDecisions.current.set(unit.id,unit.decision);
+        const nickname=participants.get(unit.id)?.player.nickname??unit.callSign;
+        changed.push({id:`${unit.id}:${next.time}:${unit.decision}`,text:`${nickname} · ${unit.decision}`,time:next.time});
+      }
+      if(changed.length)setDecisionFeed(previous=>[...previous,...changed].slice(-3));
+    };
     const receiveResult=(value:TacticalRealtimeResult):void=>{if(stopped||reported)return;reported=true;setResult(value);complete.current?.(value);};
     if(typeof Worker!=='undefined'){
       const worker=new Worker(new URL('../domain/realtime/tactical.worker.ts',import.meta.url),{type:'module'});workerRef.current=worker;
@@ -95,8 +110,9 @@ export function TacticalRoundLive({input,map=NAMSAN_MAP,roundNumber=1,directorSi
     {(result||error)&&<div className="cast-outcome" role="status"><small>{error?'MATCH INTERRUPTED':'ROUND COMPLETE'}</small><h2>{error||`${result!.winner===directorSide?'라운드 승리':'라운드 패배'}`}</h2><p>{outcome}</p></div>}
     {selected?.downed&&<div className="cast-injury" role="status"><strong>DOWN · {selected.downed.mode==='crawl'?'엄폐로 이동':'지혈 중'}</strong><span>동료 구조 필요</span>{selected.downed.progress>0&&<progress aria-label="소생 진행" max="1" value={selected.downed.progress}/>}</div>}
     {selected?.reviving&&<div className="cast-injury" role="status"><strong>동료 소생 중</strong><span>{playerName(selected.reviving.targetId)}</span></div>}
-    <div className="cast-player" aria-label="관전 선수"><div className="cast-portrait">{selected&&<OperatorArt callSign={selected.callSign}/>}</div><div><small>{selected?.callSign}</small><strong>{source?.player.nickname??'입장 중'}</strong><progress aria-label="체력" max="100" value={selected?.hp??100}/>{selected?.alive&&selected.goal&&<p className="cast-decision" aria-label="관전 선수 판단" title={`${source?.player.nickname??selected.callSign} · ${selected.goal}`}>{selected.goal}</p>}</div></div>
+    <aside className="cast-decisions" aria-label="선수 판단 피드">{decisionFeed.map(item=><p key={item.id}><small>{clock(item.time)}</small>{item.text}</p>)}</aside>
+    <div className="cast-player" aria-label="관전 선수"><div className="cast-portrait">{selected&&<OperatorArt callSign={selected.callSign}/>}</div><div><small>{selected?.callSign}</small><strong>{source?.player.nickname??'입장 중'}</strong><progress aria-label="체력" max={selected?.maxHp??100} value={selected?.hp??100}/></div></div>
     <nav className="cast-controls" aria-label="중계 조작"><select aria-label="관전 층" value={viewFloor??'auto'} onChange={event=>setViewFloor(event.target.value==='auto'?undefined:Number(event.target.value))}><option value="auto">선수 층 자동</option>{map.floors?.map(floor=><option key={floor.id} value={floor.id}>{floor.label}</option>)}</select><button aria-pressed={mode==='broadcast'} onClick={()=>setMode('broadcast')}><span>자동 중계</span><b>CAST</b></button><button title="격자 한 칸 2m · 선택 아군의 전방 시야" aria-pressed={mode==='full'} onClick={()=>setMode(mode==='full'?'broadcast':'full')}><span>전술 보기</span><b>MAP</b></button><button aria-label={paused?'재생':'일시 정지'} disabled={Boolean(result)} onClick={()=>setPaused(value=>!value)}>{paused?'▶':'Ⅱ'}</button><button aria-label={muted?'경기 소리 켜기':'경기 음소거'} aria-pressed={muted} onClick={()=>{setMatchAudioMuted(!muted);setMuted(!muted);if(muted)unlockMatchAudio();}}>{muted?'소리 끔':'소리 켬'}</button><select aria-label="중계 속도" value={speed} onChange={event=>setSpeed(Number(event.target.value))}><option value="1">1×</option><option value="2">2×</option><option value="4">4×</option></select></nav>
-    <nav className="cast-lineup" aria-label="우리 팀 선수 선택">{own.map((unit,index)=>{const participant=participants.get(unit.id);return <button key={unit.id} className={unit.alive?'':'is-out'} aria-pressed={selectedId===unit.id} onClick={()=>select(unit.id)}><OperatorEmblem callSign={unit.callSign}/><small>{index+1}</small><strong>{playerName(unit.id)}</strong><span>{unit.callSign} · {(unit.floor??0)+1}F</span><progress max="100" value={unit.hp}/></button>;})}</nav>
+    <nav className="cast-lineup" aria-label="우리 팀 선수 선택">{own.map((unit,index)=><button key={unit.id} className={unit.alive?'':'is-out'} aria-pressed={selectedId===unit.id} onClick={()=>select(unit.id)}><OperatorEmblem callSign={unit.callSign}/><small>{index+1}</small><strong>{playerName(unit.id)}</strong><span>{unit.callSign} · {(unit.floor??0)+1}F</span><progress max={unit.maxHp??100} value={unit.hp}/></button>)}</nav>
   </section>;
 }

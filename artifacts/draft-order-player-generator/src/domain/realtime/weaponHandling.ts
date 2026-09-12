@@ -34,10 +34,15 @@ export function weaponHandling(name: string): WeaponHandling { return WEAPON_HAN
 /** 선수 조준·숙련과 멈춰 조준한 시간은 탄퍼짐과 잔여 반동을 줄입니다. */
 export function shotCone(profile: WeaponHandling, control: number, recoil: number, settled: number, exposure=1, range=0): number {
   const skill=Math.max(0,Math.min(1,control));
-  const base=profile.cone+(1-skill)*.047+recoil*(1-skill*.65)+Math.max(0,.45-settled)*.06+(1-exposure)*.016;
+  const base=profile.cone+(1-skill)*.047+recoil*(1-skill*.65)+Math.max(0,.45-settled)*.06
+    +Math.max(0,.3-settled)*.09+(1-exposure)*.016;
   // 유효 거리 밖의 작은 조준 오차를 연속적으로 확대합니다. AI 예상과 실제 탄도가 같은 식을 씁니다.
   const over=Math.max(0,range/profile.comfortableDistance-1);
   return Math.min(.45,base*(1+over*over*(profile.family==='smg'||profile.family==='carbine'?1.5:.35)));
+}
+/** 가까운 거리에서도 표적을 식별하고 총구를 정렬할 시간을 보장합니다. */
+export function targetAcquisitionSeconds(reactionTime: number, exposure: number, range: number): number {
+  return .12+(1-reactionTime/100)*.45+(1-exposure)*.65+Math.max(0,range-450)/1800+Math.max(0,1-range/320)*.28;
 }
 /** 먼 거리에서는 방아쇠를 끊고 조준을 회복합니다. 발사 속도 상한은 별도로 지킵니다. */
 export function shotInterval(profile: WeaponHandling, range: number, control: number, burst: number): number {

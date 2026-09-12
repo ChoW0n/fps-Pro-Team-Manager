@@ -44,7 +44,7 @@ test('공수 교대 입력은 실제 습득 편성과 새 엔진 생존·탄약 
   const defenders = confirmOperatorDraft(teams[0], next.homeSide, completeOperatorDraft(teams[0], next.homeSide, blank));
   const input = {attackers, defenders, seed: next.seed, maxSeconds: 1};
   const session = new TacticalRealtimeSimulation().createSession(input), first = session.step();
-  assert.equal(first.snapshot.units.length, 10); assert(first.snapshot.units.every(unit => unit.alive && unit.hp === 100 && unit.ammo === unit.magazineSize));
+  assert.equal(first.snapshot.units.length, 10); assert(first.snapshot.units.every(unit => unit.alive && unit.hp === unit.maxHp && unit.ammo === unit.magazineSize));
   while(!session.isComplete) session.step(); const result = session.getResult();
   assert.deepEqual(result, new TacticalRealtimeSimulation().run(input));
   assert.equal(recordMatchRound(state, next.attempt, result.winner).rounds.length, 7);
