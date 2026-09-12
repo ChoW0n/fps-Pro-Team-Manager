@@ -38,3 +38,21 @@ for(const downed of [undefined,{mode:'stabilize'}]){
  assert.equal(unit.locomotion,downed?'crawl':'walk','다운 이동 제약 보존');
 }
 console.log('PASS interrupted traversal releases movement and firing lock');
+
+// 밀집 대형에서 선두끼리 마주쳐도 몸을 겹치지 않고 서로 반대편까지 빠져나갑니다.
+const crowded=[makeUnit('front-a',170),makeUnit('front-b',230),makeUnit('tail-a',140),makeUnit('tail-b',260)];
+crowded.forEach((unit,i)=>unit.formationIndex=i);
+const destinations=[{x:330,y:170},{x:70,y:170},{x:330,y:230},{x:70,y:230}];
+const cached=new Map(),waiting=new Map(),blocked=new Map(),reserved=new Map();
+let completed=false;
+for(let tick=0;tick<300;tick++){
+ for(let i=0;i<crowded.length;i++){
+  const unit=crowded[i],previous={...unit.position};unit.velocity={x:0,y:0};
+  if((waiting.get(unit.id)??0)<=tick/10)engine.move(unit,destinations[i],me,map,tick/10,crowded,nodes,cached,waiting,blocked,()=>{},reserved);
+  assert(engine.canTraverse(previous,unit.position,map),'혼잡 회피 중 벽 통과 금지');
+  for(const other of crowded)if(other!==unit)assert(Math.hypot(unit.position.x-other.position.x,unit.position.y-other.position.y)>=UNIT_RADIUS*2,'혼잡 회피 중 몸 겹침 금지');
+ }
+ if(crowded.every((unit,i)=>Math.hypot(unit.position.x-destinations[i].x,unit.position.y-destinations[i].y)<24)){completed=true;break;}
+}
+assert(completed,'밀집 양방향 대형이 30초 안에 통과해야 합니다');
+console.log('PASS crowded opposite teams clear the doorway without overlap');

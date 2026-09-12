@@ -15,7 +15,7 @@ export function canvasSize(width:number,height:number,ratio:number):{width:numbe
   return {width:Math.max(1,Math.floor(width*dpr)),height:Math.max(1,Math.floor(height*dpr))};
 }
 const ROOT = `${import.meta.env.BASE_URL}operators/`;
-type Props = { tick: RealtimeTick | null; events: RealtimeEvent[]; map: TacticalMapDefinition; side: OperatorSide; selectedId: string | null; mode: 'broadcast' | 'follow' | 'full'; speed: number; paused: boolean; onSelect: (id: string) => void; onFocus?: (id: string | null) => void };
+type Props = { tick: RealtimeTick | null; events: RealtimeEvent[]; map: TacticalMapDefinition; side: OperatorSide; selectedId: string | null; mode: 'broadcast' | 'follow' | 'full'; speed: number; paused: boolean; onSelect: (id: string) => void; playerNames?: ReadonlyMap<string,string>; onFocus?: (id: string | null) => void };
 
 /** 파티클 모양은 사건과 참가자 ID로 고정해 프레임마다 난수 모양이 떨리지 않게 합니다. */
 function seeded(key:string,index=0):number { let value=2166136261;for(const letter of `${key}:${index}`)value=Math.imul(value^letter.charCodeAt(0),16777619);return (value>>>0)/4294967295; }
@@ -109,13 +109,25 @@ export function BroadcastCanvas(props: Props): ReactElement {
       if(noFriendAlive&&snapshot.objective?.devicePosition){actualFrame.x=snapshot.objective.devicePosition.x;actualFrame.y=snapshot.objective.devicePosition.y;actualFrame.width=520;}
       const viewport=cameraViewport(map,actualFrame,p.mode==='full');
       // 기기 화면 비율을 반영해 넓은 화면의 교전과 세로 화면의 인물이 모두 잘리지 않게 합니다.
-      if(p.mode!=='full'){viewport.height=Math.min(map.height,viewport.width*h/w);viewport.y=Math.max(0,Math.min(map.height-viewport.height,actualFrame.y-viewport.height/2));}
+      if(p.mode!=='full'){
+        // 세로 폰에서는 긴 빈 복도보다 선수의 군장·무기가 읽히는 확대 폭을 사용합니다.
+        if(rect.width<600&&rect.height>rect.width){viewport.width=Math.min(viewport.width,600);viewport.x=Math.max(0,Math.min(map.width-viewport.width,actualFrame.x-viewport.width/2));}
+        viewport.height=Math.min(map.height,viewport.width*h/w);viewport.y=Math.max(0,Math.min(map.height-viewport.height,actualFrame.y-viewport.height/2));
+      }
       const elapsed=Math.min(.05,(stamp-lastStamp)/1000||.016);lastStamp=stamp;
       const reducedMotion=motionMedia.matches;
       const blend=reducedMotion||!cameraReady?1:1-Math.exp(-elapsed*9);
       for(const key of ['x','y','width','height'] as const){const delta=viewport[key]-camera[key];camera[key]=Math.abs(delta)<.01?viewport[key]:camera[key]+delta*blend;}
       cameraReady=true;
-      const scale=Math.min(w/camera.width,h/camera.height),ox=(w-camera.width*scale)/2,oy=(h-camera.height*scale)/2;
+      // 전체 지도는 점수판·감독 지시·선수 카드의 화면 여백 안에 맞춥니다.
+      const density=w/Math.max(1,rect.width),top=p.mode==='full'?100*density:0,bottom=p.mode==='full'?(rect.height<520?125:220)*density:0;
+      const sideInset=p.mode==='full'?12*density:0;
+      const scale=Math.min((w-sideInset*2)/camera.width,Math.max(1,h-top-bottom)/camera.height),ox=(w-camera.width*scale)/2,oy=top+(h-top-bottom-camera.height*scale)/2;
+      const cssUnit=density/scale;
+      const annotations:Array<{text:string;x:number;y:number;color:string}>=[];
+      /** 글자는 지도 배율과 무관하게 CSS 11px로 마지막 계층에 표시합니다. */
+      const label=(text:string,x:number,y:number,color='#EDF2F0'):void=>{annotations.push({text,x,y,color});};
+      const visibleSmokes:NonNullable<typeof snapshot.gadgets>=[];
       // 관전 밖의 폭발은 화면을 흔들지 않으며 동작 줄이기·일시 정지는 충격을 끕니다.
       const blast=!reducedMotion&&!p.paused&&p.mode!=='full'?[...events].reverse().find(event=>event.position&&event.position.x>=camera.x&&event.position.x<=camera.x+camera.width&&event.position.y>=camera.y&&event.position.y<=camera.y+camera.height&&vision.some(friend=>observer.canObserve(friend,event.position!,map,snapshot.gadgets,time))&&time-event.time>=0&&time-event.time<.38&&(event.goal==='grenade-exploded'||event.goal==='wall-breached')):undefined;
       const blastAge=blast?time-blast.time:1,shake=blast?(1-blastAge/.38)*Math.min(7,scale*5):0,shakeX=(seeded(`${blast?.time}:x`,Math.floor(blastAge*80))-.5)*shake,shakeY=(seeded(`${blast?.time}:y`,Math.floor(blastAge*80))-.5)*shake;
@@ -142,10 +154,10 @@ export function BroadcastCanvas(props: Props): ReactElement {
         // 연막 자체를 볼 때만 자기 차폐를 제외합니다. 적 선수 판정과 다른 연막·벽은 그대로 유지합니다.
         const occluders=gadget.kind==='smoke'?(snapshot.gadgets??[]).filter(other=>other.id!==gadget.id):snapshot.gadgets;
         if(gadget.side!==p.side&&!vision.some(friend=>observer.canObserve(friend,point,map,occluders,time)))continue;
-        if(gadget.kind==='smoke'&&time>=gadget.activeAt){paintSmoke(ctx,smokeTexture,point.x,point.y,gadget.radius,time-gadget.activeAt,gadget.until-gadget.activeAt);continue;}
+        if(gadget.kind==='smoke'&&time>=gadget.activeAt){visibleSmokes.push(gadget);continue;}
         if(electronic(gadget)){ctx.fillStyle=(gadget.disabledUntil??0)>time?'#697174':'#465D65';ctx.strokeStyle='#A8BBB5';ctx.lineWidth=2;ctx.fillRect(point.x-8,point.y-7,16,14);ctx.strokeRect(point.x-8,point.y-7,16,14);
           ctx.font='bold 10px sans-serif';ctx.fillStyle='#D7E6DC';ctx.textAlign='center';ctx.fillText(({camera:'C',drone:'D',power:'P',interceptor:'I'} as Record<string,string>)[gadget.kind],point.x,point.y+4);
-          if(gadget.side===p.side){ctx.font='10px sans-serif';ctx.fillText(GADGET_LABELS[gadget.kind]+((gadget.disabledUntil??0)>time?' · 정지':gadget.kind==='interceptor'?` · ${gadget.charges}발`:''),point.x,point.y+22);}continue;
+          if(gadget.side===p.side){label(GADGET_LABELS[gadget.kind]+((gadget.disabledUntil??0)>time?' · 정지':gadget.kind==='interceptor'?` · ${gadget.charges}발`:''),point.x,point.y+18*cssUnit);}continue;
         }
         ctx.beginPath();ctx.arc(point.x,point.y,gadget.kind==='camera'?7:5,0,Math.PI*2);ctx.fillStyle=gadget.kind==='camera'?'#6EA8FF':'#FFC53D';ctx.fill();}
       const objective=snapshot.objective,device=objective?.devicePosition;
@@ -159,10 +171,16 @@ export function BroadcastCanvas(props: Props): ReactElement {
         if(!paintMinimalOperator(ctx,unit,time,shotAt,asset,reducedMotion,{reloadStartedAt:events.findLast(event=>event.actor===unit.id&&event.type==='reload'&&event.message.includes('장전 시작'))?.time,thrown:snapshot.gadgets?.find(gadget=>gadget.owner===unit.id&&gadget.thrownAt!==undefined&&time>=gadget.thrownAt&&time-gadget.thrownAt<.45)}))continue;
         // 다운은 사망과 다른 실제 상태입니다. 자세별 원화 전에는 명확한 구조 표식을 사용합니다.
         if(unit.downed){ctx.save();ctx.strokeStyle='#FFC53D';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(unit.position.x-5,unit.position.y-23);ctx.lineTo(unit.position.x+5,unit.position.y-23);ctx.moveTo(unit.position.x,unit.position.y-28);ctx.lineTo(unit.position.x,unit.position.y-18);ctx.stroke();if(unit.downed.progress>0){ctx.beginPath();ctx.arc(unit.position.x,unit.position.y,21,-Math.PI/2,-Math.PI/2+Math.PI*2*unit.downed.progress);ctx.stroke();}ctx.restore();}
-        if(unit.side===p.side){hitTargets.push({id:unit.id,x:ox+(unit.position.x-camera.x)*scale,y:oy+(unit.position.y-camera.y)*scale});if(unit.id===p.selectedId){ctx.strokeStyle='#FFC53D';ctx.lineWidth=1.5;ctx.beginPath();ctx.arc(unit.position.x,unit.position.y,18,0,Math.PI*2);ctx.stroke();}}
-        if(unit.side===p.side&&!unit.downed&&unit.tacticalWarning){ctx.fillStyle='#FFC53D';ctx.font='bold 15px sans-serif';ctx.textAlign='center';ctx.fillText('!',unit.position.x,unit.position.y-25);if(unit.id===focusId||unit.id===p.selectedId){ctx.font='10px sans-serif';ctx.fillText(unit.tacticalWarning==='long-range'?'장거리 위험 · 우회 판단':'탄착 압박 · 엄폐',unit.position.x,unit.position.y-40);}}
-        if(unit.side===p.side&&(unit.id===focusId||unit.id===p.selectedId)&&['utility','reposition'].includes(unit.action)){ctx.fillStyle='#D8E4DE';ctx.font='10px sans-serif';ctx.textAlign='center';ctx.fillText(unit.goal,unit.position.x,unit.position.y+43);}
-        if(p.mode==='full'||unit.id===focusId){ctx.font='10px sans-serif';ctx.textAlign='center';ctx.fillStyle='#EDF2F0';ctx.fillText(unit.callSign,unit.position.x,unit.position.y+29);}
+        // 팀 색상은 군장을 덮지 않는 바깥 고리로 구분하며 선택 고리는 같은 몸 중심에 둡니다.
+        if(unit.alive){ctx.strokeStyle=unit.id===p.selectedId?'#FFC53D':unit.side===p.side?'#2FD4C4':'#F0873C';ctx.lineWidth=(unit.id===p.selectedId?2:1.2)*cssUnit;ctx.beginPath();ctx.arc(unit.position.x,unit.position.y,Math.max(20,7*cssUnit),0,Math.PI*2);ctx.stroke();}
+        if(unit.side===p.side)hitTargets.push({id:unit.id,x:ox+(unit.position.x-camera.x)*scale,y:oy+(unit.position.y-camera.y)*scale});
+        const focused=unit.side===p.side&&(unit.id===focusId||unit.id===p.selectedId);
+        if(focused||p.mode==='full')label(unit.side===p.side?(p.playerNames?.get(unit.id)??unit.callSign):unit.callSign,unit.position.x,unit.position.y+25*cssUnit);
+        // 선택 선수의 상태는 우선순위 하나만 표시해 이름·경고·행동의 중첩을 줄입니다.
+        if(focused&&!unit.downed){
+          if(unit.tacticalWarning)label(unit.tacticalWarning==='long-range'?'! 장거리 위험 · 우회 판단':'! 탄착 압박 · 엄폐',unit.position.x,unit.position.y-28*cssUnit,'#FFC53D');
+          else if(['utility','reposition'].includes(unit.action))label(unit.goal,unit.position.x,unit.position.y-28*cssUnit);
+        }
       }
       for(const event of events){const age=time-event.time;if(!['shot','impact','utility'].includes(event.type)||age>Math.max(.65,event.travelSeconds??0)||!event.position||!vision.some(friend=>observer.canObserve(friend,event.position!,map,snapshot.gadgets,time)))continue;
         if(event.type==='shot'&&event.targetPosition&&age>=0&&age<=Math.max(.1,event.travelSeconds??.1)){
@@ -171,6 +189,10 @@ export function BroadcastCanvas(props: Props): ReactElement {
         if(event.type==='impact'&&age>=0&&age<.28){const radius=3+age*18;ctx.strokeStyle=event.hit?'#E5484D':'#E3D6A3';ctx.lineWidth=1.4;ctx.beginPath();ctx.arc(event.position.x,event.position.y,radius,0,Math.PI*2);ctx.stroke();for(let i=0;i<5;i++){const angle=seeded(`${event.time}:${event.actor}`,i)*Math.PI*2,length=(1-age/.28)*(5+seeded(`${event.time}:impact`,i)*11);ctx.beginPath();ctx.moveTo(event.position.x,event.position.y);ctx.lineTo(event.position.x+Math.cos(angle)*length,event.position.y+Math.sin(angle)*length);ctx.stroke();}}
         if(event.type==='utility'&&age>=0&&age<.65&&(event.goal==='grenade-exploded'||event.goal==='wall-breached')){const power=1-age/.65;ctx.fillStyle=event.goal==='grenade-exploded'?`rgba(255,197,61,${power*.65})`:`rgba(190,174,143,${power*.48})`;ctx.beginPath();ctx.arc(event.position.x,event.position.y,(event.goal==='grenade-exploded'?42:30)*(1-power*.35),0,Math.PI*2);ctx.fill();for(let i=0;i<14;i++){const angle=seeded(`${event.goal}:${event.time}`,i)*Math.PI*2,distance=(1-power)*(35+seeded(`${event.time}:debris`,i)*90);ctx.fillRect(event.position.x+Math.cos(angle)*distance,event.position.y+Math.sin(angle)*distance,2+seeded(event.goal,i)*5,2+seeded(event.goal,i+30)*4);}}
       }
+      // 연막은 실제로 보이는 구름만 인물·탄착 위에 합성하고, 상태 글자는 그 위에 둡니다.
+      for(const smoke of visibleSmokes){const point=gadgetPosition(smoke,time);paintSmoke(ctx,smokeTexture,point.x,point.y,smoke.radius,time-smoke.activeAt,smoke.until-smoke.activeAt);}
+      ctx.textAlign='center';ctx.font=`bold ${11*cssUnit}px sans-serif`;
+      for(const item of annotations){ctx.lineJoin='round';ctx.lineWidth=3*cssUnit;ctx.strokeStyle='#101820';ctx.strokeText(item.text,item.x,item.y);ctx.fillStyle=item.color;ctx.fillText(item.text,item.x,item.y);}
     };
     frame=requestAnimationFrame(draw);
     return()=>{cancelAnimationFrame(frame);canvas.removeEventListener('pointerup',select);images.clear();scene=null;};

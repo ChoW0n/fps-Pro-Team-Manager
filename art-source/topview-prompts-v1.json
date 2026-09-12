@@ -1,0 +1,49 @@
+{
+  "common": "Production INDIVIDUAL raster game firearm sprite, STRICT VERTICAL ORTHOGRAPHIC 90 degree TOP VIEW of gun held upright firing: only TOP SURFACES visible. NOT a gun laid on its side, NOT side elevation or isometric. Muzzle RIGHT buttstock LEFT horizontal narrow complete silhouette with transparent margin. No sideways magazine or pistol grip; these project underneath. Premium military sprite: accurate top rail, optic top, upper receiver, recognizable stock/handguard geometry and restrained surface joints, 2-3 clean cel shading blocks, consistent bold dark contour, no photoreal gradients. No hands, text, logo, floor shadow. Actual TRANSPARENT ALPHA PNG never painted checkerboard. Wide 3:1 composition. ",
+  "weapons": [
+    [
+      "mp5sd",
+      "MP5SD suppressed submachinegun. Black fixed stock, curved 9mm magazine hidden below, characteristic round rubber ribbed handguard narrowing into thick integrated suppressor, top receiver spine with rear drum sight and front hood seen from overhead; no optic."
+    ],
+    [
+      "hk416",
+      "HK416 carbine, black adjustable stock, olive tape on stock, black quad rail handguard, compact red dot optic seen only from above, short exposed barrel with flash hider."
+    ],
+    [
+      "x95",
+      "IWI X95 bullpup. Tan broad compact polymer upper body with rear receiver extending behind grip, rear magazine hidden below, narrow top Picatinny rail and compact dot, short barrel, no conventional AR receiver or stock."
+    ],
+    [
+      "mpx",
+      "SIG MPX compact SMG, black slim folding skeleton stock, dark gray short receiver and vented handguard, red dot from directly overhead, narrow 9mm magazine hidden below, short muzzle."
+    ],
+    [
+      "val",
+      "AS Val, black skeleton folding stock seen directly overhead, olive/dark gray receiver cover, distinctive long thick integral suppressor and short olive forearm. Low iron sights, no optic. Top-down geometry only."
+    ],
+    [
+      "hk417",
+      "HK417 full size rifle, olive adjustable stock, large black receiver, long black/olive railed handguard and exposed muzzle, magnified scope seen overhead with tube and two rings, no sideways scope turret silhouette."
+    ],
+    [
+      "psg",
+      "PSG-1 precision rifle. Black sculpted fixed cheekrest stock, plain smooth dark forearm, long exposed thin barrel, magnified scope seen from above with two rings and wider front objective. Grip and box magazine underneath hidden."
+    ],
+    [
+      "p90",
+      "FN P90 compact bullpup PDW. Broad olive polymer upper shell, translucent amber horizontal TOP mounted magazine with restrained cartridge blocks, raised bridge optic toward forward end seen above, short black muzzle. Its unusual wide rear and tapered front must be unmistakable."
+    ],
+    [
+      "c14",
+      "C14 Timberwolf bolt action sniper rifle. Coyote tan adjustable precision stock and long forearm, black receiver with bolt closed and bolt handle down, long precision barrel with muzzle brake, large overhead scope/two rings. Entire weapon from directly above."
+    ],
+    [
+      "k1a",
+      "K1A Korean compact carbine. Thin twin-wire sliding stock seen overhead, dark gray receiver, short black ribbed handguard, iron sights, long slim exposed front barrel and flash hider, olive small furniture accents. No optic."
+    ],
+    [
+      "arx",
+      "Beretta ARX160 tan polymer rifle. Distinctive broad sculpted rear folding stock and bulbous tan upper receiver tapering toward ventilated handguard, black continuous top rail and compact red dot, short exposed muzzle. Magazine/grip below hidden."
+    ]
+  ]
+}

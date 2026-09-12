@@ -9,7 +9,7 @@ const shot={type:'shot',actor:'fighter',target:'enemy',time:2,position:{x:800,y:
 assert.equal(combatCamera([idle,fighter,enemy],[shot],'공격',2,'idle',false,'idle').focusId,'fighter');
 assert.equal(combatCamera([idle,fighter,enemy],[shot],'공격',2,'idle',true,'idle').focusId,'idle');
 assert.equal(combatCamera([idle,fighter,enemy],[shot],'공격',1,'idle',false,'idle').focusId,'idle');
-assert.equal(combatCamera([idle,{...fighter,alive:false},enemy],[shot],'공격',2.1,'idle',false,'fighter').focusId,'fighter');
+assert.equal(combatCamera([idle,{...fighter,alive:false},enemy],[shot],'공격',2.1,'idle',false,'fighter').focusId,'idle','생존 동료가 있으면 사망한 사수를 자동 추적하지 않음');
 const aim={...fighter,action:'aim',knowledge:{source:'self-visual',lastKnownAt:2,lastKnownPosition:{x:1300,y:400}}};
 assert.equal(combatCamera([idle,aim],[],'공격',2,'idle',false,'idle').focusId,'fighter');
 assert.equal(combatCamera([idle,aim],[],'공격',2,'idle',false,'idle').x,1050);

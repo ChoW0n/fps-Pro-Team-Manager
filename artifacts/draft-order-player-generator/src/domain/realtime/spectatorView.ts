@@ -1,4 +1,4 @@
-import { PERIPHERAL_HALF_ANGLE, sightRange } from './perception';
+import { FOCUS_HALF_ANGLE, PERIPHERAL_HALF_ANGLE, angleDifference, sightRange } from './perception';
 import type { OperatorSide } from '../Operator';
 import type { TacticalMapDefinition, TacticalPoint } from '../tacticalMaps';
 import type { RealtimeEvent, RealtimeGadget, RealtimeUnitState } from './TacticalRealtimeSimulation';
@@ -18,7 +18,7 @@ export function combatCamera(units: readonly RealtimeUnitState[], events: readon
     && units.some(unit=>unit.id===event.actor&&unit.side===side || unit.id===event.target&&unit.side===side));
   // 진행 중인 교전은 유지하되, 비전투 선수의 홀드 때문에 새 교전을 버리지 않습니다.
   const recent=shots.find(event=>event.actor===preferredId||event.target===preferredId)??shots[0];
-  const actor=units.find(unit=>unit.id===recent?.actor),target=units.find(unit=>unit.id===recent?.target);
+  const actor=units.find(unit=>unit.id===recent?.actor&&unit.alive),target=units.find(unit=>unit.id===recent?.target&&unit.alive);
   const selected=friends.find(unit=>unit.id===selectedId);
   const fallenSelected=fallen.find(unit=>unit.id===selectedId);
   const objectiveActor=friends.find(unit=>unit.action==='plant'||unit.action==='disable');
@@ -52,8 +52,13 @@ export function visionPolygon(unit: RealtimeUnitState, map: TacticalMapDefinitio
     p.forEach((point,index)=>segments.push([point,p[(index+1)%4]]));
   }
   const origin=unit.position,points:TacticalPoint[]=[origin];
-  for(let i=0;i<=24;i++) {
-    const relative=-PERIPHERAL_HALF_ANGLE+i/24*PERIPHERAL_HALF_ANGLE*2;
+  // 일정 간격 광선에 모서리 양옆과 식별 거리 경계를 추가해 틈으로 면이 새지 않게 합니다.
+  const angles=new Set<number>();
+  for(let i=0;i<=24;i++)angles.add(-PERIPHERAL_HALF_ANGLE+i/24*PERIPHERAL_HALF_ANGLE*2);
+  for(const angle of [-FOCUS_HALF_ANGLE,FOCUS_HALF_ANGLE,...segments.flatMap(segment=>segment.map(point=>angleDifference(Math.atan2(point.y-origin.y,point.x-origin.x),unit.facing)))]) {
+    for(const offset of [-.00001,0,.00001])if(Math.abs(angle+offset)<=PERIPHERAL_HALF_ANGLE)angles.add(angle+offset);
+  }
+  for(const relative of [...angles].sort((a,b)=>a-b)) {
     const angle=unit.facing+relative,dx=Math.cos(angle),dy=Math.sin(angle);
     let limit=sightRange(relative);
     for(const [a,b] of segments) {
