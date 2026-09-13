@@ -18,6 +18,7 @@ export type RoundBroadcastPhase = 'prep'|'combat'|'plant'|'end';
 export function roundBroadcastPhase(operationPhase?:string,objectivePhase?:string,ended=false):RoundBroadcastPhase {
   if(ended||objectivePhase==='resolved')return 'end';
   if(['planting','active','disabling'].includes(objectivePhase??''))return 'plant';
+  if(!operationPhase)return 'prep';
   return operationPhase==='preparing'?'prep':'combat';
 }
 const ROUND_FLOW:ReadonlyArray<{id:RoundBroadcastPhase;label:string}>=[
@@ -115,6 +116,9 @@ export function TacticalRoundLive({input,map=NAMSAN_MAP,roundNumber=1,directorSi
     :objective?.phase==='disabling'?`${objective.siteId??'?'} 구역 무력화 ${Math.round(objective.progress*100)}%`
     :phase==='plant'?`${objective?.siteId??'?'} 구역 장치 가동`
     :outcome||'라운드 판정';
+  const objectiveDetail=objective?.phase==='disabling'
+    ?`${objective.siteId??'?'} · 장치 무력화 ${Math.round(objective.progress*100)}%`
+    :`${objective?.siteId??'?'} · 해체 장치 가동`;
   /** 실제 참가자 이름을 사용하며 확인하지 못한 공격자의 신원은 숨깁니다. */
   const playerName=(id?:string):string=>participants.get(id??'')?.player.nickname??'미확인';
   /** 현재 시야 또는 관측한 발사 사건으로 확인한 공격자만 킬 피드에 표시합니다. */
@@ -135,7 +139,7 @@ export function TacticalRoundLive({input,map=NAMSAN_MAP,roundNumber=1,directorSi
 
     <div className="cast-intel" aria-label="확인한 상대 오퍼레이터"><small>ENEMY INTEL</small><div>{[0,1,2,3,4].map(index=>{const callSign=tick?.snapshot.identifiedTo?.[directorSide]?.[index];return <span key={index} className={callSign?'is-identified':''}><OperatorEmblem callSign={callSign} unknown={!callSign}/><b>{callSign??'미확인'}</b></span>;})}</div></div>
     <div className="cast-killfeed" aria-label="전투 피드"><AnimatePresence initial={false}>{kills.map(event=><motion.div key={`${event.time}:${event.actor}:${event.target}:${event.type}`} initial={reducedMotion?false:{opacity:0,x:28}} animate={{opacity:1,x:0}} exit={reducedMotion?{opacity:0}:{opacity:0,x:18}} transition={{duration:reducedMotion?0:.18,ease:'easeOut'}}><b>{killerName(event)}</b><span>{event.type==='downed'?'다운':event.type==='revive'?'소생':event.hitRegion==='head'?'헤드샷':'처치'}</span><strong>{playerName(event.target)}</strong></motion.div>)}</AnimatePresence></div>
-    {active&&<div className="cast-objective"><span className="cast-device-icon">▣</span><strong>{objective?.siteId} · 해체 장치 가동</strong><progress max="45" value={Math.max(0,left-time)}/></div>}
+    {active&&<div className="cast-objective"><span className="cast-device-icon">▣</span><strong>{objectiveDetail}</strong><progress aria-label={objective?.phase==='disabling'?'장치 무력화 진행':'장치 작동 잔여 시간'} max={objective?.phase==='disabling'?1:45} value={objective?.phase==='disabling'?objective.progress:Math.max(0,left-time)}/></div>}
     <AnimatePresence>{(result||error)&&<motion.div className="cast-outcome" role="status" initial={reducedMotion?false:{opacity:0,scale:.94,y:12}} animate={{opacity:1,scale:1,y:0}} exit={{opacity:0}} transition={{duration:reducedMotion?0:.24,ease:'easeOut'}}><small>{error?'MATCH INTERRUPTED':'ROUND COMPLETE'}</small><h2>{error||`${result!.winner===directorSide?'라운드 승리':'라운드 패배'}`}</h2><p>{outcome}</p></motion.div>}</AnimatePresence>
     {selected?.downed&&<div className="cast-injury" role="status"><strong>DOWN · {selected.downed.mode==='crawl'?'엄폐로 이동':'지혈 중'}</strong><span>동료 구조 필요</span>{selected.downed.progress>0&&<progress aria-label="소생 진행" max="1" value={selected.downed.progress}/>}</div>}
     {selected?.reviving&&<div className="cast-injury" role="status"><strong>동료 소생 중</strong><span>{playerName(selected.reviving.targetId)}</span></div>}
