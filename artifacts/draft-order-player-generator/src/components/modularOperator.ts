@@ -125,9 +125,11 @@ function polygon(ctx:CanvasRenderingContext2D,points:number[][],fill:string):voi
 }
 
 function paintLowerBody(ctx:CanvasRenderingContext2D,pose:OperatorAssemblyPose,time:number,reducedMotion:boolean,color:string):void {
-  const relative=normalize(pose.lowerFacing-pose.upperFacing),step=!reducedMotion&&pose.moving&&!pose.prone?Math.sin(time*(pose.crouched?8:12))*3:0;
+  const relative=normalize(pose.lowerFacing-pose.upperFacing),step=!reducedMotion&&pose.moving&&!pose.prone?Math.sin(time*(pose.crouched?8:12))*1.4:0;
   ctx.save();ctx.rotate(relative);ctx.strokeStyle='#10191C';ctx.lineWidth=2;ctx.lineJoin='round';
-  for(const side of [-1,1]){const rear=pose.prone?-29:pose.crouched?-13:-18+side*step;
+  // 서기/앉기에서는 다리가 골반 아래로 내려가므로 탑뷰에 짧게만 투영됩니다.
+  // 포복의 뒤로 뻗은 다리를 서 있는 자세에 재사용하지 않습니다.
+  for(const side of [-1,1]){const rear=pose.prone?-29:(pose.crouched?-7:-10)+side*step;
     polygon(ctx,[[rear-5,side*2.5],[rear+7,side*2.5],[rear+8,side*5.5],[rear-4,side*7]],side<0?'#29373A':color);}
   ctx.restore();
 }
