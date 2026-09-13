@@ -20,11 +20,23 @@ export function setMatchAudioMuted(value:boolean):void {
 }
 const buffers=new Map<string,AudioBuffer>();
 
+const samples=new Map<string,AudioBuffer>();
+let sampleLoad:Promise<void>|undefined;
+/** 사용자 제스처 뒤 한 번만 디코드합니다. 파일 실패 시 기존 합성음을 사용합니다. */
+export function loadMatchSamples():Promise<void> {
+  if(!context)return Promise.resolve();
+  return sampleLoad??=Promise.all(['carbine','smg','marksman','bolt','impact','blast'].map(async key=>{
+    try{const response=await fetch(`${import.meta.env.BASE_URL}audio/${key}.mp3`);if(!response.ok)return;
+      samples.set(key,await context!.decodeAudioData(await response.arrayBuffer()));
+    }catch{/* 오프라인·디코드 실패는 경기 진행을 막지 않습니다. */}
+  })).then(()=>undefined);
+}
 export function unlockMatchAudio():void {
   if(typeof AudioContext==='undefined')return;
   try{context??=new AudioContext();}catch{return;}
   if(!bus){bus=context.createDynamicsCompressor();bus.threshold.value=-18;bus.ratio.value=6;bus.attack.value=.002;bus.release.value=.12;bus.connect(context.destination);}
   void context.resume().catch(()=>undefined);
+  void loadMatchSamples();
 }
 
 /** 탄종과 무기군에 맞춘 임시 합성음입니다. 실총 녹음의 고증을 대신하지 않습니다. */
@@ -65,7 +77,9 @@ export function playMatchAudio(event:RealtimeEvent,weaponName='',pan=0,attenuati
   const volume=(kind==='footstep'?([...playing.values()].includes('shot')?.025:.065):kind==='shot'?profile.gain:kind==='blast'?.48:kind==='deploy'?.07:.055)*Math.max(0,Math.min(1,attenuation));
   const source=context.createBufferSource(),filter=context.createBiquadFilter(),gain=context.createGain(),panner=context.createStereoPanner();
   const variant=Math.abs(Math.round(event.time*1000))%4;
-  source.buffer=transient(`${kind}:${kind==='shot'?weaponName:''}:${variant}`,decay,kind==='shot'||kind==='deploy');
+  const family=weaponHandling(weaponName).family;
+  const sampleKey=kind==='shot'?(family==='pistol'?'smg':family):kind;
+  source.buffer=samples.get(sampleKey)??transient(`${kind}:${kind==='shot'?weaponName:''}:${variant}`,decay,kind==='shot'||kind==='deploy');
   filter.type='lowpass';filter.frequency.value=kind==='shot'?profile.cutoff:kind==='footstep'?750:kind==='blast'?1600:5000;filter.Q.value=.5;
   gain.gain.value=volume;panner.pan.value=Math.max(-1,Math.min(1,pan));
   source.connect(filter).connect(gain).connect(panner).connect(bus);

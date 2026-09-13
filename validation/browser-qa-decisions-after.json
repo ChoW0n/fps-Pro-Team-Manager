@@ -1,0 +1,73 @@
+{
+  "games": 8,
+  "changes": 1277,
+  "returns": 333,
+  "returnPercent": 26.076742364917777,
+  "holdMoving": 15,
+  "rows": [
+    {
+      "seed": 7017,
+      "changes": 193,
+      "returns": 47,
+      "holdMoving": 2,
+      "winner": "수비",
+      "duration": 150
+    },
+    {
+      "seed": 7034,
+      "changes": 129,
+      "returns": 43,
+      "holdMoving": 0,
+      "winner": "수비",
+      "duration": 75.3
+    },
+    {
+      "seed": 7051,
+      "changes": 212,
+      "returns": 47,
+      "holdMoving": 1,
+      "winner": "수비",
+      "duration": 132.4
+    },
+    {
+      "seed": 7068,
+      "changes": 106,
+      "returns": 31,
+      "holdMoving": 2,
+      "winner": "수비",
+      "duration": 80.8
+    },
+    {
+      "seed": 7085,
+      "changes": 152,
+      "returns": 27,
+      "holdMoving": 0,
+      "winner": "공격",
+      "duration": 92
+    },
+    {
+      "seed": 7102,
+      "changes": 174,
+      "returns": 57,
+      "holdMoving": 8,
+      "winner": "수비",
+      "duration": 110.3
+    },
+    {
+      "seed": 7119,
+      "changes": 129,
+      "returns": 43,
+      "holdMoving": 0,
+      "winner": "수비",
+      "duration": 75.3
+    },
+    {
+      "seed": 7136,
+      "changes": 182,
+      "returns": 38,
+      "holdMoving": 2,
+      "winner": "수비",
+      "duration": 115.8
+    }
+  ]
+}

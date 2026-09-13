@@ -1,6 +1,6 @@
 /** 제조사 확인 정보와 게임용 사격 제어 계수를 구분합니다. 실측 반동 재현값은 아닙니다. */
 export interface WeaponHandling {
-  family: 'carbine' | 'smg' | 'marksman' | 'bolt';
+  family: 'carbine' | 'smg' | 'marksman' | 'bolt' | 'pistol';
   caliber: string;
   cyclicRpm: number;
   velocity: number;
@@ -15,7 +15,17 @@ export const WORLD_UNITS_PER_METRE = 40;
 const hk = 'https://www.heckler-koch.com/en/Products/Military%20and%20Law%20Enforcement/';
 const carbine: WeaponHandling = {family:'carbine',caliber:'5.56×45',cyclicRpm:750,velocity:790,damage:32,cone:.012,kick:.022,recovery:.055,comfortableDistance:650};
 const smg: WeaponHandling = {family:'smg',caliber:'9×19',cyclicRpm:800,velocity:320,damage:25,cone:.017,kick:.015,recovery:.065,comfortableDistance:400};
+// 피해·거리·반동은 게임 설계값이며 반자동 권총에 자동 연사 RPM을 부여하지 않습니다.
+const pistol: WeaponHandling={family:'pistol',caliber:'9×19',cyclicRpm:0,velocity:350,damage:24,cone:.02,kick:.03,recovery:.07,comfortableDistance:280};
 export const WEAPON_HANDLING: Record<string,WeaponHandling> = {
+  '글록 17': {...pistol},
+  '글록 19': {...pistol},
+  'SIG P226': {...pistol},
+  'K5 권총': {...pistol},
+  'HK USP': {...pistol},
+  '베레타 92FS': {...pistol},
+  'MR73 리볼버': {...pistol,caliber:'.357 Magnum',damage:38,kick:.055,comfortableDistance:340},
+  'SR-1 베크토르': {...pistol,caliber:'9×21',damage:28},
   'L119A2 카빈': {...carbine},
   'HK416': {...carbine,cyclicRpm:850,source:hk+'Assault%20rifles/HK416'},
   'MP5SD': {...smg,source:hk+'Submachine%20guns/MP5'},
@@ -46,6 +56,7 @@ export function targetAcquisitionSeconds(reactionTime: number, exposure: number,
 }
 /** 먼 거리에서는 방아쇠를 끊고 조준을 회복합니다. 발사 속도 상한은 별도로 지킵니다. */
 export function shotInterval(profile: WeaponHandling, range: number, control: number, burst: number): number {
+  if(profile.family==='pistol') return .3+(1-control)*.25+(profile.caliber==='.357 Magnum'?.15:0);
   if(profile.family==='bolt') return 1.3+(1-control)*.7;
   if(profile.family==='marksman') return .35+(1-control)*.25;
   const limit=range>profile.comfortableDistance?2:3;

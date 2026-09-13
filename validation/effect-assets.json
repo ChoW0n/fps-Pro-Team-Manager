@@ -1,0 +1,198 @@
+{
+  "kind": "Generated individual PNG; first 18 event sprites, 6 devices (4 extracted from existing approved atlas)",
+  "totalBytes": 1180196,
+  "rows": [
+    {
+      "file": "muzzle-1-v1.png",
+      "width": 512,
+      "height": 512,
+      "bytes": 21681,
+      "transparentPercent": 94.7,
+      "sha256": "e5603020769fc4e01fbd197da16d1422a9e775c873344c5c47968feb2da72259"
+    },
+    {
+      "file": "muzzle-2-v1.png",
+      "width": 512,
+      "height": 512,
+      "bytes": 17864,
+      "transparentPercent": 94.8,
+      "sha256": "0535095d6ccf1b38d818c3e768932c701b335d84a188dfaaf272cc037e01e79f"
+    },
+    {
+      "file": "muzzle-3-v1.png",
+      "width": 512,
+      "height": 512,
+      "bytes": 30760,
+      "transparentPercent": 90.4,
+      "sha256": "bbc61484841dd199292116150ca794628ea10c3a34677ddcc66928df7491154e"
+    },
+    {
+      "file": "muzzle-4-v1.png",
+      "width": 512,
+      "height": 512,
+      "bytes": 16864,
+      "transparentPercent": 95.7,
+      "sha256": "b4b085bf40142721adcfb7f1963f17c51f097ec6d7cb2276eca978cf2ec0e944"
+    },
+    {
+      "file": "blood-1-v1.png",
+      "width": 512,
+      "height": 512,
+      "bytes": 25187,
+      "transparentPercent": 96.4,
+      "sha256": "1c846f582996ab199f2766b81b2ccf8442b284a5ff4ef1607c474bbdc56bc753"
+    },
+    {
+      "file": "blood-2-v1.png",
+      "width": 512,
+      "height": 512,
+      "bytes": 45767,
+      "transparentPercent": 88.7,
+      "sha256": "f394ce0a45cf98987889fe7d17a4f73ee539cc2295abedb494931259484318f6"
+    },
+    {
+      "file": "blood-3-v1.png",
+      "width": 512,
+      "height": 512,
+      "bytes": 29020,
+      "transparentPercent": 94.4,
+      "sha256": "fd984d06c21fd342fde33fae13c3f5b3560bbc9f4f1e563fe0625d42361888ad"
+    },
+    {
+      "file": "blood-4-v1.png",
+      "width": 512,
+      "height": 512,
+      "bytes": 84746,
+      "transparentPercent": 86.5,
+      "sha256": "9a84bd958a1f8bc18a41a7d53976a3f21f8472834a321dbd28d71ee5fd714c2f"
+    },
+    {
+      "file": "blood-head-1-v1.png",
+      "width": 512,
+      "height": 512,
+      "bytes": 36072,
+      "transparentPercent": 89.1,
+      "sha256": "cef34b47b33236a08a59181c9ef337bd55cb9e00801ea55c1e217e16419dd4bc"
+    },
+    {
+      "file": "blood-head-2-v1.png",
+      "width": 512,
+      "height": 512,
+      "bytes": 61094,
+      "transparentPercent": 87.3,
+      "sha256": "ebabf4bb391f39a222ec918ba113cd3dbf6053ce39ea4dbbdc49afca9ad1d34b"
+    },
+    {
+      "file": "dust-1-v1.png",
+      "width": 512,
+      "height": 512,
+      "bytes": 38182,
+      "transparentPercent": 93.0,
+      "sha256": "a93a91adea69397e98c9801e5635b49f57f1efc49387ad6e64bb292b07ff9208"
+    },
+    {
+      "file": "dust-2-v1.png",
+      "width": 512,
+      "height": 512,
+      "bytes": 39209,
+      "transparentPercent": 92.4,
+      "sha256": "a27bcd815ad86c808ab8be189d03849e7aa7875c7c4e6a9dd4dbd5b6987b5044"
+    },
+    {
+      "file": "dust-3-v1.png",
+      "width": 512,
+      "height": 512,
+      "bytes": 40849,
+      "transparentPercent": 93.0,
+      "sha256": "96d54cc624a079876533c4c6e9abcd99eb293420c16281c33f5e153a1b8d0bb8"
+    },
+    {
+      "file": "blast-1-v1.png",
+      "width": 512,
+      "height": 512,
+      "bytes": 75611,
+      "transparentPercent": 81.4,
+      "sha256": "8bcdcdf6bf19c2ccc05d83619d675ea501e2ecfc88a32ebdf5179d75802dc409"
+    },
+    {
+      "file": "blast-2-v1.png",
+      "width": 512,
+      "height": 512,
+      "bytes": 83731,
+      "transparentPercent": 80.1,
+      "sha256": "b859cf55150601647362fff64244259e0cdcaf2fe64c6c92a765084c0c063409"
+    },
+    {
+      "file": "blast-3-v1.png",
+      "width": 512,
+      "height": 512,
+      "bytes": 91823,
+      "transparentPercent": 76.6,
+      "sha256": "6a8f2116dcd9b3ea7cba2171efff66e61a1f4a695556a912290444ff6b27db15"
+    },
+    {
+      "file": "breach-1-v1.png",
+      "width": 512,
+      "height": 512,
+      "bytes": 105944,
+      "transparentPercent": 75.5,
+      "sha256": "80c3ee971a3f9b567e2ae90247457b97f3c0b432cef902772c80c3b21850e1ea"
+    },
+    {
+      "file": "breach-2-v1.png",
+      "width": 512,
+      "height": 512,
+      "bytes": 135446,
+      "transparentPercent": 69.2,
+      "sha256": "355bb75c90ffce9db581c1621cf3fa19d40f4af207725adbc3f1d42a359501b0"
+    },
+    {
+      "file": "probe-v1.png",
+      "width": 301,
+      "height": 300,
+      "bytes": 51803,
+      "transparentPercent": 60.5,
+      "sha256": "2ed03469e790fcfc51200518c949cd53c681af5097832d8c8612cd3d6c5aa9a5"
+    },
+    {
+      "file": "camera-v1.png",
+      "width": 300,
+      "height": 309,
+      "bytes": 22582,
+      "transparentPercent": 58.4,
+      "sha256": "f21eae85b7d110ab976e5ac90a2437ee13ca988e3aeeacb607b9bda0bd55a3d5"
+    },
+    {
+      "file": "power-v1.png",
+      "width": 327,
+      "height": 343,
+      "bytes": 35297,
+      "transparentPercent": 58.8,
+      "sha256": "07ad37f8171dc75dd14d6e108a10dedb39cf54b7a911afddbefc20422fdd318a"
+    },
+    {
+      "file": "interceptor-v1.png",
+      "width": 269,
+      "height": 343,
+      "bytes": 35182,
+      "transparentPercent": 48.4,
+      "sha256": "6b3cabe349d3357ed347f85f2f95595f01c5c523df6b5aeca0e51dd39e729e0c"
+    },
+    {
+      "file": "objective-device-v1.png",
+      "width": 512,
+      "height": 317,
+      "bytes": 24623,
+      "transparentPercent": 64.0,
+      "sha256": "fabedbc794a22592ef477f9013dbe7843ce1a6f89893c306ef18894d0c63703c"
+    },
+    {
+      "file": "deployed-shield-v1.png",
+      "width": 346,
+      "height": 461,
+      "bytes": 30859,
+      "transparentPercent": 69.2,
+      "sha256": "4497fbdf6275ef694eae58e5a69cfe6abf19ca34926511ce36b7b06444c372c8"
+    }
+  ]
+}

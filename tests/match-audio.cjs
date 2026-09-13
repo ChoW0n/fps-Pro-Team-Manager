@@ -1,12 +1,14 @@
 // Web Audio 배선·재생 수명 검증입니다. 브라우저 청음 검사를 대신하지 않습니다.
 const assert=require('node:assert/strict'),fs=require('node:fs'),ts=require('typescript');
-require.extensions['.ts']=(m,f)=>m._compile(ts.transpileModule(fs.readFileSync(f,'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText,f);
+require.extensions['.ts']=(m,f)=>m._compile(ts.transpileModule(fs.readFileSync(f,'utf8').replaceAll('import.meta.env.BASE_URL',JSON.stringify('/')),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText,f);
 const nodes=[],sources=[],storage=new Map();
+global.fetch=async url=>({ok:!url.includes('blast'),arrayBuffer:async()=>new ArrayBuffer(4)});
 global.localStorage={getItem:key=>storage.get(key),setItem:(key,value)=>storage.set(key,value)};
 function node(kind){const n={kind,connect(next){this.next=next;return next},disconnect(){this.disconnected=true}};nodes.push(n);return n;}
 let context;
 global.AudioContext=class {
  constructor(){context=this;this.state='suspended';this.currentTime=0;this.sampleRate=44100;this.destination=node('destination');}
+ decodeAudioData(){return Promise.resolve({sample:true});}
  resume(){this.state='running';return Promise.resolve();}
  createDynamicsCompressor(){return Object.assign(node('compressor'),{threshold:{},ratio:{},attack:{},release:{}});}
  createBuffer(_,length,sampleRate){const samples=new Float32Array(length);return {length,sampleRate,getChannelData:()=>samples};}
@@ -48,3 +50,5 @@ global.localStorage.setItem=()=>{throw Error('blocked')};assert.doesNotThrow(()=
 context.resume=()=>Promise.reject(Error('blocked'));assert.doesNotThrow(()=>a.unlockMatchAudio());
 fs.writeFileSync('validation/match-audio.json',JSON.stringify({weaponProfiles:6,footstepVoiceLimit:3,totalVoiceLimit:12,checks:['gesture gate','buffer data','no oscillator','pan/delay clamp','mute persistence','stop scheduled audio','footstep cadence','polyphony limit','actual objective event names','storage/resume rejection'],browserListening:false},null,2)+'\n');
 console.log('PASS 오디오 6종·사용자 제스처·음소거·예약 취소·발소리 3개·전체 12개·설치 사건');
+
+(async()=>{await a.loadMatchSamples();context.state='running';a.playMatchAudio(shot,'HK416');assert(sources.at(-1).buffer.sample,'decoded sample playback');a.stopMatchAudio();a.playMatchAudio({type:'utility',time:3,goal:'grenade-exploded',message:''});assert(sources.at(-1).buffer.getChannelData,'failed sample uses fallback');a.stopMatchAudio();console.log('PASS decoded sample and failed-fetch fallback');})().catch(e=>{console.error(e);process.exitCode=1});
