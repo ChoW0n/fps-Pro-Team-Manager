@@ -6,6 +6,7 @@ let bus:DynamicsCompressorNode|undefined;
 let muted=false;
 try{muted=localStorage.getItem('draft-order-audio-muted')==='true';}catch{/* 저장 차단 브라우저에서도 현재 경기 설정은 사용할 수 있습니다. */}
 const playing=new Map<AudioBufferSourceNode,string>();
+const voicePriority:Record<string,number>={shot:1,blast:1,impact:2,deploy:2,footstep:4};
 const lastStep=new Map<string,number>();
 
 export function isMatchAudioMuted():boolean{return muted;}
@@ -70,7 +71,13 @@ export function playMatchAudio(event:RealtimeEvent,weaponName='',pan=0,attenuati
   const steps=[...playing.values()].filter(value=>value==='footstep').length;
   // 엔진의 0.1초 소리 표본을 실제 발 디딤 간격으로 묶습니다. 적의 새 위치는 생성하지 않습니다.
   if(kind==='footstep'&&(steps>=3||context.currentTime-(lastStep.get(event.actor??'')??-1)<.32))return;
-  if(playing.size>=12)return;
+  if(playing.size>=12){
+    // 총성과 폭발을 작은 생활음 때문에 버리지 않습니다. 동급 사건은 기존 12채널 상한을 지킵니다.
+    const replace=[...playing].filter(([,value])=>voicePriority[value]>voicePriority[kind])
+      .sort((a,b)=>voicePriority[b[1]]-voicePriority[a[1]])[0];
+    if(!replace)return;
+    replace[0].stop();playing.delete(replace[0]);
+  }
   if(kind==='footstep')lastStep.set(event.actor??'',context.currentTime);
   const profile=firearmAudioProfile(weaponName);
   const decay=kind==='footstep'?.028:kind==='shot'?profile.decay:kind==='blast'?.26:kind==='deploy'?.024:.014;
@@ -78,7 +85,8 @@ export function playMatchAudio(event:RealtimeEvent,weaponName='',pan=0,attenuati
   const source=context.createBufferSource(),filter=context.createBiquadFilter(),gain=context.createGain(),panner=context.createStereoPanner();
   const variant=Math.abs(Math.round(event.time*1000))%4;
   const family=weaponHandling(weaponName).family;
-  const sampleKey=kind==='shot'?(family==='pistol'?'smg':family):kind;
+  // 권총 전용 음원은 아직 없습니다. 다른 무기군 샘플을 재사용하지 않고 기존 무기별 합성음으로 대체합니다.
+  const sampleKey=kind==='shot'?family:kind;
   source.buffer=samples.get(sampleKey)??transient(`${kind}:${kind==='shot'?weaponName:''}:${variant}`,decay,kind==='shot'||kind==='deploy');
   filter.type='lowpass';filter.frequency.value=kind==='shot'?profile.cutoff:kind==='footstep'?750:kind==='blast'?1600:5000;filter.Q.value=.5;
   gain.gain.value=volume;panner.pan.value=Math.max(-1,Math.min(1,pan));
