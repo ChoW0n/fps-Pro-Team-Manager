@@ -8,22 +8,22 @@ const {OPERATOR_LAYER_ORDER,operatorAssemblyPose,paintModularOperator,solveArm,w
 const {weaponPart}=require(root+'components/weaponParts.ts');
 
 (async()=>{
-  assert.deepEqual(OPERATOR_LAYER_ORDER,['shadow','lower-body','torso','arms','weapon','hands','head-and-kit','team-mark']);
+  assert.deepEqual(OPERATOR_LAYER_ORDER,['shadow','lower-body','torso','head-and-kit','arms','weapon','hands','team-mark']);
   const kinds=new Set(),rows=[],length=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
   for(const operator of OPERATORS){
     const name=operator.firearms[0],mount=weaponMountPose(name),part=weaponPart(name);kinds.add(mount.kind);
-    const trigger=solveArm(mount.triggerShoulder,mount.triggerHand,8,9,-1);
-    const support=solveArm(mount.supportShoulder,mount.supportHand,14,14,1);
+    const trigger=solveArm(mount.triggerShoulder,mount.triggerHand,8,9,1);
+    const support=solveArm(mount.supportShoulder,mount.supportHand,12,12,-1);
     assert(length(trigger.shoulder,trigger.hand)<17,name+' 방아쇠손 도달 범위');
-    assert(length(support.shoulder,support.hand)<28,name+' 지지손 도달 범위');
+    assert(length(support.shoulder,support.hand)<24,name+' 지지손 도달 범위');
     assert(Math.abs(length(trigger.shoulder,trigger.elbow)-8)<1e-6&&Math.abs(length(trigger.elbow,trigger.hand)-9)<1e-6,name+' 방아쇠팔 고정 길이');
-    assert(Math.abs(length(support.shoulder,support.elbow)-14)<1e-6&&Math.abs(length(support.elbow,support.hand)-14)<1e-6,name+' 지지팔 고정 길이');
+    assert(Math.abs(length(support.shoulder,support.elbow)-12)<1e-6&&Math.abs(length(support.elbow,support.hand)-12)<1e-6,name+' 지지팔 고정 길이');
     assert.deepEqual(trigger.hand,mount.triggerHand);assert.deepEqual(support.hand,mount.supportHand);
     assert(mount.stock.x<mount.triggerHand.x&&mount.triggerHand.x<mount.muzzle.x,name+' 개머리판-방아쇠-총구 순서');
     if(mount.kind==='bolt')assert(mount.supportHand.x<mount.triggerHand.x+(part.supportPoint[0]-part.gripPoint[0])*.5,'볼트액션은 소총 처럼 핸드가드 끝을 잡지 않음');
     rows.push({operator:operator.callSign,weapon:name,kind:mount.kind,stock:mount.stock,triggerHand:mount.triggerHand,supportHand:mount.supportHand,muzzle:mount.muzzle});
   }
-  for(const expected of ['carbine','suppressed','bullpup','p90','marksman','bolt'])assert(kinds.has(expected),expected+' 자세군');
+  for(const expected of ['carbine','smg','suppressed','bullpup','p90','marksman','bolt'])assert(kinds.has(expected),expected+' 자세군');
 
   const unit={id:'split',callSign:'MAGPIE',side:'공격',weaponName:'L119A2 카빈',position:{x:80,y:80},velocity:{x:0,y:12},facing:0,alive:true,action:'aim',locomotion:'walk'};
   const split=operatorAssemblyPose(unit);assert.equal(split.upperFacing,0);assert(Math.abs(split.lowerFacing-Math.PI/2)<1e-9,'이동 하체는 이동 방향');

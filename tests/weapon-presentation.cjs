@@ -2,7 +2,7 @@ const fs=require('node:fs'),assert=require('node:assert/strict'),ts=require('typ
 require.extensions['.ts']=(m,f)=>m._compile(ts.transpileModule(fs.readFileSync(f,'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022,esModuleInterop:true}}).outputText,f);
 const {createCanvas}=require('@napi-rs/canvas'),root='../artifacts/draft-order-player-generator/src/';
 const weapons=require(root+'components/weaponParts.ts'),{paintWeaponPart,weaponPart}=weapons;let actualMatrix,skipWeapon=false;weapons.paintWeaponPart=(...args)=>{actualMatrix=args[0].getTransform();if(!skipWeapon)return paintWeaponPart(...args);};
-const {OPERATORS}=require(root+'domain/Operator.ts'),{paintMinimalOperator}=require(root+'components/minimalOperator.ts'),{muzzlePosition}=require(root+'domain/operatorVisuals.ts');
+const {OPERATORS}=require(root+'domain/Operator.ts'),{paintMinimalOperator}=require(root+'components/minimalOperator.ts'),{modularMuzzlePosition}=require(root+'components/modularOperator.ts');
 (async()=>{
 const asset=await require('./load-weapon-sprites.cjs')();
 const canvas=createCanvas(1200,840),ctx=canvas.getContext('2d');ctx.fillStyle='#263237';ctx.fillRect(0,0,1200,840);
@@ -16,7 +16,7 @@ OPERATORS.forEach((op,i)=>{
   const stock={x:-part.length*Math.cos(facing),y:-part.length*Math.sin(facing)};
   assert(stock.x*Math.cos(facing)+stock.y*Math.sin(facing)<0);
   const unit={id:String(i),callSign:op.callSign,side:op.side,weaponName:op.firearms[0],position:{x:64,y:68},velocity:{x:0,y:0},facing,alive:true,action:'hold'};
-  const m=muzzlePosition(unit.weaponName,unit.position,facing);assert(Number.isFinite(m.x)&&Number.isFinite(m.y));
+  const m=modularMuzzlePosition(unit);assert(Number.isFinite(m.x)&&Number.isFinite(m.y));
   const tile=createCanvas(128,128),tc=tile.getContext('2d');paintMinimalOperator(tc,unit,1,undefined,asset);
   assert(Math.abs(actualMatrix.e-m.x)<1e-4&&Math.abs(actualMatrix.f-m.y)<1e-4,JSON.stringify({actual:{x:actualMatrix.e,y:actualMatrix.f},expected:m,facing}));assert(actualMatrix.a*Math.cos(facing)+actualMatrix.b*Math.sin(facing)>0,'실제 총열이 조준 방향으로 향함');assert(actualMatrix.a*actualMatrix.d-actualMatrix.b*actualMatrix.c>0,'반사 없이 연속 회전');assert(Math.abs(Math.hypot(actualMatrix.a,actualMatrix.b)-Math.hypot(actualMatrix.c,actualMatrix.d))<1e-5,'균일 축척으로 외곽선 보존');
   const full=tc.getImageData(0,0,128,128).data;
@@ -25,7 +25,7 @@ OPERATORS.forEach((op,i)=>{
   for(let y=0;y<128;y++)for(let x=0;x<128;x++){
    const dx=x-64,dy=y-68,forward=dx*Math.cos(facing)+dy*Math.sin(facing),lateral=-dx*Math.sin(facing)+dy*Math.cos(facing),offset=(y*128+x)*4;
    // 몸체 전방 끝은 로컬 X=7, 외곽선을 포함해 X=8입니다.
-   if(forward>10&&Math.abs(lateral-weapons.weaponMuzzleOffset(unit.weaponName).y)<10&&Math.abs(full[offset]-without[offset])+Math.abs(full[offset+1]-without[offset+1])+Math.abs(full[offset+2]-without[offset+2])+Math.abs(full[offset+3]-without[offset+3])>30)visible++;
+   if(forward>10&&Math.abs(lateral-require(root+'components/modularOperator.ts').weaponMountPose(unit.weaponName).muzzle.y)<10&&Math.abs(full[offset]-without[offset])+Math.abs(full[offset+1]-without[offset+1])+Math.abs(full[offset+2]-without[offset+2])+Math.abs(full[offset+3]-without[offset+3])>30)visible++;
   }
   assert(visible>8,op.callSign+' '+angle*45+'도 몸 밖 무기 실루엣 픽셀 '+visible);checks++;
  }

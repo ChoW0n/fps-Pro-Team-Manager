@@ -216,7 +216,7 @@ export function BroadcastCanvas(props: Props): ReactElement {
       for(const unit of visible){
         const shotAt=events.findLast(event=>event.actor===unit.id&&event.type==='shot'&&time-event.time<.14)?.time;
         paintModularOperator(ctx,unit,time,shotAt,asset,reducedMotion,{reloadStartedAt:events.findLast(event=>event.actor===unit.id&&event.type==='reload'&&event.message.includes('장전 시작'))?.time,thrown:snapshot.gadgets?.find(gadget=>gadget.owner===unit.id&&gadget.thrownAt!==undefined&&time>=gadget.thrownAt&&time-gadget.thrownAt<.45)});
-        if(unit.alive&&!unit.downed)displayMuzzles.set(unit.id,modularMuzzlePosition(unit));
+        if(unit.alive&&!unit.downed)displayMuzzles.set(unit.id,modularMuzzlePosition(unit,time,shotAt,reducedMotion));
         // 다운은 사망과 다른 실제 상태입니다. 자세별 원화 전에는 명확한 구조 표식을 사용합니다.
         if(unit.downed){ctx.save();ctx.strokeStyle='#FFC53D';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(unit.position.x-5,unit.position.y-23);ctx.lineTo(unit.position.x+5,unit.position.y-23);ctx.moveTo(unit.position.x,unit.position.y-28);ctx.lineTo(unit.position.x,unit.position.y-18);ctx.stroke();if(unit.downed.progress>0){ctx.beginPath();ctx.arc(unit.position.x,unit.position.y,21,-Math.PI/2,-Math.PI/2+Math.PI*2*unit.downed.progress);ctx.stroke();}ctx.restore();}
         const rescued=unit.reviving&&visible.find(other=>other.id===unit.reviving!.targetId);

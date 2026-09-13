@@ -1,276 +1,347 @@
 {
-  "scope": "Canvas modular operator contract; not browser or final art approval",
-  "layers": [
-    "shadow",
-    "lower-body",
-    "torso",
-    "head-and-kit",
-    "arms",
-    "weapon",
-    "hands",
-    "team-mark"
-  ],
+  "scope": "Node Canvas; no browser; visual approval separate",
+  "weapons": 20,
+  "directions": 160,
   "rows": [
     {
-      "operator": "MAGPIE",
       "weapon": "L119A2 카빈",
       "kind": "carbine",
       "stock": {
         "x": -8,
         "y": 3.4
       },
-      "triggerHand": {
+      "trigger": {
         "x": 6.330468003820442,
         "y": 4.765807067812799
       },
-      "supportHand": {
+      "support": {
         "x": 21.66953199617956,
         "y": 4.450620821394461
       },
-      "muzzle": {
-        "x": 36,
-        "y": 3.4
-      }
+      "torsoDegrees": 0
     },
     {
-      "operator": "COLLIER",
+      "weapon": "글록 17",
+      "kind": "pistol",
+      "stock": {
+        "x": 8,
+        "y": 0
+      },
+      "trigger": {
+        "x": 11.927966101694915,
+        "y": 0
+      },
+      "support": {
+        "x": 13.327966101694916,
+        "y": -1.2
+      },
+      "torsoDegrees": 0
+    },
+    {
       "weapon": "MP5SD",
       "kind": "suppressed",
       "stock": {
         "x": -8,
         "y": 3.4
       },
-      "triggerHand": {
+      "trigger": {
         "x": 6.048964218455744,
         "y": 4.624105461393597
       },
-      "supportHand": {
+      "support": {
         "x": 18.290018832391716,
         "y": 4.341619585687382
       },
-      "muzzle": {
-        "x": 32,
-        "y": 3.4
-      }
+      "torsoDegrees": 0
     },
     {
-      "operator": "해동",
+      "weapon": "SIG P226",
+      "kind": "pistol",
+      "stock": {
+        "x": 8,
+        "y": 0
+      },
+      "trigger": {
+        "x": 11.927966101694915,
+        "y": 0
+      },
+      "support": {
+        "x": 13.327966101694916,
+        "y": -1.2
+      },
+      "torsoDegrees": 0
+    },
+    {
       "weapon": "HK416",
       "kind": "carbine",
       "stock": {
         "x": -8,
         "y": 3.4
       },
-      "triggerHand": {
+      "trigger": {
         "x": 6.138914873713752,
         "y": 4.707296538821328
       },
-      "supportHand": {
+      "support": {
         "x": 21.02198316183349,
         "y": 4.405612722170252
       },
-      "muzzle": {
-        "x": 35,
-        "y": 3.4
-      }
+      "torsoDegrees": 0
     },
     {
-      "operator": "ARBEL",
+      "weapon": "K5 권총",
+      "kind": "pistol",
+      "stock": {
+        "x": 8,
+        "y": 0
+      },
+      "trigger": {
+        "x": 11.927966101694915,
+        "y": 0
+      },
+      "support": {
+        "x": 13.327966101694916,
+        "y": -1.2
+      },
+      "torsoDegrees": 0
+    },
+    {
       "weapon": "타보르 X95",
       "kind": "bullpup",
       "stock": {
         "x": -8,
         "y": 3.4
       },
-      "triggerHand": {
+      "trigger": {
         "x": 11.790575916230367,
         "y": 4.513755354593051
       },
-      "supportHand": {
+      "support": {
         "x": 18.815801999048073,
         "y": 4.2567348881485
       },
-      "muzzle": {
-        "x": 28,
-        "y": 3.4
-      }
+      "torsoDegrees": 0
     },
     {
-      "operator": "AUBERT",
+      "weapon": "글록 19",
+      "kind": "pistol",
+      "stock": {
+        "x": 8,
+        "y": 0
+      },
+      "trigger": {
+        "x": 11.927966101694915,
+        "y": 0
+      },
+      "support": {
+        "x": 13.327966101694916,
+        "y": -1.2
+      },
+      "torsoDegrees": 0
+    },
+    {
       "weapon": "SIG MPX",
       "kind": "smg",
       "stock": {
         "x": -8,
         "y": 3.4
       },
-      "triggerHand": {
+      "trigger": {
         "x": 8.5620473201352,
         "y": 4.498503138580396
       },
-      "supportHand": {
+      "support": {
         "x": 17.68807339449541,
         "y": 4.245002414292612
       },
-      "muzzle": {
-        "x": 27,
-        "y": 3.4
-      }
+      "torsoDegrees": 0
     },
     {
-      "operator": "MEDVED",
+      "weapon": "MR73 리볼버",
+      "kind": "pistol",
+      "stock": {
+        "x": 8,
+        "y": 0
+      },
+      "trigger": {
+        "x": 11.927966101694915,
+        "y": 0
+      },
+      "support": {
+        "x": 13.327966101694916,
+        "y": -1.2
+      },
+      "torsoDegrees": 0
+    },
+    {
       "weapon": "AS Val 소음소총",
       "kind": "suppressed",
       "stock": {
         "x": -8,
         "y": 3.4
       },
-      "triggerHand": {
+      "trigger": {
         "x": 6.272552783109404,
         "y": 4.77236084452975
       },
-      "supportHand": {
+      "support": {
         "x": 19.573896353166987,
         "y": 4.455662188099808
       },
-      "muzzle": {
-        "x": 36,
-        "y": 3.4
-      }
+      "torsoDegrees": 0
     },
     {
-      "operator": "REUSS",
+      "weapon": "SR-1 베크토르",
+      "kind": "pistol",
+      "stock": {
+        "x": 8,
+        "y": 0
+      },
+      "trigger": {
+        "x": 11.927966101694915,
+        "y": 0
+      },
+      "support": {
+        "x": 13.327966101694916,
+        "y": -1.2
+      },
+      "torsoDegrees": 0
+    },
+    {
       "weapon": "HK417",
       "kind": "marksman",
       "stock": {
         "x": -7.667131010066416,
         "y": 3.2411575207752468
       },
-      "triggerHand": {
+      "trigger": {
         "x": 9.379810668454212,
         "y": 4.7205316317283055
       },
-      "supportHand": {
+      "support": {
         "x": 19.371275817814098,
         "y": 4.788810436849215
       },
-      "muzzle": {
-        "x": 40.33286898993359,
-        "y": 3.2411575207752468
-      }
+      "torsoDegrees": -6.875493541569878
     },
     {
-      "operator": "BRANDT",
+      "weapon": "HK USP",
+      "kind": "pistol",
+      "stock": {
+        "x": 8,
+        "y": 0
+      },
+      "trigger": {
+        "x": 11.927966101694915,
+        "y": 0
+      },
+      "support": {
+        "x": 13.327966101694916,
+        "y": -1.2
+      },
+      "torsoDegrees": 0
+    },
+    {
       "weapon": "PSG-1 정밀소총",
       "kind": "marksman",
       "stock": {
         "x": -7.667131010066416,
         "y": 3.2411575207752468
       },
-      "triggerHand": {
+      "trigger": {
         "x": 9.01483620304834,
         "y": 4.854740658948549
       },
-      "supportHand": {
+      "support": {
         "x": 19.912728474711106,
         "y": 4.92921372686424
       },
-      "muzzle": {
-        "x": 45.33286898993359,
-        "y": 3.2411575207752468
-      }
+      "torsoDegrees": -6.875493541569878
     },
     {
-      "operator": "MARCHAND",
       "weapon": "FN P90",
       "kind": "p90",
       "stock": {
         "x": -8,
         "y": 3.4
       },
-      "triggerHand": {
+      "trigger": {
         "x": 13.278174037089872,
         "y": 4.419971469329529
       },
-      "supportHand": {
+      "support": {
         "x": 18.92724679029957,
         "y": 4.184593437945791
       },
-      "muzzle": {
-        "x": 25,
-        "y": 3.4
-      }
+      "torsoDegrees": 0
     },
     {
-      "operator": "HALLORAN",
       "weapon": "C14 팀버울프",
       "kind": "bolt",
       "stock": {
         "x": -7.288067665011241,
         "y": 3.5105654402414435
       },
-      "triggerHand": {
+      "trigger": {
         "x": 11.963587964127832,
         "y": 5.263167143174272
       },
-      "supportHand": {
+      "support": {
         "x": 18.46169581654032,
         "y": 5.6999694137513774
       },
-      "muzzle": {
-        "x": 49.71193233498876,
-        "y": 3.5105654402414435
-      }
+      "torsoDegrees": -17.188733853924695
     },
     {
-      "operator": "성곽",
       "weapon": "K1A 기관단총",
       "kind": "smg",
       "stock": {
         "x": -8,
         "y": 3.4
       },
-      "triggerHand": {
+      "trigger": {
         "x": 9.773300970873787,
         "y": 4.69368932038835
       },
-      "supportHand": {
+      "support": {
         "x": 20.918932038834953,
         "y": 4.395145631067961
       },
-      "muzzle": {
-        "x": 33,
-        "y": 3.4
-      }
+      "torsoDegrees": 0
     },
     {
-      "operator": "SAVELLI",
       "weapon": "베레타 ARX160",
       "kind": "carbine",
       "stock": {
         "x": -8,
         "y": 3.4
       },
-      "triggerHand": {
+      "trigger": {
         "x": 8.317836812144211,
         "y": 4.695066413662239
       },
-      "supportHand": {
+      "support": {
         "x": 21.866223908918407,
         "y": 4.396204933586338
       },
-      "muzzle": {
-        "x": 34,
-        "y": 3.4
-      }
+      "torsoDegrees": 0
+    },
+    {
+      "weapon": "베레타 92FS",
+      "kind": "pistol",
+      "stock": {
+        "x": 8,
+        "y": 0
+      },
+      "trigger": {
+        "x": 11.927966101694915,
+        "y": 0
+      },
+      "support": {
+        "x": 13.327966101694916,
+        "y": -1.2
+      },
+      "torsoDegrees": 0
     }
-  ],
-  "checks": [
-    "lower/upper facing split",
-    "weapon anchor order",
-    "exact two-hand contact",
-    "fixed limb lengths",
-    "bolt support pose",
-    "visual/gameplay data isolation",
-    "five-pose Canvas render"
   ]
 }
