@@ -16,14 +16,15 @@ export class SurvivorParts {
   else this.ctx.drawImage(image,-width/2,-height/2,width,height);
   this.ctx.restore();
  }
- segment(name:string,a:Point,b:Point,width:number):void {
+ segment(name:string,a:Point,b:Point,width:number,overlap=1):void {
   const length=Math.hypot(b.x-a.x,b.y-a.y);
-  this.sprite(name,(a.x+b.x)/2,(a.y+b.y)/2,length+2,width,Math.atan2(b.y-a.y,b.x-a.x));
+  this.sprite(name,(a.x+b.x)/2,(a.y+b.y)/2,length+overlap*2,width,Math.atan2(b.y-a.y,b.x-a.x));
  }
  arm(pose:{shoulder:Point;elbow:Point;hand:Point}):void {
-  // 넓은 위팔의 둥근 끝이 아래팔 접합부를 덮어 원본 소매 윤곽을 유지합니다.
-  this.segment('forearm',pose.elbow,pose.hand,6.5);
-  this.segment('arm',pose.shoulder,pose.elbow,8.2);
+  // PNG 끝의 투명 여백까지 맞대면 관절이 가늘어집니다. 소매 끝만 겹쳐
+  // 어깨·팔꿈치·손 좌표와 팔 폭을 유지하면서 접합부를 채웁니다.
+  this.segment('forearm',pose.elbow,pose.hand,6.5,2.5);
+  this.segment('arm',pose.shoulder,pose.elbow,8.2,2.5);
  }
  hand(point:Point,angle:number,support=false,reloading=false):void {
   this.sprite(reloading?'hand_grab_ammo':support?'hand_steadying_gun':'hand_holding_gun',point.x,point.y,4,3.5,angle);
