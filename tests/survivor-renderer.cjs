@@ -61,6 +61,11 @@ const base={id:'survivor',callSign:'REUSS',side:'수비',weaponName:'HK417',posi
   cc.save();cc.translate(580,row*260+140);cc.scale(4,4);paintModularOperator(cc,{...base,weaponName},1,undefined,asset);cc.restore();
  }
  fs.writeFileSync('validation/survivor-reference-comparison.png',comparison.toBuffer('image/png'));
+ const focused=createCanvas(1000,300),fc=focused.getContext('2d');fc.fillStyle='#263237';fc.fillRect(0,0,1000,300);
+ for(const [i,label,extra] of [[0,'PISTOL',{}],[1,'SHIELD',{shieldRaised:true}],[2,'CROUCH / SHIELD',{shieldRaised:true,locomotion:'crouch'}]]){
+  fc.fillStyle='#E5ECE9';fc.font='18px sans-serif';fc.fillText(label,20+i*333,35);fc.save();fc.translate(130+i*333,160);fc.scale(5,5);paintModularOperator(fc,{...base,weaponName:'HK USP',...extra},1,undefined,asset);fc.restore();
+ }
+ fs.writeFileSync('validation/pistol-shield-poses.png',focused.toBuffer('image/png'));
  fs.writeFileSync('validation/survivor-renderer.json',JSON.stringify({scope:'Node Canvas; no browser',cases,checks:['source PNG assembly','weapon texture and muzzle alignment','trigger contact during recoil','hands below gun','readonly unit state','distance-driven feet','no primary shield','inactive unarmed']},null,2)+'\n');
  console.log('PASS '+cases+' survivor equipment/facing cases, source parts and simulation isolation');
 })().catch(e=>{console.error(e);process.exitCode=1;});

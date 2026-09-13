@@ -20,11 +20,12 @@ export class SurvivorParts {
   const length=Math.hypot(b.x-a.x,b.y-a.y);
   this.sprite(name,(a.x+b.x)/2,(a.y+b.y)/2,length+overlap*2,width,Math.atan2(b.y-a.y,b.x-a.x));
  }
- arm(pose:{shoulder:Point;elbow:Point;hand:Point}):void {
+ arm(pose:{shoulder:Point;elbow:Point;hand:Point},extended=false):void {
   // PNG 끝의 투명 여백까지 맞대면 관절이 가늘어집니다. 소매 끝만 겹쳐
   // 어깨·팔꿈치·손 좌표와 팔 폭을 유지하면서 접합부를 채웁니다.
-  this.segment('forearm',pose.elbow,pose.hand,6.5,2.5);
-  this.segment('arm',pose.shoulder,pose.elbow,8.2,2.5);
+  const wrist=extended?{x:pose.hand.x-2,y:pose.hand.y}:pose.hand;
+  this.segment('forearm',pose.elbow,wrist,6.5,extended?1:2.5);
+  this.segment('arm',pose.shoulder,pose.elbow,extended?6.8:8.2,extended?1.8:2.5);
  }
  hand(point:Point,angle:number,support=false,reloading=false):void {
   this.sprite(reloading?'hand_grab_ammo':support?'hand_steadying_gun':'hand_holding_gun',point.x,point.y,4,3.5,angle);

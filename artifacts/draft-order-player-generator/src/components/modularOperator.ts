@@ -87,7 +87,7 @@ export function weaponMountPose(name:string):WeaponMountPose {
   const trigger=add(muzzle,part.gripPoint),rawSupport=add(muzzle,part.supportPoint),magazine=add(muzzle,part.magazinePoint);
   // 권총 손목은 슬라이드 중심보다 손잡이 아래에 둡니다.
   if(kind==='pistol')trigger.y+=1.5;
-  const support=kind==='bolt'?mix(magazine,rawSupport,.22):kind==='marksman'?mix(magazine,rawSupport,.55):kind==='pistol'?{x:trigger.x-1,y:trigger.y-1.5}:rawSupport;
+  const support=kind==='bolt'?mix(magazine,rawSupport,.22):kind==='marksman'?mix(magazine,rawSupport,.55):kind==='pistol'?{x:trigger.x+.8,y:trigger.y-2.4}:rawSupport;
   return {kind,stock,triggerHand:trigger,supportHand:support,magazine,muzzle,
     torsoYaw,shoulderPocket,
     triggerShoulder:rotate({x:-13,y:2}),supportShoulder:rotate({x:0,y:-9}),cheek:{x:stock.x+5,y:stock.y-3.5}};
@@ -98,7 +98,7 @@ export function equipmentMountPose(unit:RealtimeUnitState):WeaponMountPose {
   const mount=weaponMountPose(unit.weaponName??'');
   if(unit.shieldRaised&&mount.kind==='pistol'){
     const shift=(p:Point):Point=>({x:p.x+3,y:p.y+3});
-    return {...mount,stock:shift(mount.stock),muzzle:shift(mount.muzzle),triggerHand:shift(mount.triggerHand),magazine:shift(mount.magazine),supportHand:{...HANDHELD_SHIELD.hand},triggerShoulder:{x:-9,y:7},supportShoulder:{x:-3,y:-9}};
+    return {...mount,stock:shift(mount.stock),muzzle:shift(mount.muzzle),triggerHand:{x:mount.triggerHand.x+3,y:mount.triggerHand.y+2},magazine:shift(mount.magazine),supportHand:{...HANDHELD_SHIELD.hand},triggerShoulder:{x:-8,y:9},supportShoulder:{x:-3,y:-9}};
   }
   return mount;
 }
@@ -210,13 +210,13 @@ export function paintModularOperator(ctx:CanvasRenderingContext2D,unit:RealtimeU
   if(reach>0&&!shielding)supportTarget=displaced(mix(mount.supportHand,mount.magazine,reach));
   if(installing){triggerTarget={x:8,y:5};supportTarget={x:9,y:-5};}
   // 원본 소총/권총 자세의 팔꿈치 방향을 사용하고 손끝은 현재 총기 접점에 고정합니다.
-  const triggerArm=shielding?{shoulder:mount.triggerShoulder,elbow:mix(mount.triggerShoulder,triggerTarget,.5),hand:triggerTarget}:{shoulder:mount.triggerShoulder,elbow:{x:-12,y:11},hand:triggerTarget};
+  const triggerArm=shielding?{shoulder:mount.triggerShoulder,elbow:mix(mount.triggerShoulder,triggerTarget,.5),hand:triggerTarget}:{shoulder:mount.triggerShoulder,elbow:mount.kind==='pistol'?{x:-11.5,y:9}:{x:-12,y:11},hand:triggerTarget};
   // 방패 팔은 과도한 옆꺾임 없이 짧게 투영된 위팔·아래팔로 손잡이에 닿습니다.
-  let supportArm=shielding?{shoulder:mount.supportShoulder,elbow:{x:3,y:-9},hand:supportTarget}:{shoulder:mount.supportShoulder,elbow:{x:mount.kind==='pistol'?9:10,y:-3},hand:supportTarget};
+  let supportArm=shielding?{shoulder:mount.supportShoulder,elbow:{x:3,y:-9},hand:supportTarget}:{shoulder:mount.supportShoulder,elbow:mount.kind==='pistol'?{x:10.5,y:-3.5}:{x:10,y:-3},hand:supportTarget};
   if(throwing){const thrownPose=throwArmPose(throwProgress);supportArm={shoulder:mount.supportShoulder,elbow:thrownPose.elbow,hand:thrownPose.hand};}
   // 몸통이 아래팔을 덮지 않도록 원본처럼 몸통 → 팔 → 머리 순으로 조립합니다.
   parts.body(mount.torsoYaw,kit.pack);
-  parts.arm(supportArm);parts.arm(triggerArm);
+  parts.arm(supportArm);parts.arm(triggerArm,shielding);
   parts.head(mount.torsoYaw);
 
   const wristAngle=(arm:ArmPose)=>Math.atan2(arm.hand.y-arm.elbow.y,arm.hand.x-arm.elbow.x);
