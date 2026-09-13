@@ -1,0 +1,20 @@
+[
+  {
+    "name": "출발 시차 제거",
+    "exitCode": 1,
+    "expected": "자기 출발 시차 전에 진입 이동 금지",
+    "detected": true
+  },
+  {
+    "name": "격리 스폰 누락",
+    "exitCode": 1,
+    "expected": "격리 수비수의 실제 스폰·이동 유지",
+    "detected": true
+  },
+  {
+    "name": "설치 행동 차단",
+    "exitCode": 1,
+    "expected": "설치 5",
+    "detected": true
+  }
+]
