@@ -4,8 +4,11 @@
   "sidearmSprites": 8,
   "shieldSprites": 2,
   "checks": [
-    "rendered arm lengths",
+    "rendered arm joint controls",
     "prone weapon retained",
+    "underhand draw order",
+    "forward support grip",
+    "shield arm side separation",
     "shield grip contact including recoil",
     "display muzzle matches draw transform",
     "shield uniform scale",

@@ -1,3 +1,5 @@
+> **최신 승인 자세 도입:** 포복 전용 수평 상체/전방 머리/누운 배낭, 레일 아래 지지손, 방패 양팔 비교차를 조립식 렌더러에 연결했다. [상태·검증](operator-equipment-current.md), [게임 적용 이미지](../validation/approved-pose-game-adoption.png). 브라우저 미실행. 다음 작업은 이 게임 적용본 검수 후 뽑기·수납 애니메이션이다.
+
 > **최신 재설계:** 원형 어깨 돌출 제거, 곡선형 헬멧/흉곽, 압축 없는 분절 포복, Ubisoft 방패 자료를 참고한 중앙 손잡이 방패 v3·가슴 앞 지지/오른쪽 권총 자세. [인수인계](operator-equipment-current.md), [전후 비교](../validation/operator-shape-rework.png). 새 시안 승인 전. 성능/히트박스·보조무장 강제 정책 유지, 브라우저 미실행.
 
 > **최신 체형 피드백:** 사용자의 몸통 비만감 지적에 따라 몸통 폭 약 31%, 군장 폭 25%와 팔 두께를 줄였다. 머리·총기·파지 유지. [전후 비교](../validation/operator-body-before-after.png). 새 체형 사용자 확인 전, 브라우저 미실행. 아래는 이전 기록이다.

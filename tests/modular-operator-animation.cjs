@@ -79,6 +79,7 @@ const frozen=u=>Object.freeze({...u,position:Object.freeze({...u.position}),velo
       const ctx=new Proxy(native,{get(target,key){const value=target[key];if(typeof value!=='function')return value;return(...args)=>{
         if(key==='beginPath')points=[];
         if(key==='moveTo'||key==='lineTo')points.push({x:args[0],y:args[1]});
+        if(key==='quadraticCurveTo'&&points.length===2)points[1]={x:args[0],y:args[1]};
         if(key==='stroke'&&points.length===3&&Math.abs(target.lineWidth-4.8)<1e-5)arms.push(points.slice());
         return value.apply(target,args);
       };},set(target,key,value){target[key]=value;return true;}});
