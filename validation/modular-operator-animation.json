@@ -1,7 +1,6 @@
 {
   "scope": "Node Canvas; no browser",
-  "approvedCommit": "36c72b7859569d26b3c1207c160a9e8a60853ec7",
-  "preservedPartComparisons": 24,
+  "artBasis": "Riley Gombart Survivor source PNG",
   "directionCases": 2560,
   "armCases": 100,
   "checks": [
@@ -19,7 +18,7 @@
   "limits": [
     "Not a real-device or new motion art approval",
     "Projected gait, not world-space planted feet",
-    "Body narrowed at user request; full-body approval pixel comparison superseded",
-    "New sidearm sprites and prone/shield poses have separate equipment checks"
+    "Original upper-body Spine timelines are not imported; source parts use game-driven poses",
+    "No prone; crouch and shield are project-authored poses"
   ]
 }

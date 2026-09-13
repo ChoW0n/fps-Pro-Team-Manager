@@ -1,0 +1,15 @@
+{
+  "author": "Riley Gombart",
+  "license": "CC BY 3.0",
+  "source": "https://opengameart.org/content/animated-top-down-survivor-player",
+  "archives": {
+    "Survivor Spine.zip": {
+      "sha256": "ab7b05397d72d7310a41f67adfed4eab2897313391c210f5056f6364d46d451a",
+      "bytes": 116281
+    },
+    "Top_Down_Survivor_2.zip": {
+      "sha256": "1e66fe4b95aa86d4fbca440643f66c0d0dab311f9cd4666748d0321c2c2182cb",
+      "bytes": 13652717
+    }
+  }
+}
