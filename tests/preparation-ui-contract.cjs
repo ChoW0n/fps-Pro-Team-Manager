@@ -5,6 +5,10 @@ for(const text of ['방향','교전 태도','정보 우선순위','전술 라인
 for(const removed of ['선발조 배정','분산 진입','거점 마지막 진입','조준 {','숙련 {','공격성 {','command-lineup','command-picks'])assert(!prep.includes(removed),removed);
 for(const removed of ['director-controls','진입</button>','후퇴</button>','경로 변경','TacticalDirectorCommand'])assert(!live.includes(removed),removed);
 for(const required of ['cast-decisions','선수 판단 피드','unit.decision','slice(-3)'])assert(live.includes(required),required);
+for(const required of ["'prep'|'combat'|'plant'|'end'",'roundBroadcastPhase','cast-round-flow','aria-current','aliveBySide',"phaseDetail"])assert(live.includes(required),'모바일 라운드 흐름 '+required);
+assert(/if\(ended\|\|objectivePhase==='resolved'\)return 'end'/.test(live),'종료 판정이 중계 단계보다 우선해야 함');
+assert(/\['planting','active','disabling'\]/.test(live),'설치 시작부터 장치 무력화까지 설치 단계로 보여야 함');
+assert(/operationPhase==='preparing'\?'prep':'combat'/.test(live),'준비 종료 뒤에는 교전 단계로 전환해야 함');
 for(const required of ['AnimatePresence','motion.div','motion.p','useReducedMotion'])assert(live.includes(required),'중계 사건 애니메이션 '+required);
 assert(/duration:reducedMotion\?0:/.test(live),'사용자 모션 감소 설정에서는 중계 전환 시간을 제거해야 함');
 assert(!/className="cast-player"[\s\S]*selected\.goal/.test(live),'판단 피드는 선수 카드에 종속되지 않아야 함');
