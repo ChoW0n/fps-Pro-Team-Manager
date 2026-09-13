@@ -12,7 +12,7 @@ const {weaponPart}=require(root+'components/weaponParts.ts');
   const kinds=new Set(),rows=[],length=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
   for(const operator of OPERATORS){
     const name=operator.firearms[0],mount=weaponMountPose(name),part=weaponPart(name);kinds.add(mount.kind);
-    const trigger=solveArm(mount.triggerShoulder,mount.triggerHand,8,9,1);
+    const trigger=solveArm(mount.triggerShoulder,mount.triggerHand,8,9,-1);
     const support=solveArm(mount.supportShoulder,mount.supportHand,12,12,1);
     assert(length(trigger.shoulder,trigger.hand)<17,name+' 방아쇠손 도달 범위');
     assert(length(support.shoulder,support.hand)<24,name+' 지지손 도달 범위');

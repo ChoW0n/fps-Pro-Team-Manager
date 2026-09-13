@@ -17,7 +17,7 @@ const unit={id:'qa',callSign:'MAGPIE',side:'공격',position:{x:0,y:0},velocity:
    assert(Math.abs(m.muzzle.y)<4,'총열 중심선은 몸 안쪽');
    assert(m.triggerHand.x<14,'방아쇠손은 몸 가까이');
   }else{assert.equal(m.muzzle.y,0);assert(distance(m.triggerHand,m.supportHand)<2);}
-  for(const [shoulder,target,a,b,bend] of [[m.triggerShoulder,m.triggerHand,8,9,1],[m.supportShoulder,m.supportHand,12,12,1]]){
+  for(const [shoulder,target,a,b,bend] of [[m.triggerShoulder,m.triggerHand,8,9,-1],[m.supportShoulder,m.supportHand,12,12,1]]){
    for(const kick of [0,.6,1.2]){
     const arm=solveArm(shoulder,{x:target.x-kick,y:target.y},a,b,bend);
     assert(Math.abs(distance(shoulder,arm.elbow)-a)<1e-6,name+' 위팔 길이');
