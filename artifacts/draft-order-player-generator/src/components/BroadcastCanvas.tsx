@@ -1,7 +1,7 @@
 import { drawEffect } from './effectParts';
 import { useEffect, useRef, type ReactElement } from 'react';
 import type { OperatorSide } from '../domain/Operator';
-import { modularMuzzlePosition, paintModularOperator } from './modularOperator';
+import { modularMuzzlePosition, OperatorAnimator, paintModularOperator } from './modularOperator';
 import { TacticalRealtimeSimulation, type RealtimeEvent, type RealtimeTick, type RealtimeUnitState } from '../domain/realtime/TacticalRealtimeSimulation';
 import { battlefieldMap } from '../domain/realtime/fortifications';
 import { electronic, gadgetPosition, GADGET_LABELS } from '../domain/realtime/gadgetRules';
@@ -92,6 +92,7 @@ export function BroadcastCanvas(props: Props): ReactElement {
     let cachedVision:RealtimeUnitState[]=[];let cachedVisibleIds=new Set<string>(),camera={x:0,y:0,width:430,height:260};
     let focusId:string|null=null,holdUntil=0,lastStamp=0,cameraReady=false;
     const contacts=new Map<string,{position:TacticalPoint;seenAt:number}>();
+    const operatorAnimator=new OperatorAnimator();
     let contactView='',fanKey='';let fan:Array<{x:number;y:number}>=[];
     let hitTargets:Array<{id:string;x:number;y:number}>=[];
     const observer=new TacticalRealtimeSimulation(props.map);
@@ -215,7 +216,9 @@ export function BroadcastCanvas(props: Props): ReactElement {
       // 하체 이동과 상체 조준을 분리하고, 총기 기준점에 양손을 조립합니다.
       for(const unit of visible){
         const shotAt=events.findLast(event=>event.actor===unit.id&&event.type==='shot'&&time-event.time<.14)?.time;
-        paintModularOperator(ctx,unit,time,shotAt,asset,reducedMotion,{reloadStartedAt:events.findLast(event=>event.actor===unit.id&&event.type==='reload'&&event.message.includes('장전 시작'))?.time,thrown:snapshot.gadgets?.find(gadget=>gadget.owner===unit.id&&gadget.thrownAt!==undefined&&time>=gadget.thrownAt&&time-gadget.thrownAt<.45)});
+        const motion={reloadStartedAt:events.findLast(event=>event.actor===unit.id&&event.type==='reload'&&event.message.includes('장전 시작'))?.time,thrown:snapshot.gadgets?.find(gadget=>gadget.owner===unit.id&&gadget.thrownAt!==undefined&&time>=gadget.thrownAt&&time-gadget.thrownAt<.45)};
+        const animation=operatorAnimator.sample(unit,time,reducedMotion,motion);
+        paintModularOperator(ctx,unit,time,shotAt,asset,reducedMotion,{...motion,frame:animation});
         if(unit.alive&&!unit.downed)displayMuzzles.set(unit.id,modularMuzzlePosition(unit,time,shotAt,reducedMotion));
         // 다운은 사망과 다른 실제 상태입니다. 자세별 원화 전에는 명확한 구조 표식을 사용합니다.
         if(unit.downed){ctx.save();ctx.strokeStyle='#FFC53D';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(unit.position.x-5,unit.position.y-23);ctx.lineTo(unit.position.x+5,unit.position.y-23);ctx.moveTo(unit.position.x,unit.position.y-28);ctx.lineTo(unit.position.x,unit.position.y-18);ctx.stroke();if(unit.downed.progress>0){ctx.beginPath();ctx.arc(unit.position.x,unit.position.y,21,-Math.PI/2,-Math.PI/2+Math.PI*2*unit.downed.progress);ctx.stroke();}ctx.restore();}
@@ -256,7 +259,7 @@ export function BroadcastCanvas(props: Props): ReactElement {
       for(const item of annotations){const width=ctx.measureText(item.text).width;const originalY=item.y;let tries=0;while(tries++<annotations.length&&placed.some(other=>Math.abs(other.y-item.y)<15*cssUnit&&Math.abs(other.x-item.x)<(other.width+width)/2+4*cssUnit))item.y+=15*cssUnit;placed.push({x:item.x,y:item.y,width});if(item.y!==originalY){ctx.strokeStyle='#98ADAD88';ctx.lineWidth=cssUnit;ctx.beginPath();ctx.moveTo(item.x,originalY-8*cssUnit);ctx.lineTo(item.x,item.y-10*cssUnit);ctx.stroke();}ctx.lineJoin='round';ctx.lineWidth=3*cssUnit;ctx.strokeStyle='#101820';ctx.strokeText(item.text,item.x,item.y);ctx.fillStyle=item.color;ctx.fillText(item.text,item.x,item.y);}
     };
     frame=requestAnimationFrame(draw);
-    return()=>{cancelAnimationFrame(frame);canvas.removeEventListener('pointerup',select);images.clear();scene=null;};
+    return()=>{cancelAnimationFrame(frame);canvas.removeEventListener('pointerup',select);images.clear();operatorAnimator.clear();scene=null;};
   },[props.map]);
   return <canvas ref={canvasRef} className="match-canvas" aria-label="우리 선수의 개인 시야로 보는 경기 중계" role="img"/>;
 }

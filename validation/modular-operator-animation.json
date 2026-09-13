@@ -1,0 +1,24 @@
+{
+  "scope": "Node Canvas; no browser",
+  "approvedCommit": "36c72b7859569d26b3c1207c160a9e8a60853ec7",
+  "staticComparisons": 40,
+  "directionCases": 2560,
+  "armCases": 100,
+  "checks": [
+    "30/60/120 fps distance phase",
+    "blocked movement",
+    "stop turn",
+    "crouch reversal",
+    "reload cancellation",
+    "pause",
+    "rewind/floor/teleport/down reset",
+    "reduced motion",
+    "frozen simulation inputs",
+    "active renderer binding"
+  ],
+  "limits": [
+    "Not a real-device or new motion art approval",
+    "Projected gait, not world-space planted feet",
+    "Prone and shield action art remain outside this scope"
+  ]
+}

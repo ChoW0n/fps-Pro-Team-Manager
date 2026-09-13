@@ -31,7 +31,13 @@ export interface OperatorAssemblyPose {
   weapon?:WeaponMountPose;
 }
 
-export interface OperatorMotion { reloadStartedAt?:number; thrown?:RealtimeGadget; }
+export interface OperatorAnimationFrame {
+  lowerFacing:number;
+  crouchAmount:number;
+  step:number;
+  reloadReach:number;
+}
+export interface OperatorMotion { reloadStartedAt?:number; thrown?:RealtimeGadget; frame?:OperatorAnimationFrame; }
 
 // 외형 식별값뿐입니다. 전투 수치·충돌 크기·이동 속도에는 사용하지 않습니다.
 const KITS:Record<string,{color:string;pouches:number;pack:number;tool:'shells'|'radio'|'optic'|'probe'|'case'|'charge'|'plate'|'roll'|'coil'|'lamp'|'battery'|'interceptor'}>={
@@ -86,6 +92,49 @@ function recoilOffset(time:number,shotAt:number|undefined,reducedMotion:boolean)
   return !reducedMotion&&age>0&&age<.14?Math.sin(age/.14*Math.PI)*1.2:0;
 }
 
+const approach=(from:number,to:number,limit:number):number=>from+Math.max(-limit,Math.min(limit,to-from));
+function reloadReach(unit:RealtimeUnitState,time:number,motion:OperatorMotion):number {
+  const age=motion.reloadStartedAt===undefined?-1:time-motion.reloadStartedAt;
+  return unit.action==='reload'&&(unit.reloadRemaining??0)>0&&age>=0
+    ?Math.sin(Math.PI*Math.min(1,age/(age+unit.reloadRemaining))):0;
+}
+
+/** 표시 상태만 소유합니다. 이동 거리로 보행을 진행하고 정지·앉기·장전 취소를 부드럽게 잇습니다. */
+export class OperatorAnimator {
+  private tracks=new Map<string,{time:number;position:Point;floor:number;prone:boolean;distance:number;frame:OperatorAnimationFrame}>();
+
+  sample(unit:RealtimeUnitState,time:number,reducedMotion=false,motion:OperatorMotion={}):OperatorAnimationFrame {
+    const pose=operatorAssemblyPose(unit),prior=this.tracks.get(unit.id),floor=unit.floor??unit.position.floor??0;
+    const dt=prior?time-prior.time:0;
+    const travelled=prior?Math.hypot(unit.position.x-prior.position.x,unit.position.y-prior.position.y):0;
+    // 뒤로 걷기에서는 골반을 180도 뒤집지 않아 상체가 역방향으로 꼬이지 않습니다.
+    let facing=pose.lowerFacing;
+    if(Math.abs(normalize(facing-pose.upperFacing))>Math.PI*110/180)facing=normalize(facing+Math.PI);
+    const reset=!prior||dt<0||dt>.5||travelled>80||prior.floor!==floor||prior.prone!==pose.prone;
+    const reach=reloadReach(unit,time,motion);
+    if(reset||reducedMotion||pose.prone){
+      const frame={lowerFacing:reducedMotion?pose.upperFacing:facing,crouchAmount:Number(pose.crouched),step:0,reloadReach:reducedMotion||pose.prone?0:reach};
+      this.tracks.set(unit.id,{time,position:{...unit.position},floor,prone:pose.prone,distance:0,frame});
+      return frame;
+    }
+    // 같은 경기 시각에는 프레임 수와 무관하게 완전히 같은 자세를 돌려줍니다.
+    if(dt===0)return prior.frame;
+    const distance=prior.distance+(pose.moving?travelled:0);
+    const walking=pose.moving&&travelled>0;
+    const step=approach(prior.frame.step,walking?Math.sin(distance*Math.PI*2/24)*1.4:0,dt*(walking?24:1.4/.12));
+    const frame={
+      lowerFacing:prior.frame.lowerFacing+approach(0,normalize(facing-prior.frame.lowerFacing),dt*8),
+      crouchAmount:approach(prior.frame.crouchAmount,Number(pose.crouched),dt/.18),
+      step,
+      reloadReach:unit.action==='reload'?reach:approach(prior.frame.reloadReach,0,dt/.12),
+    };
+    this.tracks.set(unit.id,{time,position:{...unit.position},floor,prone:pose.prone,distance,frame});
+    return frame;
+  }
+
+  clear():void { this.tracks.clear(); }
+}
+
 /** 하체는 실제 이동 방향, 상체와 무기는 실제 조준 방향을 따릅니다. */
 export function operatorAssemblyPose(unit:RealtimeUnitState):OperatorAssemblyPose {
   const speed=Math.hypot(unit.velocity.x,unit.velocity.y),moving=Boolean(unit.alive)&&speed>1;
@@ -124,12 +173,17 @@ function polygon(ctx:CanvasRenderingContext2D,points:number[][],fill:string):voi
   ctx.fillStyle=fill;ctx.beginPath();points.forEach(([x,y],index)=>index?ctx.lineTo(x,y):ctx.moveTo(x,y));ctx.closePath();ctx.fill();ctx.stroke();
 }
 
-function paintLowerBody(ctx:CanvasRenderingContext2D,pose:OperatorAssemblyPose,time:number,reducedMotion:boolean,color:string):void {
-  const relative=normalize(pose.lowerFacing-pose.upperFacing),step=!reducedMotion&&pose.moving&&!pose.prone?Math.sin(time*(pose.crouched?8:12))*1.4:0;
-  ctx.save();ctx.rotate(relative);ctx.strokeStyle='#10191C';ctx.lineWidth=2;ctx.lineJoin='round';
+function paintLowerBody(ctx:CanvasRenderingContext2D,pose:OperatorAssemblyPose,time:number,reducedMotion:boolean,color:string,frame?:OperatorAnimationFrame):void {
+  const relative=normalize((frame?.lowerFacing??pose.lowerFacing)-pose.upperFacing),step=reducedMotion||pose.prone?0:frame?.step??(pose.moving?Math.sin(time*(pose.crouched?8:12))*1.4:0);
+  const crouch=frame?.crouchAmount??Number(pose.crouched);
+  ctx.save();
+  // 회전 중에도 아래로 내려간 다리의 투영이 헬멧 뒤로 솟지 않게 몸 아래 가림 범위를 유지합니다.
+  // 승인된 서기·앉기와 보행 진폭은 이 범위 안에 모두 들어갑니다. 포복은 별도입니다.
+  if(!pose.prone){ctx.beginPath();ctx.rect(-17.5,-8.5,28,17);ctx.clip();}
+  ctx.rotate(relative);ctx.strokeStyle='#10191C';ctx.lineWidth=2;ctx.lineJoin='round';
   // 서기/앉기에서는 다리가 골반 아래로 내려가므로 탑뷰에 짧게만 투영됩니다.
   // 포복의 뒤로 뻗은 다리를 서 있는 자세에 재사용하지 않습니다.
-  for(const side of [-1,1]){const rear=pose.prone?-29:(pose.crouched?-7:-10)+side*step;
+  for(const side of [-1,1]){const rear=pose.prone?-29:-10+3*crouch+side*step;
     polygon(ctx,[[rear-5,side*2.5],[rear+7,side*2.5],[rear+8,side*5.5],[rear-4,side*7]],side<0?'#29373A':color);}
   ctx.restore();
 }
@@ -168,7 +222,7 @@ export function paintModularOperator(ctx:CanvasRenderingContext2D,unit:RealtimeU
   ctx.save();ctx.globalAlpha=unit.alive?1:.4;
   ctx.fillStyle='#04090C55';ctx.beginPath();ctx.ellipse(unit.position.x,unit.position.y+2,12,8,0,0,Math.PI*2);ctx.fill();
   ctx.translate(unit.position.x,unit.position.y);ctx.rotate(pose.upperFacing);
-  paintLowerBody(ctx,pose,time,reducedMotion,kit.color);
+  paintLowerBody(ctx,pose,time,reducedMotion,kit.color,motion.frame);
   if(down){ctx.save();ctx.rotate(-.18);ctx.scale(1.15,.72);paintTorso(ctx,kit.color);paintHeadAndKit(ctx,kit.color,kit.pack,kit.tool);ctx.restore();ctx.restore();return true;}
   const mount=pose.weapon!;
   const throwProgress=reducedMotion?.6:Math.min(1,throwAge/.45);
@@ -176,9 +230,8 @@ export function paintModularOperator(ctx:CanvasRenderingContext2D,unit:RealtimeU
   const offset={x:-kick-7*lower,y:9*lower};
   const displaced=(p:Point):Point=>({x:p.x+offset.x,y:p.y+offset.y});
   let triggerTarget=displaced(mount.triggerHand),supportTarget=displaced(mount.supportHand);
-  const reloadAge=motion.reloadStartedAt===undefined?-1:time-motion.reloadStartedAt;
-  const reloading=!down&&!reducedMotion&&unit.action==='reload'&&(unit.reloadRemaining??0)>0&&reloadAge>=0;
-  if(reloading){const reach=Math.sin(Math.PI*Math.min(1,reloadAge/(reloadAge+unit.reloadRemaining!)));supportTarget=displaced(mix(mount.supportHand,mount.magazine,reach));}
+  const reach=reducedMotion?0:motion.frame?.reloadReach??reloadReach(unit,time,motion);
+  if(reach>0)supportTarget=displaced(mix(mount.supportHand,mount.magazine,reach));
   if(installing){triggerTarget={x:8,y:5};supportTarget={x:9,y:-5};}
   const triggerArm=solveArm(mount.triggerShoulder,triggerTarget,8,9,-1);
   let supportArm=solveArm(mount.supportShoulder,supportTarget,12,12,1);
