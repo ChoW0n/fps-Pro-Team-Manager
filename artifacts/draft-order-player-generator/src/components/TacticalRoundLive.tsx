@@ -8,7 +8,7 @@ import { NAMSAN_MAP, type TacticalMapDefinition } from '../domain/tacticalMaps';
 import { BroadcastCanvas } from './BroadcastCanvas';
 import { OperatorEmblem } from './OperatorEmblem';
 import { OperatorArt } from './TacticalBattlefield';
-import { isMatchAudioMuted, playMatchAudio, setMatchAudioMuted, stopMatchAudio, unlockMatchAudio } from './matchAudio';
+import { isMatchAudioMuted, playMatchAudio, setMatchAudioMuted, spatialAudioMix, stopMatchAudio, unlockMatchAudio } from './matchAudio';
 import './matchBroadcast.css';
 
 export interface TacticalRoundLiveProps { input:TacticalRealtimeSimulationInput; map?:TacticalMapDefinition; roundNumber?:number; directorSide?:OperatorSide; score?:[number,number]; onComplete?:(result:TacticalRealtimeResult)=>void }
@@ -78,11 +78,10 @@ export function TacticalRoundLive({input,map=NAMSAN_MAP,roundNumber=1,directorSi
       if(event.side!==directorSide&&!event.seenBy?.includes(directorSide))continue;
       const actor=snapshot.units.find(unit=>unit.id===event.actor);
       if((event.position?.floor??actor?.floor??listener.floor??0)!==(listener.floor??0))continue;
-      const distance=event.position?Math.hypot(event.position.x-listener.position.x,event.position.y-listener.position.y):0;
-      const pan=event.position?(event.position.x-listener.position.x)/700:0;
+      const mix=spatialAudioMix({source:event.position,listener:listener.position,map});
       if(speed>1&&event.type==='sound')continue;
       if(speed>=4&&!['shot','death','downed','objective'].includes(event.type)&&event.goal!=='grenade-exploded'&&event.goal!=='wall-breached')continue;
-      playMatchAudio(event,actor?.weaponName??'',pan,1/(1+distance/320),Math.max(0,event.time-(tick.time-.1)));
+      playMatchAudio(event,actor?.weaponName??'',mix.pan,mix.attenuation,Math.max(0,event.time-(tick.time-.1)),mix.cutoff);
     }
     if(heardEvents.current.size>180)heardEvents.current=new Set([...heardEvents.current].slice(-120));
   },[events,tick,paused,speed,muted,result,mode,directorSide,focusedId,selectedId]);

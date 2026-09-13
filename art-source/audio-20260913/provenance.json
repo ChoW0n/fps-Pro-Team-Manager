@@ -3,6 +3,10 @@
   "model": "eleven_text_to_sound_v2",
   "credits": 300,
   "recorded_firearm": false,
+  "replacements": {
+    "smg": "2026-09-13: original generation replaced with 170Hz high-passed filtered noise; no recorded firearm claim.",
+    "blast": "2026-09-13: original generation replaced with 105Hz high-passed filtered noise; no recorded firearm claim."
+  },
   "samples": [
     {
       "name": "carbine",

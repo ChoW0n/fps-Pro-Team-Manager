@@ -1,5 +1,6 @@
 import type { RealtimeEvent } from '../domain/realtime/TacticalRealtimeSimulation';
 import { weaponHandling } from '../domain/realtime/weaponHandling';
+import type { TacticalMapDefinition, TacticalPoint } from '../domain/tacticalMaps';
 
 let context:AudioContext|undefined;
 let bus:DynamicsCompressorNode|undefined;
@@ -8,6 +9,27 @@ try{muted=localStorage.getItem('draft-order-audio-muted')==='true';}catch{/* 저
 const playing=new Map<AudioBufferSourceNode,string>();
 const voicePriority:Record<string,number>={shot:1,blast:1,impact:2,deploy:2,footstep:4};
 const lastStep=new Map<string,number>();
+
+export interface SpatialAudioInput { source?:TacticalPoint; listener?:TacticalPoint; map?:TacticalMapDefinition; }
+export interface SpatialAudioMix { attenuation:number; pan:number; cutoff:number; indoor:boolean; wallCount:number; }
+const inRoom=(point:TacticalPoint,map:TacticalMapDefinition)=>map.rooms.some(room=>(room.floor??0)===(point.floor??0)&&room.kind!=='yard'&&point.x>room.rect.x&&point.x<room.rect.x+room.rect.width&&point.y>room.rect.y&&point.y<room.rect.y+room.rect.height);
+const orient=(a:TacticalPoint,b:TacticalPoint,c:TacticalPoint)=>Math.sign((b.x-a.x)*(c.y-a.y)-(b.y-a.y)*(c.x-a.x));
+const intersects=(a:TacticalPoint,b:TacticalPoint,c:TacticalPoint,d:TacticalPoint)=>{
+  const ab1=orient(a,b,c),ab2=orient(a,b,d),cd1=orient(c,d,a),cd2=orient(c,d,b);
+  return ab1!==ab2&&cd1!==cd2;
+};
+/** 화면에 보이는 관전자 좌표로만 거리·벽·실내외를 계산합니다. AI 지식이나 적 위치를 보강하지 않습니다. */
+export function spatialAudioMix({source,listener,map}:SpatialAudioInput):SpatialAudioMix {
+  if(!source||!listener||!map)return {attenuation:1,pan:0,cutoff:1,indoor:false,wallCount:0};
+  const distance=Math.hypot(source.x-listener.x,source.y-listener.y);
+  const sameFloor=(source.floor??0)===(listener.floor??0);
+  const wallCount=sameFloor?map.walls.filter(wall=>(wall.floor??0)===(source.floor??0)&&wall.kind!=='door-gap'&&intersects(source,listener,wall.from,wall.to)).length:3;
+  const sourceInside=inRoom(source,map),listenerInside=inRoom(listener,map),indoor=sourceInside&&listenerInside;
+  // 벽 하나는 6dB 안팎의 직접음 손실, 실내↔실외 전이는 추가로 고역과 볼륨을 낮춥니다.
+  const wallLoss=Math.pow(.5,Math.min(3,wallCount));
+  const transition=sourceInside===listenerInside?1:.72;
+  return {attenuation:Math.max(.025,1/(1+distance/300)*wallLoss*transition),pan:Math.max(-1,Math.min(1,(source.x-listener.x)/620)),cutoff:indoor?1:sourceInside===listenerInside?.82:.62,indoor,wallCount};
+}
 
 export function isMatchAudioMuted():boolean{return muted;}
 /** 이미 예약된 소리와 잔향도 끊어 정지·배속·화면 이탈 뒤에 총성이 남지 않게 합니다. */
@@ -64,7 +86,7 @@ function transient(key:string,decay:number,mechanical=false):AudioBuffer {
   buffers.set(key,buffer);return buffer;
 }
 
-export function playMatchAudio(event:RealtimeEvent,weaponName='',pan=0,attenuation=1,delay=0):void {
+export function playMatchAudio(event:RealtimeEvent,weaponName='',pan=0,attenuation=1,delay=0,cutoffScale=1):void {
   if(muted||!context||context.state!=='running'||!bus)return;
   const kind=event.type==='shot'?'shot':event.type==='sound'&&event.message==='발소리'?'footstep':event.type==='impact'?'impact':event.goal?.includes('deployed')||event.type==='reload'||event.type==='objective'&&['plant-started','disable-started','planted'].includes(event.goal??'')?'deploy':event.goal==='grenade-exploded'||event.goal==='wall-breached'?'blast':'';
   if(!kind)return;
@@ -88,7 +110,7 @@ export function playMatchAudio(event:RealtimeEvent,weaponName='',pan=0,attenuati
   // 권총 전용 음원은 아직 없습니다. 다른 무기군 샘플을 재사용하지 않고 기존 무기별 합성음으로 대체합니다.
   const sampleKey=kind==='shot'?family:kind;
   source.buffer=samples.get(sampleKey)??transient(`${kind}:${kind==='shot'?weaponName:''}:${variant}`,decay,kind==='shot'||kind==='deploy');
-  filter.type='lowpass';filter.frequency.value=kind==='shot'?profile.cutoff:kind==='footstep'?750:kind==='blast'?1600:5000;filter.Q.value=.5;
+  filter.type='lowpass';filter.frequency.value=(kind==='shot'?profile.cutoff:kind==='footstep'?750:kind==='blast'?2200:5000)*Math.max(.35,Math.min(1,cutoffScale));filter.Q.value=.5;
   gain.gain.value=volume;panner.pan.value=Math.max(-1,Math.min(1,pan));
   source.connect(filter).connect(gain).connect(panner).connect(bus);
   playing.set(source,kind);

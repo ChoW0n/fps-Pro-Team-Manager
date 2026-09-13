@@ -19,6 +19,12 @@ global.AudioContext=class {
  createOscillator(){throw new Error('총성에 음높이 oscillator를 사용하면 안 됩니다.');}
 };
 const a=require('../artifacts/draft-order-player-generator/src/components/matchAudio.ts');
+const {NAMSAN_MAP}=require('../artifacts/draft-order-player-generator/src/domain/tacticalMaps.ts');
+const clear=a.spatialAudioMix({source:{x:1000,y:1000},listener:{x:1100,y:1000},map:NAMSAN_MAP});
+const blocked=a.spatialAudioMix({source:{x:1000,y:1000},listener:{x:1800,y:1000},map:NAMSAN_MAP});
+const exterior=a.spatialAudioMix({source:{x:520,y:520},listener:{x:1100,y:1000},map:NAMSAN_MAP});
+assert(blocked.wallCount>0&&blocked.attenuation<clear.attenuation,'벽은 직접음을 낮춤');
+assert(exterior.cutoff<clear.cutoff&&exterior.attenuation<clear.attenuation,'실내외 전이는 고역과 볼륨을 낮춤');
 const shot={type:'shot',time:1,message:'',actor:'operator-1'};
 a.playMatchAudio(shot,'HK416');assert.equal(sources.length,0,'사용자 제스처 이전 무음');
 a.unlockMatchAudio();
@@ -48,7 +54,7 @@ a.stopMatchAudio();context.state='suspended';a.playMatchAudio(shot,'HK416');asse
 // 저장소 제한이나 오디오 잠금 실패가 경기 시작 버튼을 깨뜨리지 않습니다.
 global.localStorage.setItem=()=>{throw Error('blocked')};assert.doesNotThrow(()=>a.setMatchAudioMuted(false));
 context.resume=()=>Promise.reject(Error('blocked'));assert.doesNotThrow(()=>a.unlockMatchAudio());
-fs.writeFileSync('validation/match-audio.json',JSON.stringify({weaponProfiles:6,footstepVoiceLimit:3,totalVoiceLimit:12,checks:['gesture gate','buffer data','no oscillator','pan/delay clamp','mute persistence','stop scheduled audio','footstep cadence','polyphony limit','actual objective event names','storage/resume rejection'],browserListening:false},null,2)+'\n');
+fs.writeFileSync('validation/match-audio.json',JSON.stringify({weaponProfiles:6,footstepVoiceLimit:3,totalVoiceLimit:12,checks:['gesture gate','buffer data','no oscillator','distance/wall/indoor-outdoor mix','pan/delay clamp','mute persistence','stop scheduled audio','footstep cadence','polyphony limit','actual objective event names','storage/resume rejection'],browserListening:false},null,2)+'\n');
 console.log('PASS 오디오 6종·사용자 제스처·음소거·예약 취소·발소리 3개·전체 12개·설치 사건');
 
 (async()=>{await a.loadMatchSamples();context.state='running';a.playMatchAudio(shot,'HK416');assert(sources.at(-1).buffer.sample,'decoded sample playback');a.stopMatchAudio();a.playMatchAudio({type:'utility',time:3,goal:'grenade-exploded',message:''});assert(sources.at(-1).buffer.getChannelData,'failed sample uses fallback');a.stopMatchAudio();console.log('PASS decoded sample and failed-fetch fallback');})().catch(e=>{console.error(e);process.exitCode=1});
