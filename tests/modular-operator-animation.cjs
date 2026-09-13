@@ -16,10 +16,10 @@ const frozen=u=>Object.freeze({...u,position:Object.freeze({...u.position}),velo
   const asset=await require('./load-weapon-sprites.cjs')();
   const render=(u,time,motion={},painter=paintModularOperator,reduced=false)=>{
     const canvas=createCanvas(128,128),native=canvas.getContext('2d');native.translate(42,64);canvas.fixedParts=[];
-    // 몸통은 사용자 수정 요청 대상입니다. 승인 머리·총기·손의 실제 그리기 명령을 비교합니다.
+    // 몸통은 사용자 수정 요청 대상입니다. 보존 총기의 실제 그리기 명령을 비교합니다.
     const ctx=new Proxy(native,{get(target,key){const value=target[key];if(typeof value!=='function')return value;return(...args)=>{
-      const t=target.getTransform(),head=Math.abs(Math.hypot(t.a,t.b)-.72)<1e-5;
-      if((head&&['moveTo','lineTo','fillRect','fill','stroke'].includes(key))||key==='drawImage'||key==='ellipse'&&args[2]===3&&args[3]===2){
+      const t=target.getTransform();
+      if(key==='drawImage'){
         canvas.fixedParts.push([key,[t.a,t.b,t.c,t.d,t.e,t.f],key==='drawImage'?[args[0].width,args[0].height,...args.slice(1)]:args]);
       }
       return value.apply(target,args);
@@ -33,7 +33,7 @@ const frozen=u=>Object.freeze({...u,position:Object.freeze({...u.position}),velo
   const approvedNames=[...new Set(OPERATORS.map(o=>o.firearms[0]))];
   for(const weaponName of approvedNames)for(const locomotion of ['walk','crouch']){
     const u={...base,weaponName,locomotion},animator=new OperatorAnimator(),frame=animator.sample(frozen(u),1);
-    assert.deepEqual(render(u,1,{frame}).fixedParts,render(u,1,{},baseline.exports.paintModularOperator).fixedParts,'승인 머리·총기·손 '+weaponName+' '+locomotion);
+    assert.deepEqual(render(u,1,{frame}).fixedParts,render(u,1,{},baseline.exports.paintModularOperator).fixedParts,'보존 총기 '+weaponName+' '+locomotion);
   }
 
   const walk=fps=>{const a=new OperatorAnimator();let frame;a.sample(frozen(base),0);for(let i=1;i<=fps;i++)frame=a.sample(frozen({...base,position:{x:i/fps*30,y:0},velocity:{x:30,y:0}}),i/fps);return frame;};
@@ -84,7 +84,7 @@ const frozen=u=>Object.freeze({...u,position:Object.freeze({...u.position}),velo
       };},set(target,key,value){target[key]=value;return true;}});
       paintModularOperator(ctx,frozen({...base,weaponName}),1,undefined,asset,false,{frame:{lowerFacing:0,crouchAmount:0,step:0,reloadReach:reach}});
       assert.equal(arms.length,2);
-      near(distance(arms[0][0],arms[0][1]),12);near(distance(arms[0][1],arms[0][2]),12,'장전 지지팔 길이');
+      near(distance(arms[0][0],arms[0][1]),mount.kind==='pistol'?7+5*reach:12);near(distance(arms[0][1],arms[0][2]),mount.kind==='pistol'?8+4*reach:12,'장전 지지팔 길이');
       near(distance(arms[1][0],arms[1][1]),8);near(distance(arms[1][1],arms[1][2]),9,'방아쇠팔 길이');
       near(distance(arms[1][2],mount.triggerHand),0,'방아쇠손 접점 유지');
       if(reach===0)near(distance(arms[0][2],mount.supportHand),0);
@@ -99,5 +99,5 @@ const frozen=u=>Object.freeze({...u,position:Object.freeze({...u.position}),velo
   poses.forEach(([label,motion],i)=>{ctx.drawImage(render(base,1,motion),0,36,96,56,i*200,24,200,117);ctx.fillStyle='#E5ECE9';ctx.font='16px sans-serif';ctx.fillText(label,i*200+18,184);});
   fs.writeFileSync(output+'/modular-operator-animation.png',sheet.toBuffer('image/png'));
   fs.writeFileSync(output+'/modular-operator-animation.json',JSON.stringify({scope:'Node Canvas; no browser',approvedCommit:'36c72b7859569d26b3c1207c160a9e8a60853ec7',preservedPartComparisons:approvedNames.length*2,directionCases,armCases,checks:['30/60/120 fps distance phase','blocked movement','stop turn','crouch reversal','reload cancellation','pause','rewind/floor/teleport/down reset','reduced motion','frozen simulation inputs','active renderer binding'],limits:['Not a real-device or new motion art approval','Projected gait, not world-space planted feet','Body narrowed at user request; full-body approval pixel comparison superseded','New sidearm sprites and prone/shield poses have separate equipment checks']},null,2)+'\n');
-  console.log(`PASS ${approvedNames.length*2} preserved head/weapon/hand comparisons, ${directionCases} movement/aim poses, ${armCases} rendered arm contracts; transitions and isolation`);
+  console.log(`PASS ${approvedNames.length*2} preserved weapon comparisons, ${directionCases} movement/aim poses, ${armCases} rendered arm contracts; transitions and isolation`);
 })().catch(error=>{console.error(error);process.exitCode=1;});

@@ -17,12 +17,12 @@ const base={id:'equipment',callSign:'REUSS',side:'수비',weaponName:'HK417',pos
    if(key==='beginPath')points=[];
    if(key==='moveTo'||key==='lineTo')points.push({x:args[0],y:args[1]});
    if(key==='stroke'&&points.length===3&&Math.abs(target.lineWidth-4.8)<1e-5)arms.push(points.slice());
-   if(key==='ellipse'&&args[2]===3&&args[3]===2)hands.push({drawCount:drawn.length,transform:target.getTransform()});
+   if(key==='roundRect'&&args[2]===4&&args[3]===3)hands.push({drawCount:drawn.length,transform:target.getTransform()});
    if(key==='drawImage')drawn.push({image:args[0],transform:target.getTransform(),args});
    return value.apply(target,args);
   };},set(target,key,value){target[key]=value;return true;}});
   assert(paintModularOperator(ctx,u,1.07,1,asset));assert.equal(arms.length,2);
-  for(const [index,a,b] of [[0,stance==='shield'?8:12,stance==='shield'?10:12],[1,8,9]]){near(distance(arms[index][0],arms[index][1]),a,weaponName+' '+stance+' upper');near(distance(arms[index][1],arms[index][2]),b,weaponName+' '+stance+' forearm');}
+  for(const [index,a,b] of [[0,stance==='shield'?8:m.kind==='pistol'?7:12,stance==='shield'?10:m.kind==='pistol'?8:12],[1,8,9]]){near(distance(arms[index][0],arms[index][1]),a,weaponName+' '+stance+' upper');near(distance(arms[index][1],arms[index][2]),b,weaponName+' '+stance+' forearm');}
   near(distance(arms[1][2],{x:m.triggerHand.x-1.2,y:m.triggerHand.y}),0,'반동 방아쇠 접점');
   const lastGun=drawn.filter(d=>d.image!==asset(HANDHELD_SHIELD.file)).at(-1);
   const muzzle=modularMuzzlePosition(u,1.07,1);// Skia의 getTransform은 float32이므로 회전·평행이동 누적 1e-4px 반올림을 허용합니다. 관절 검사는 1e-6 그대로입니다.

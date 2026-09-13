@@ -1,3 +1,5 @@
+> **최신 재설계:** 원형 어깨 돌출 제거, 곡선형 헬멧/흉곽, 압축 없는 분절 포복, Ubisoft 방패 자료를 참고한 중앙 손잡이 방패 v3·가슴 앞 지지/오른쪽 권총 자세. [인수인계](operator-equipment-current.md), [전후 비교](../validation/operator-shape-rework.png). 새 시안 승인 전. 성능/히트박스·보조무장 강제 정책 유지, 브라우저 미실행.
+
 > **최신 체형 피드백:** 사용자의 몸통 비만감 지적에 따라 몸통 폭 약 31%, 군장 폭 25%와 팔 두께를 줄였다. 머리·총기·파지 유지. [전후 비교](../validation/operator-body-before-after.png). 새 체형 사용자 확인 전, 브라우저 미실행. 아래는 이전 기록이다.
 
 > **파지 피드백·방패 보조무장 옵션:** 권총 손을 원화 아래로, 방패 손목을 아래팔 방향으로 보완했다. REUSS 준비 옵션 `shieldRequiresSecondary`(기본 켜짐)과 실제 USP 전환·슬롯별 탄약 보존·교체 발사 차단을 연결했다. [인수인계와 검증](operator-equipment-current.md). 브라우저 미실행.
