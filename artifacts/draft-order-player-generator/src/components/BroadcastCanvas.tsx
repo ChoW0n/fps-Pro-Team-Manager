@@ -1,9 +1,7 @@
 import { drawEffect } from './effectParts';
 import { useEffect, useRef, type ReactElement } from 'react';
 import type { OperatorSide } from '../domain/Operator';
-import { paintMinimalOperator } from './minimalOperator';
-import { operatorStateVisual } from '../domain/operatorVisuals';
-import { drawOperatorSheet, sheetMuzzlePosition } from './operatorSheet';
+import { modularMuzzlePosition, paintModularOperator } from './modularOperator';
 import { TacticalRealtimeSimulation, type RealtimeEvent, type RealtimeTick, type RealtimeUnitState } from '../domain/realtime/TacticalRealtimeSimulation';
 import { battlefieldMap } from '../domain/realtime/fortifications';
 import { electronic, gadgetPosition, GADGET_LABELS } from '../domain/realtime/gadgetRules';
@@ -214,12 +212,11 @@ export function BroadcastCanvas(props: Props): ReactElement {
       const displayMuzzles=new Map<string,{x:number;y:number}>();
       // 실체를 연장해서 그리지 않습니다. 끊긴 접촉은 고정된 목격 표식으로만 페이드아웃합니다.
       for(const [id,contact] of contacts){if(cachedVisibleIds.has(id))continue;const age=time-contact.seenAt;ctx.save();ctx.globalAlpha=Math.max(0,1-age/3);ctx.strokeStyle='#6EA8FF';ctx.setLineDash([3,4]);ctx.lineWidth=1.5;ctx.beginPath();ctx.arc(contact.position.x,contact.position.y,17,0,Math.PI*2);ctx.stroke();ctx.restore();label('마지막 목격',contact.position.x,contact.position.y+29*cssUnit,'#B0C9E9');}
-      // 앞·뒤·옆 몸체와 장비를 조립하고 사격 반동은 실제 발사 사건에만 연결합니다.
+      // 하체 이동과 상체 조준을 분리하고, 총기 기준점에 양손을 조립합니다.
       for(const unit of visible){
         const shotAt=events.findLast(event=>event.actor===unit.id&&event.type==='shot'&&time-event.time<.14)?.time;
-        const visual=operatorStateVisual(unit,time);
-        if(visual&&drawOperatorSheet(ctx,visual,unit,asset))displayMuzzles.set(unit.id,sheetMuzzlePosition(visual,unit));
-        else paintMinimalOperator(ctx,unit,time,shotAt,asset,reducedMotion,{reloadStartedAt:events.findLast(event=>event.actor===unit.id&&event.type==='reload'&&event.message.includes('장전 시작'))?.time,thrown:snapshot.gadgets?.find(gadget=>gadget.owner===unit.id&&gadget.thrownAt!==undefined&&time>=gadget.thrownAt&&time-gadget.thrownAt<.45)});
+        paintModularOperator(ctx,unit,time,shotAt,asset,reducedMotion,{reloadStartedAt:events.findLast(event=>event.actor===unit.id&&event.type==='reload'&&event.message.includes('장전 시작'))?.time,thrown:snapshot.gadgets?.find(gadget=>gadget.owner===unit.id&&gadget.thrownAt!==undefined&&time>=gadget.thrownAt&&time-gadget.thrownAt<.45)});
+        if(unit.alive&&!unit.downed)displayMuzzles.set(unit.id,modularMuzzlePosition(unit));
         // 다운은 사망과 다른 실제 상태입니다. 자세별 원화 전에는 명확한 구조 표식을 사용합니다.
         if(unit.downed){ctx.save();ctx.strokeStyle='#FFC53D';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(unit.position.x-5,unit.position.y-23);ctx.lineTo(unit.position.x+5,unit.position.y-23);ctx.moveTo(unit.position.x,unit.position.y-28);ctx.lineTo(unit.position.x,unit.position.y-18);ctx.stroke();if(unit.downed.progress>0){ctx.beginPath();ctx.arc(unit.position.x,unit.position.y,21,-Math.PI/2,-Math.PI/2+Math.PI*2*unit.downed.progress);ctx.stroke();}ctx.restore();}
         const rescued=unit.reviving&&visible.find(other=>other.id===unit.reviving!.targetId);

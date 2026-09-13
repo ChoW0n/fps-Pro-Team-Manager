@@ -1,9 +1,3 @@
-import type { RealtimeUnitState, RealtimeGadget } from '../domain/realtime/TacticalRealtimeSimulation';
-import { paintWeaponPart } from './weaponParts';
-import { muzzlePosition } from '../domain/operatorVisuals';
-
-export type PartLoader = (file:string) => HTMLImageElement;
-
 // 창작 군장의 식별용 조합입니다. 실부대 지급품이나 미구현 가젯 효과를 뜻하지 않습니다.
 const KITS:Record<string,{color:string;pouches:number;pack:number;tool:'shells'|'radio'|'optic'|'probe'|'case'|'charge'|'plate'|'roll'|'coil'|'lamp'|'battery'|'interceptor'}>={
   MAGPIE:{color:'#706B50',pouches:3,pack:9,tool:'shells'},
@@ -37,79 +31,6 @@ export function weaponSilhouette(name:string):'carbine'|'suppressed'|'bullpup'|'
   return 'carbine';
 }
 
-/** 실제 투척 직후부터 회복까지의 관절 회전. 팔 길이는 고정입니다. */
-export function throwArmPose(progress:number):{elbow:{x:number;y:number};hand:{x:number;y:number}}{
- const p=Math.max(0,Math.min(1,progress)),a=-.4+p*1.2,b=-.65-p*.7;
- const elbow={x:2+Math.cos(a)*9,y:10+Math.sin(a)*9};
- return {elbow,hand:{x:elbow.x+Math.cos(b)*8,y:elbow.y+Math.sin(b)*8}};
-}
-
-export interface OperatorMotion { reloadStartedAt?:number; thrown?:RealtimeGadget; }
-
-/** 가파른 탑뷰의 한 로컬 좌표계를 머리·군장·팔·총기가 연속적으로 공유합니다. */
-export function paintMinimalOperator(ctx:CanvasRenderingContext2D,unit:RealtimeUnitState,time:number,shotAt:number|undefined,_asset:PartLoader,reducedMotion=false,motion:OperatorMotion={}):boolean {
-  const kit=KITS[unit.callSign]??KITS.MAGPIE;
-  const down=Boolean(unit.downed)||!unit.alive;
-  const installing=!down&&(unit.action==='plant'||unit.action==='disable'||unit.action==='utility'&&/설치/.test(unit.goal??''));
-  const crouch=unit.locomotion==='crouch'||installing;
-  const prone=unit.locomotion==='crawl'||down;
-  // 시작 사건과 남은 시간으로 진행률을 계산하므로 정지·탐색에서도 같은 자세입니다.
-  const thrown=motion.thrown;
-  const throwAge=thrown?.thrownAt===undefined?-1:time-thrown.thrownAt;
-  // 이미 발사된 투척물의 후속 팔 동작만 표시합니다. 가짜 수류탄을 손에 생성하지 않습니다.
-  const throwing=!down&&unit.action!=='reload'&&!installing&&throwAge>=0&&throwAge<.45;
-  const throwProgress=throwing?(reducedMotion?.6:Math.min(1,throwAge/.45)):0;
-  const moving=Math.hypot(unit.velocity.x,unit.velocity.y)>1&&unit.alive;
-  const step=!reducedMotion&&moving&&!down?Math.sin(time*(unit.locomotion==='sprint'?15:10)):0;
-  const age=shotAt===undefined?1:time-shotAt,kick=!reducedMotion&&age>0&&age<.14?Math.sin(age/.14*Math.PI)*1.2:0;
-  const muzzle=muzzlePosition(unit.weaponName??'',unit.position,unit.facing),c=Math.cos(unit.facing),s=Math.sin(unit.facing);
-  const dx=muzzle.x-unit.position.x,dy=muzzle.y-unit.position.y;
-  const tip={x:dx*c+dy*s,y:-dx*s+dy*c};
-  const ink='#10191C',shade='#29373A',light='#859080',outline=2;
-  ctx.save();ctx.globalAlpha=unit.alive?1:.4;
-  ctx.fillStyle='#04090C55';ctx.beginPath();ctx.ellipse(unit.position.x,unit.position.y+2,15,11,0,0,Math.PI*2);ctx.fill();
-  ctx.translate(unit.position.x,unit.position.y);ctx.rotate(unit.facing);
-  if(!down){
-    const gunStowed=installing||throwing;
-    // 개머리판은 오른어깨 안쪽에, 총구는 엔진 발사 원점에 정렬합니다.
-    ctx.save();ctx.translate(tip.x,tip.y);if(gunStowed){const lower=installing?1:1-throwProgress;ctx.translate(-7*lower,9*lower);}ctx.translate(-kick,0);
-    paintWeaponPart(ctx,unit.weaponName??'',_asset);
-    if(unit.shieldRaised){ctx.fillStyle=shade;ctx.strokeStyle=ink;ctx.lineWidth=outline/.75;ctx.fillRect(-5,-18,7,36);ctx.strokeRect(-5,-18,7,36);ctx.fillStyle=light;ctx.fillRect(-4,-9,5,9);}ctx.restore();
-  }
-  // 40단위/m 전장 기준: 군장 포함 폭 약 0.6m. 총기 PNG에는 이 몸체 축척을 적용하지 않습니다.
-  ctx.save();ctx.scale(.8,.7);
-  ctx.strokeStyle=ink;ctx.lineWidth=outline;ctx.lineJoin='round';ctx.lineCap='round';
-  const poly=(points:number[][],fill:string)=>{ctx.fillStyle=fill;ctx.beginPath();points.forEach(([x,y],i)=>i?ctx.lineTo(x,y):ctx.moveTo(x,y));ctx.closePath();ctx.fill();ctx.stroke();};
-  const box=(x:number,y:number,w:number,h:number,fill=kit.color)=>{ctx.fillStyle=fill;ctx.fillRect(x,y,w,h);ctx.strokeRect(x,y,w,h);};
-  // 전신을 세우지 않고 어깨·배낭·뒤로 짧게 보이는 부츠를 위에서 읽게 합니다.
-  for(const side of [-1,1]){
-    const rear=prone?-34:crouch?-16:-22+side*step*2;
-    poly([[rear,side*4],[rear+10,side*4],[rear+9,side*10],[rear-2,side*9]],shade);
-  }
-  poly([[-16,-10],[-8,-14],[2,-13],[7,-7],[6,9],[-1,14],[-14,11],[-18,3]],kit.color);
-  box(-20,-kit.pack*.42,8,kit.pack*.84,shade);
-  // 군장 식별은 외곽의 큰 물체 한두 개로 유지합니다.
-  if(kit.tool==='charge'||kit.tool==='plate'){box(-17,11,18,4,light);if(kit.tool==='charge')box(-15,16,12,3,kit.color);}
-  else if(kit.tool==='probe'){box(-17,10,12,6,shade);ctx.fillStyle=light;ctx.beginPath();ctx.arc(-12,12,4,0,Math.PI*2);ctx.fill();}
-  else if(kit.tool==='battery'){box(-17,10,11,8,kit.color);box(-14,9,5,2,light);}
-  else if(kit.tool==='interceptor'){box(-17,11,13,4,shade);box(-13,15,4,5,light);}
-  else if(kit.tool==='coil'){ctx.fillStyle=light;ctx.beginPath();ctx.arc(-12,14,5,0,Math.PI*2);ctx.fill();ctx.stroke();}
-  else if(kit.tool==='roll'){box(-19,10,16,6,light);}
-  else if(kit.tool==='radio'){box(-15,10,8,7,shade);ctx.beginPath();ctx.moveTo(-15,12);ctx.lineTo(-24,12);ctx.stroke();}
-  else{for(let i=0;i<Math.min(3,kit.pouches);i++)box(-17+i*5,11,4,6,light);}
-  // 어깨 윤곽을 머리와 분리합니다. 팔을 총에 맞춰 늘리지 않습니다.
-  for(const side of [-1,1])poly([[-5,side*10],[1,side*15],[8,side*12],[7,side*7]],kit.color);
-  // 같은 두 면의 헬멧이 모든 방향에서 회전하므로 특정 각도에서 높이가 바뀌지 않습니다.
-  // 작은 호흡만 헬멧에 적용합니다. 총구·시야 방향·충돌 좌표는 바꾸지 않습니다.
-  const phase=[...unit.id].reduce((sum,char)=>sum+char.charCodeAt(0),0);
-  const resting=!reducedMotion&&!moving&&!down&&['hold','aim','search'].includes(unit.action);
-  ctx.save();ctx.translate(prone?10:6,0);ctx.scale(crouch?.68:.72,crouch?.68:.72);if(resting)ctx.translate(Math.sin(time*1.6+phase)*(unit.action==='aim'?.3:.6),0);
-  poly([[-14,-6],[-10,-11],[-2,-12],[5,-7],[6,1],[0,6],[-10,5],[-15,0]],shade);
-  poly([[-12,-6],[-9,-10],[-2,-10],[3,-6],[3,0],[-2,3],[-10,2]],kit.color);
-  box(-9,-12,8,3,light);box(-8,4,6,3,shade);
-  ctx.restore();
-  ctx.fillStyle=unit.side==='공격'?'#2FD4C4':'#F0873C';ctx.fillRect(-18,-5,2,5);
-  ctx.restore();
-
-  ctx.restore();return true;
-}
+// 이전 호출부는 유지하되 실제 구현은 조립식 모듈 하나만 사용합니다.
+export { paintModularOperator as paintMinimalOperator, throwArmPose } from './modularOperator';
+export type { OperatorMotion, PartLoader } from './modularOperator';

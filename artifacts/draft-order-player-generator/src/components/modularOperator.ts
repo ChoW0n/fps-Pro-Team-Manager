@@ -1,0 +1,189 @@
+import type { RealtimeUnitState, RealtimeGadget } from '../domain/realtime/TacticalRealtimeSimulation';
+import { paintWeaponPart, weaponMuzzleOffset, weaponPart } from './weaponParts';
+
+export type PartLoader = (file:string) => HTMLImageElement;
+type Point = {x:number;y:number};
+
+export const OPERATOR_LAYER_ORDER = [
+  'shadow', 'lower-body', 'torso', 'arms', 'weapon', 'hands', 'head-and-kit', 'team-mark',
+] as const;
+
+export type WeaponPoseKind = 'carbine'|'suppressed'|'bullpup'|'p90'|'marksman'|'bolt'|'pistol';
+export interface WeaponMountPose {
+  kind:WeaponPoseKind;
+  stock:Point;
+  triggerHand:Point;
+  supportHand:Point;
+  magazine:Point;
+  muzzle:Point;
+  triggerShoulder:Point;
+  supportShoulder:Point;
+  cheek:Point;
+}
+export interface OperatorAssemblyPose {
+  lowerFacing:number;
+  upperFacing:number;
+  moving:boolean;
+  crouched:boolean;
+  prone:boolean;
+  weapon?:WeaponMountPose;
+}
+
+export interface OperatorMotion { reloadStartedAt?:number; thrown?:RealtimeGadget; }
+
+// 외형 식별값뿐입니다. 전투 수치·충돌 크기·이동 속도에는 사용하지 않습니다.
+const KITS:Record<string,{color:string;pouches:number;pack:number;tool:'shells'|'radio'|'optic'|'probe'|'case'|'charge'|'plate'|'roll'|'coil'|'lamp'|'battery'|'interceptor'}>={
+  MAGPIE:{color:'#706B50',pouches:3,pack:9,tool:'shells'},
+  COLLIER:{color:'#39484B',pouches:4,pack:8,tool:'radio'},
+  '해동':{color:'#526052',pouches:3,pack:10,tool:'coil'},
+  ARBEL:{color:'#817858',pouches:2,pack:8,tool:'roll'},
+  AUBERT:{color:'#455360',pouches:2,pack:13,tool:'probe'},
+  MEDVED:{color:'#66644C',pouches:3,pack:14,tool:'charge'},
+  REUSS:{color:'#46534C',pouches:2,pack:15,tool:'plate'},
+  BRANDT:{color:'#56605A',pouches:2,pack:9,tool:'roll'},
+  MARCHAND:{color:'#3E4B57',pouches:4,pack:11,tool:'coil'},
+  HALLORAN:{color:'#7B795C',pouches:3,pack:12,tool:'roll'},
+  '성곽':{color:'#586352',pouches:3,pack:17,tool:'battery'},
+  SAVELLI:{color:'#434E48',pouches:2,pack:10,tool:'interceptor'},
+};
+
+export function weaponPoseKind(name:string):WeaponPoseKind {
+  if(/글록 17|글록 19|P226|K5 권총|HK USP|베레타 92FS|SR-1|MR73/.test(name))return 'pistol';
+  if(/C14/.test(name))return 'bolt';
+  if(/PSG|HK417/.test(name))return 'marksman';
+  if(/P90/.test(name))return 'p90';
+  if(/X95|타보르/.test(name))return 'bullpup';
+  if(/MP5SD|Val/.test(name))return 'suppressed';
+  return 'carbine';
+}
+
+const add=(a:Point,b:readonly number[]):Point=>({x:a.x+b[0],y:a.y+b[1]});
+const mix=(a:Point,b:Point,t:number):Point=>({x:a.x+(b.x-a.x)*t,y:a.y+(b.y-a.y)*t});
+
+/** 총기 원화를 변형하지 않고 그 원화의 접점으로 양손 자세를 결정합니다. */
+export function weaponMountPose(name:string):WeaponMountPose {
+  const part=weaponPart(name),muzzle=weaponMuzzleOffset(name),kind=weaponPoseKind(name);
+  const trigger=add(muzzle,part.gripPoint),rawSupport=add(muzzle,part.supportPoint),magazine=add(muzzle,part.magazinePoint);
+  const support=kind==='bolt'?mix(magazine,rawSupport,.22):kind==='marksman'?mix(magazine,rawSupport,.55):kind==='pistol'?{x:trigger.x+1.4,y:trigger.y-1.2}:rawSupport;
+  const stock={x:muzzle.x-part.length,y:muzzle.y};
+  return {kind,stock,triggerHand:trigger,supportHand:support,magazine,muzzle,
+    triggerShoulder:{x:2,y:7.5},supportShoulder:{x:3.5,y:-6.5},cheek:{x:stock.x+5,y:stock.y-3.5}};
+}
+
+function normalize(angle:number):number { return Math.atan2(Math.sin(angle),Math.cos(angle)); }
+
+/** 하체는 실제 이동 방향, 상체와 무기는 실제 조준 방향을 따릅니다. */
+export function operatorAssemblyPose(unit:RealtimeUnitState):OperatorAssemblyPose {
+  const speed=Math.hypot(unit.velocity.x,unit.velocity.y),moving=Boolean(unit.alive)&&speed>1;
+  const installing=unit.action==='plant'||unit.action==='disable'||unit.action==='utility'&&/설치/.test(unit.goal??'');
+  const prone=unit.locomotion==='crawl'||Boolean(unit.downed)||!unit.alive;
+  return {lowerFacing:moving?Math.atan2(unit.velocity.y,unit.velocity.x):unit.facing,upperFacing:unit.facing,moving,
+    crouched:unit.locomotion==='crouch'||installing,prone,weapon:prone?undefined:weaponMountPose(unit.weaponName??'')};
+}
+
+interface ArmPose { shoulder:Point; elbow:Point; hand:Point; }
+/** 길이를 바꾸지 않는 2관절 팔. 손 좌표는 총기의 접점과 정확히 같습니다. */
+export function solveArm(shoulder:Point,hand:Point,upperLength:number,forearmLength:number,bend:number):ArmPose {
+  const dx=hand.x-shoulder.x,dy=hand.y-shoulder.y,distance=Math.max(.001,Math.hypot(dx,dy));
+  const min=Math.abs(upperLength-forearmLength)+.001,max=upperLength+forearmLength-.001;
+  const reachable=Math.max(min,Math.min(max,distance)),along=(upperLength*upperLength-forearmLength*forearmLength+reachable*reachable)/(2*reachable);
+  const height=Math.sqrt(Math.max(0,upperLength*upperLength-along*along)),ux=dx/distance,uy=dy/distance;
+  return {shoulder,elbow:{x:shoulder.x+ux*along-uy*height*bend,y:shoulder.y+uy*along+ux*height*bend},hand};
+}
+
+/** 실제 투척 직후부터 회복까지의 관절 회전. 팔 길이는 고정입니다. */
+export function throwArmPose(progress:number):{elbow:Point;hand:Point}{
+  const p=Math.max(0,Math.min(1,progress)),a=-.4+p*1.2,b=-.65-p*.7;
+  const elbow={x:2+Math.cos(a)*9,y:10+Math.sin(a)*9};
+  return {elbow,hand:{x:elbow.x+Math.cos(b)*8,y:elbow.y+Math.sin(b)*8}};
+}
+
+function strokeArm(ctx:CanvasRenderingContext2D,pose:ArmPose,color:string):void {
+  ctx.lineCap='round';ctx.lineJoin='round';ctx.strokeStyle='#10191C';ctx.lineWidth=6;
+  ctx.beginPath();ctx.moveTo(pose.shoulder.x,pose.shoulder.y);ctx.lineTo(pose.elbow.x,pose.elbow.y);ctx.lineTo(pose.hand.x,pose.hand.y);ctx.stroke();
+  ctx.strokeStyle=color;ctx.lineWidth=3.6;ctx.stroke();
+}
+function hand(ctx:CanvasRenderingContext2D,point:Point,angle:number):void {
+  ctx.save();ctx.translate(point.x,point.y);ctx.rotate(angle);ctx.fillStyle='#20292B';ctx.strokeStyle='#10191C';ctx.lineWidth=1.3;ctx.beginPath();ctx.ellipse(0,0,3,2,0,0,Math.PI*2);ctx.fill();ctx.stroke();ctx.restore();
+}
+function polygon(ctx:CanvasRenderingContext2D,points:number[][],fill:string):void {
+  ctx.fillStyle=fill;ctx.beginPath();points.forEach(([x,y],index)=>index?ctx.lineTo(x,y):ctx.moveTo(x,y));ctx.closePath();ctx.fill();ctx.stroke();
+}
+
+function paintLowerBody(ctx:CanvasRenderingContext2D,pose:OperatorAssemblyPose,time:number,reducedMotion:boolean,color:string):void {
+  const relative=normalize(pose.lowerFacing-pose.upperFacing),step=!reducedMotion&&pose.moving&&!pose.prone?Math.sin(time*(pose.crouched?8:12))*3:0;
+  ctx.save();ctx.rotate(relative);ctx.strokeStyle='#10191C';ctx.lineWidth=2;ctx.lineJoin='round';
+  for(const side of [-1,1]){const rear=pose.prone?-29:pose.crouched?-13:-18+side*step;
+    polygon(ctx,[[rear-7,side*3],[rear+7,side*3],[rear+10,side*8],[rear-6,side*10]],side<0?'#29373A':color);}
+  ctx.restore();
+}
+
+function paintTorso(ctx:CanvasRenderingContext2D,color:string):void {
+  ctx.strokeStyle='#10191C';ctx.lineWidth=2;ctx.lineJoin='round';
+  polygon(ctx,[[-15,-9],[-6,-11],[5,-10],[9,-5],[8,9],[1,11],[-13,10],[-18,3]],color);
+  ctx.fillStyle='#29373A';ctx.fillRect(-18,-7,7,14);ctx.strokeRect(-18,-7,7,14);
+}
+
+function paintHeadAndKit(ctx:CanvasRenderingContext2D,color:string,pack:number,tool:string):void {
+  ctx.strokeStyle='#10191C';ctx.lineWidth=2;ctx.lineJoin='round';
+  ctx.fillStyle='#29373A';ctx.fillRect(-20,-pack*.42,7,pack*.84);ctx.strokeRect(-20,-pack*.42,7,pack*.84);
+  ctx.save();ctx.translate(5,0);ctx.scale(.72,.72);
+  polygon(ctx,[[-13,-7],[-8,-12],[0,-11],[7,-5],[6,3],[-1,7],[-11,4],[-15,-1]],'#334246');
+  polygon(ctx,[[-11,-7],[-7,-10],[0,-9],[4,-5],[3,1],[-2,4],[-10,2]],color);
+  ctx.fillStyle='#859080';ctx.fillRect(-7,-11,7,3);ctx.restore();
+  if(tool==='battery'||tool==='interceptor'||tool==='charge'||tool==='plate'){
+    ctx.fillStyle=color;ctx.fillRect(-16,8,11,5);ctx.strokeRect(-16,8,11,5);
+  } else if(tool==='coil'||tool==='roll'){
+    ctx.fillStyle='#859080';ctx.beginPath();ctx.arc(-11,10,3,0,Math.PI*2);ctx.fill();ctx.stroke();
+  }
+}
+
+/**
+ * 조립식 경기 캐릭터. 레이어 순서는 고정하고 하체·상체·무기·손을 독립 계산합니다.
+ * 외형은 RealtimeUnitState를 읽기만 하며 성능·충돌·탄약을 수정하지 않습니다.
+ */
+export function paintModularOperator(ctx:CanvasRenderingContext2D,unit:RealtimeUnitState,time:number,shotAt:number|undefined,asset:PartLoader,reducedMotion=false,motion:OperatorMotion={}):boolean {
+  const pose=operatorAssemblyPose(unit),kit=KITS[unit.callSign]??KITS.MAGPIE,down=pose.prone;
+  const thrown=motion.thrown,throwAge=thrown?.thrownAt===undefined?-1:time-thrown.thrownAt;
+  const throwing=!down&&unit.action!=='reload'&&throwAge>=0&&throwAge<.45;
+  const installing=!down&&(unit.action==='plant'||unit.action==='disable'||unit.action==='utility'&&/설치/.test(unit.goal??''));
+  const age=shotAt===undefined?1:time-shotAt,kick=!reducedMotion&&age>0&&age<.14?Math.sin(age/.14*Math.PI)*1.2:0;
+
+  ctx.save();ctx.globalAlpha=unit.alive?1:.4;
+  ctx.fillStyle='#04090C55';ctx.beginPath();ctx.ellipse(unit.position.x,unit.position.y+2,15,11,0,0,Math.PI*2);ctx.fill();
+  ctx.translate(unit.position.x,unit.position.y);ctx.rotate(pose.upperFacing);
+  paintLowerBody(ctx,pose,time,reducedMotion,kit.color);
+  if(down){ctx.save();ctx.rotate(-.18);ctx.scale(1.15,.72);paintTorso(ctx,kit.color);paintHeadAndKit(ctx,kit.color,kit.pack,kit.tool);ctx.restore();ctx.restore();return true;}
+  paintTorso(ctx,kit.color);
+
+  const mount=pose.weapon!;
+  let triggerTarget=mount.triggerHand,supportTarget=mount.supportHand;
+  const reloadAge=motion.reloadStartedAt===undefined?-1:time-motion.reloadStartedAt;
+  const reloading=!down&&!reducedMotion&&unit.action==='reload'&&(unit.reloadRemaining??0)>0&&reloadAge>=0;
+  if(reloading){const reach=Math.sin(Math.PI*Math.min(1,reloadAge/2.4));supportTarget=mix(mount.supportHand,mount.magazine,reach);}
+  if(installing){triggerTarget={x:8,y:5};supportTarget={x:9,y:-5};}
+  const triggerArm=solveArm(mount.triggerShoulder,triggerTarget,8,9,-1);
+  let supportArm=solveArm(mount.supportShoulder,supportTarget,14,14,1);
+  if(throwing){const thrownPose=throwArmPose(reducedMotion?.6:Math.min(1,throwAge/.45));supportArm={shoulder:mount.supportShoulder,elbow:thrownPose.elbow,hand:thrownPose.hand};}
+  strokeArm(ctx,supportArm,kit.color);strokeArm(ctx,triggerArm,kit.color);
+
+  const gunStowed=installing||throwing;
+  ctx.save();ctx.translate(mount.muzzle.x-kick,mount.muzzle.y);
+  if(gunStowed){const lower=installing?1:1-Math.min(1,throwAge/.45);ctx.translate(-7*lower,9*lower);}
+  const weaponDrawn=paintWeaponPart(ctx,unit.weaponName??'',asset);ctx.restore();
+
+  if(!gunStowed){
+    const axis=Math.atan2(mount.muzzle.y-mount.stock.y,mount.muzzle.x-mount.stock.x);
+    hand(ctx,mount.triggerHand,axis);hand(ctx,supportTarget,axis);
+  } else {hand(ctx,triggerTarget,0);hand(ctx,supportArm.hand,0);}
+  paintHeadAndKit(ctx,kit.color,kit.pack,kit.tool);
+  if(unit.shieldRaised){ctx.fillStyle='#29373A';ctx.strokeStyle='#10191C';ctx.lineWidth=1.5;ctx.fillRect(10,-18,8,36);ctx.strokeRect(10,-18,8,36);ctx.fillStyle='#859080';ctx.fillRect(11,-9,6,9);}
+  ctx.fillStyle=unit.side==='공격'?'#2FD4C4':'#F0873C';ctx.fillRect(-18,-5,2,5);
+  ctx.restore();return weaponDrawn;
+}
+
+/** 표시 총구는 조립 원화가 아니라 시뮬레이션과 공유하는 발사 원점을 사용합니다. */
+export function modularMuzzlePosition(unit:RealtimeUnitState):Point {
+  const offset=weaponMuzzleOffset(unit.weaponName??''),c=Math.cos(unit.facing),s=Math.sin(unit.facing);
+  return {x:unit.position.x+offset.x*c-offset.y*s,y:unit.position.y+offset.x*s+offset.y*c};
+}

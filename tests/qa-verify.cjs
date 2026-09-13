@@ -246,8 +246,8 @@ function run(g, scoutIndices){
   const fxDir=path.join(__dirname,'../artifacts/draft-order-player-generator/public/operators/effects');
   const fxFiles=fs.existsSync(fxDir)?fs.readdirSync(fxDir).filter(f=>f.endsWith('.png')).length:0;
   check('FX-3','이펙트 PNG 개수','0장',`${fxFiles}장`, fxFiles>=14);
-  const minimal=read('components/minimalOperator.ts');
-  check('FX-4','아이들 모션 (정지 시 호흡)','없음', /idle/i.test(minimal)?'문자열 있음':'문자열 없음', null,
+  const operatorRenderer=read('components/modularOperator.ts');
+  check('FX-4','아이들 모션 (정지 시 호흡)','없음', /idle/i.test(operatorRenderer)?'문자열 있음':'문자열 없음', null,
     '변수명 문자열은 동작 근거가 아니므로 실제 픽셀/정지/동작 줄이기 검사가 필요');
   check('SND-1','matchAudio.ts','없음', exists('components/matchAudio.ts')?'있음':'없음',
     exists('components/matchAudio.ts'));
