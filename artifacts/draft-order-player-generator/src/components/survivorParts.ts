@@ -21,8 +21,8 @@ export class SurvivorParts {
   this.sprite(name,(a.x+b.x)/2,(a.y+b.y)/2,length+2,width,Math.atan2(b.y-a.y,b.x-a.x));
  }
  arm(pose:{shoulder:Point;elbow:Point;hand:Point}):void {
-  this.segment('arm',pose.shoulder,pose.elbow,5.6);
-  this.segment('forearm',pose.elbow,pose.hand,4.5);
+  this.segment('arm',pose.shoulder,pose.elbow,8.2);
+  this.segment('forearm',pose.elbow,pose.hand,6.5);
  }
  hand(point:Point,angle:number,support=false,reloading=false):void {
   this.sprite(reloading?'hand_grab_ammo':support?'hand_steadying_gun':'hand_holding_gun',point.x,point.y,4,3.5,angle);
@@ -31,9 +31,12 @@ export class SurvivorParts {
   const c=this.ctx;c.save();c.rotate(yaw);
   this.sprite('torso',-7,-1,14,24,.65);
   this.sprite('backpack',-10,-7,12+pack*.12,13+pack*.08,.65);
-  this.sprite('head',-5,0,15,10.3);
+
   // 원본 재질을 유지하며 군장 표식으로 오퍼레이터 색상을 구분합니다.
   c.fillStyle=color;c.fillRect(-16,-6,3,5);c.restore();
+ }
+ head(yaw:number):void {
+  this.ctx.save();this.ctx.rotate(yaw);this.sprite('head',-5,0,15,10.3);this.ctx.restore();
  }
  feet(facing:number,crouch:number,step:number,phase:number,moving:boolean,mode:'walk'|'run'|'strafe_left'|'strafe_right'):void {
   const c=this.ctx;c.save();c.rotate(facing);

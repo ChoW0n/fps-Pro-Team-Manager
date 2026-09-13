@@ -37,6 +37,9 @@ export const SIDEARM_PARTS:WeaponPart[]=[
 ];
 export function weaponPart(name:string):WeaponPart{return SIDEARM_PARTS.find(item=>name.includes(item.id))??WEAPON_PARTS.find(item=>name.includes(item.id))??WEAPON_PARTS[0];}
 
+/** 원본 인체 대비 권총 전장만 축소합니다. 시뮬레이션 길이는 그대로 둡니다. */
+export function weaponDisplayScale(name:string):number{return SIDEARM_PARTS.some(item=>name.includes(item.id))?.65:1;}
+
 /** 기존 시뮬레이션 발사 원점 계약. 새 보조무장 원화의 전장 표시 크기와 분리합니다. */
 export function weaponMuzzleOffset(name:string):{x:number;y:number}{return {x:SIDEARM_PARTS.some(item=>name.includes(item.id))?15:weaponPart(name).length-3,y:7.5};}
 // 큰 원본을 매 프레임 직접 축소하지 않고 중간 해상도를 한 번만 준비합니다.
@@ -60,7 +63,7 @@ function thumbnail(image:HTMLImageElement,target:number):{color:HTMLCanvasElemen
 export function paintWeaponPart(ctx:CanvasRenderingContext2D,name:string,asset:WeaponAssetLoader):boolean{
  const part=weaponPart(name),image=asset(part.file);
  if(!image||!image.complete||!image.naturalWidth)return false;
- const scale=part.length/(part.muzzle[0]-part.rear);
+ const scale=part.length/(part.muzzle[0]-part.rear)*weaponDisplayScale(name);
  ctx.save();ctx.imageSmoothingEnabled=true;ctx.imageSmoothingQuality='high';
  const transform=ctx.getTransform(),pixels=image.naturalWidth*scale*Math.hypot(transform.a,transform.b);
  const target=Math.min(image.naturalWidth,pixels<=192?192:pixels<=384?384:768);

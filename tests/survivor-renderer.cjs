@@ -14,6 +14,8 @@ const base={id:'survivor',callSign:'REUSS',side:'수비',weaponName:'HK417',posi
   const proxy=new Proxy(ctx,{get(t,k){const v=t[k];if(typeof v!=='function')return v;return(...a)=>{if(k==='drawImage')calls.push({im:a[0],args:a,m:t.getTransform()});return v.apply(t,a);};},set(t,k,v){t[k]=v;return true;}});
   assert(paintModularOperator(proxy,u,1.07,1,asset));
   assert(calls.some(x=>x.im===asset('survivor/torso.png')));assert(calls.some(x=>x.im===asset('survivor/arm.png')));
+  const layer=name=>calls.findIndex(x=>x.im===asset('survivor/'+name+'.png'));
+  assert(layer('torso')<layer('forearm')&&layer('forearm')<layer('head'),'몸통이 아래팔을 덮지 않고 머리는 팔 위에 표시');
   const weapon=calls.filter(x=>x.args.length===5&&x.im!==asset('effects/handheld-shield-v3.png')).at(-1);assert(weapon,'총기 썸네일 그리기');
   const muzzle=modularMuzzlePosition(u,1.07,1);assert(Math.abs(weapon.m.e-muzzle.x-80)<1e-4);assert(Math.abs(weapon.m.f-muzzle.y-80)<1e-4);
   const hand=calls.find(x=>x.im===asset('survivor/hand_holding_gun.png'));const mount=equipmentMountPose(u),x=mount.triggerHand.x-1.2,y=mount.triggerHand.y;
