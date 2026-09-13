@@ -39,6 +39,16 @@ for(const downed of [undefined,{mode:'stabilize'}]){
 }
 console.log('PASS interrupted traversal releases movement and firing lock');
 
+// 대기 중이던 유닛도 실제 통행이 재개되면 대기 행동·타이머를 남기지 않습니다.
+{
+ const unit={...makeUnit('resumed',70),action:'hold',goal:'문 통과 순서 대기 · 동료 통행 확보'};
+ const waiting=new Map([[unit.id,2.2]]),blocked=new Map([[unit.id,2.1]]);
+ engine.move(unit,{x:120,y:200},me,map,2,[unit],nodes,new Map(),waiting,blocked,()=>{});
+ assert(Math.hypot(unit.velocity.x,unit.velocity.y)>0,'통행이 실제로 재개되는 fixture');
+ assert.equal(unit.action,'approach','이동 재개 후 hold를 남기지 않음');
+ assert(!waiting.has(unit.id)&&!blocked.has(unit.id),'해소된 통행 대기 타이머 제거');
+}
+
 // 밀집 대형에서 선두끼리 마주쳐도 몸을 겹치지 않고 서로 반대편까지 빠져나갑니다.
 const crowded=[makeUnit('front-a',170),makeUnit('front-b',230),makeUnit('tail-a',140),makeUnit('tail-b',260)];
 crowded.forEach((unit,i)=>unit.formationIndex=i);

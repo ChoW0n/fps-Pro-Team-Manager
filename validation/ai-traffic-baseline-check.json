@@ -1,0 +1,35 @@
+{
+  "base": "7fb158140321185853f0c0516e0edcaa7be4a8e0",
+  "baselineEngineSha256": "2580148ff0a180685ff00d3619e11f4042f0c405bfdfce49f5ec8aec841be861",
+  "currentEngineSha256": "9d27eb7b2ac18b43706b8d9178fa138d67141723d4ec876d1f360dc249066855",
+  "results": [
+    {
+      "test": "entry-formation",
+      "version": "baseline",
+      "exitCode": 1,
+      "stdout": "",
+      "stderr": "node:internal/assert/utils:77\n    throw err;\n    ^\n\nAssertionError [ERR_ASSERTION]: 다섯 명 동시 출발 금지\n    at check (/workspace/scratch/f5f7f3f4f912/fps-Pro-Team-Manager/tests/entry-formation.cjs:12:252)\n    at Array.map (<anonymous>)\n    at Object.<anonymous> (/workspace/scratch/f5f7f3f4f912/fps-Pro-Team-Manager/tests/entry-formation.cjs:13:24)\n    at Module._compile (node:internal/modules/cjs/loader:1872:14)\n    at Object..js (node:internal/modules/cjs/loader:2003:10)\n    at Module.load (node:internal/modules/cjs/loader:1594:32)\n    at Module._load (node:internal/modules/cjs/loader:1396:12)\n    at wrapModuleLoad (node:internal/modules/cjs/loader:255:19)\n    at Module.require (node:internal/modules/cjs/loader:1617:12)\n    at require (node:internal/modules/helpers:153:16) {\n  generatedMessage: false,\n  code: 'ERR_ASSERTION',\n  actual: false,\n  expected: true,\n  operator: '==',\n  diff: 'simple'\n}\n\nNode.js v24.19.0\n"
+    },
+    {
+      "test": "entry-formation",
+      "version": "current",
+      "exitCode": 1,
+      "stdout": "",
+      "stderr": "node:internal/assert/utils:77\n    throw err;\n    ^\n\nAssertionError [ERR_ASSERTION]: 다섯 명 동시 출발 금지\n    at check (/workspace/scratch/f5f7f3f4f912/fps-Pro-Team-Manager/tests/entry-formation.cjs:12:252)\n    at Array.map (<anonymous>)\n    at Object.<anonymous> (/workspace/scratch/f5f7f3f4f912/fps-Pro-Team-Manager/tests/entry-formation.cjs:13:24)\n    at Module._compile (node:internal/modules/cjs/loader:1872:14)\n    at Object..js (node:internal/modules/cjs/loader:2003:10)\n    at Module.load (node:internal/modules/cjs/loader:1594:32)\n    at Module._load (node:internal/modules/cjs/loader:1396:12)\n    at wrapModuleLoad (node:internal/modules/cjs/loader:255:19)\n    at Module.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:154:5)\n    at node:internal/main/run_main_module:33:47 {\n  generatedMessage: false,\n  code: 'ERR_ASSERTION',\n  actual: false,\n  expected: true,\n  operator: '==',\n  diff: 'simple'\n}\n\nNode.js v24.19.0\n"
+    },
+    {
+      "test": "vertical-routes",
+      "version": "baseline",
+      "exitCode": 1,
+      "stdout": "",
+      "stderr": "node:internal/assert/utils:77\n    throw err;\n    ^\n\nAssertionError [ERR_ASSERTION]: 설치 5\n    at Object.<anonymous> (/workspace/scratch/f5f7f3f4f912/fps-Pro-Team-Manager/tests/vertical-routes.cjs:6:370)\n    at Module._compile (node:internal/modules/cjs/loader:1872:14)\n    at Object..js (node:internal/modules/cjs/loader:2003:10)\n    at Module.load (node:internal/modules/cjs/loader:1594:32)\n    at Module._load (node:internal/modules/cjs/loader:1396:12)\n    at wrapModuleLoad (node:internal/modules/cjs/loader:255:19)\n    at Module.require (node:internal/modules/cjs/loader:1617:12)\n    at require (node:internal/modules/helpers:153:16)\n    at [eval]:1:330\n    at runScriptInThisContext (node:internal/vm:219:10) {\n  generatedMessage: false,\n  code: 'ERR_ASSERTION',\n  actual: undefined,\n  expected: true,\n  operator: '==',\n  diff: 'simple'\n}\n\nNode.js v24.19.0\n"
+    },
+    {
+      "test": "vertical-routes",
+      "version": "current",
+      "exitCode": 1,
+      "stdout": "",
+      "stderr": "node:internal/assert/utils:77\n    throw err;\n    ^\n\nAssertionError [ERR_ASSERTION]: 설치 5\n    at Object.<anonymous> (/workspace/scratch/f5f7f3f4f912/fps-Pro-Team-Manager/tests/vertical-routes.cjs:6:370)\n    at Module._compile (node:internal/modules/cjs/loader:1872:14)\n    at Object..js (node:internal/modules/cjs/loader:2003:10)\n    at Module.load (node:internal/modules/cjs/loader:1594:32)\n    at Module._load (node:internal/modules/cjs/loader:1396:12)\n    at wrapModuleLoad (node:internal/modules/cjs/loader:255:19)\n    at Module.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:154:5)\n    at node:internal/main/run_main_module:33:47 {\n  generatedMessage: false,\n  code: 'ERR_ASSERTION',\n  actual: undefined,\n  expected: true,\n  operator: '==',\n  diff: 'simple'\n}\n\nNode.js v24.19.0\n"
+    }
+  ]
+}

@@ -1,0 +1,77 @@
+{
+  "engineSha256": "9d27eb7b2ac18b43706b8d9178fa138d67141723d4ec876d1f360dc249066855",
+  "planned": 15,
+  "passed": 13,
+  "results": [
+    {
+      "test": "sound-attention",
+      "exitCode": 0,
+      "seconds": 0.855
+    },
+    {
+      "test": "navigation-traffic",
+      "exitCode": 0,
+      "seconds": 0.966
+    },
+    {
+      "test": "unit-action-rules",
+      "exitCode": 0,
+      "seconds": 0.328
+    },
+    {
+      "test": "fun-first-ai",
+      "exitCode": 0,
+      "seconds": 6.277
+    },
+    {
+      "test": "realtime-regression",
+      "exitCode": 0,
+      "seconds": 19.595
+    },
+    {
+      "test": "combat-overhaul",
+      "exitCode": 0,
+      "seconds": 18.144
+    },
+    {
+      "test": "injury-regression",
+      "exitCode": 0,
+      "seconds": 33.332
+    },
+    {
+      "test": "preparation-operation",
+      "exitCode": 0,
+      "seconds": 71.708
+    },
+    {
+      "test": "tactical-pressure",
+      "exitCode": 0,
+      "seconds": 11.859
+    },
+    {
+      "test": "spectator-continuity",
+      "exitCode": 0,
+      "seconds": 0.421
+    },
+    {
+      "test": "movement-audit",
+      "exitCode": 0,
+      "seconds": 34.328
+    },
+    {
+      "test": "playback-navigation",
+      "exitCode": 0,
+      "seconds": 19.05
+    },
+    {
+      "test": "bomb-objective",
+      "exitCode": 0,
+      "seconds": 0.438
+    },
+    {
+      "test": "entry-formation",
+      "exitCode": 1,
+      "seconds": 3.072
+    }
+  ]
+}
