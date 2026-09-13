@@ -718,12 +718,7 @@ export class TacticalRealtimeSimulation {
         const hearing = sounds.filter((sound) => byId.get(sound.owner)?.side !== unit.side && this.heard(unit, sound, map, now));
         const latestSound = hearing.sort((a, b) => b.at - a.at)[0];
         const recentSound = latestSound && now - latestSound.at < 0.8 ? latestSound : undefined;
-        if(latestSound&&!seen) {
-          const want=Math.atan2(latestSound.source.y-unit.position.y,latestSound.source.x-unit.position.x);
-          unit.facing=turnTowards(facingAtTick,want,.1);
-          unit.lookDirection=want;
-          unit.decision='소리 추적 · 마지막 위치 확인';
-        }
+        if(latestSound&&!seen) this.orientToSound(unit,latestSound,now,facingAtTick);
         // 발사 대상은 실제로 시야에 들어온 적만 허용합니다.
         const target = seen;
         if (seen) {
@@ -1949,6 +1944,13 @@ export class TacticalRealtimeSimulation {
     }
     unit.velocity = { x: next.x - unit.position.x, y: next.y - unit.position.y };
     unit.position = floorPoint(next,unit.floor??0);
+    // 통과 동작은 대기 타이머 중에도 재시도합니다. 실제 보행이 성공했으면 이전 대기를 해제합니다.
+    yieldUntil.delete(unit.id);
+    blockedUntil.delete(unit.id);
+    if (unit.action === 'hold') {
+      unit.action = 'approach';
+      unit.goal = unit.traversal ? '통로 통과 · 이동 재개' : '담당 경로 · 이동 재개';
+    }
     plan.trafficWaitSince = undefined;
     // 통행에 실패한 시도만으로 몸을 좌우로 돌리지 않습니다.
     unit.lookDirection = Math.atan2(dy, dx);
@@ -2092,6 +2094,14 @@ export class TacticalRealtimeSimulation {
   private heard(unit: RealtimeUnitState, sound: SoundEvent, map: TacticalMapDefinition, now: number): boolean {
     const wallLoss = (unit.floor??0)!==(sound.source.floor??0)?CROSS_FLOOR_SOUND_SCALE:this.hasLineOfSight(unit.position, sound.source, map) ? 1 : 0.35;
     return now - sound.at < 2.5 && distance(unit.position, sound.source) < 260 * sound.loudness * wallLoss;
+  }
+  private orientToSound(unit: RealtimeUnitState, sound: SoundEvent, now: number, facingAtTick: number): void {
+    // 2.5초 청각 버퍼는 기억용입니다. 즉시 반응은 기존 0.8초 창과 최신 관측 시각을 따릅니다.
+    if (now - sound.at >= .8 || sound.at < (unit.knowledge.lastKnownAt ?? -Infinity)) return;
+    const want=Math.atan2(sound.source.y-unit.position.y,sound.source.x-unit.position.x);
+    unit.facing=turnTowards(facingAtTick,want,.1);
+    unit.lookDirection=want;
+    unit.decision='소리 추적 · 마지막 위치 확인';
   }
   private engagement(list: RealtimeEngagement[], shooter: RealtimeUnitState, target: RealtimeUnitState, now: number): RealtimeEngagement {
     const attacker = shooter.side === '공격' ? shooter : target;
