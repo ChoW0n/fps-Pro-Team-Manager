@@ -32,6 +32,43 @@ function checkSprite(visual){
   return {...info,file:visual.sprite,region:visual.region??null};
 }
 
+// 픽셀을 읽기만 합니다. 전처리·크기 보정으로 불량을 숨기지 않습니다.
+function sheetMetrics(record){
+ return JSON.parse(execFileSync('python3',['-c',`
+import json,sys,numpy as np
+from PIL import Image
+r=json.load(sys.stdin); im=Image.open(sys.argv[1]); rows=[]; feet=[]
+for f in r['frames']:
+ x,y,w,h=f['region']; a=np.asarray(im.crop((x,y,x+w,y+h)).convert('RGBA')); mask=a[:,:,3]>=200
+ yy,xx=np.where(mask); bw=int(xx.max()-xx.min()+1); bh=int(yy.max()-yy.min()+1)
+ red,green,blue=[a[:,:,i].astype(float) for i in range(3)]
+ skin=mask&(red>75)&(red>green*1.08)&(green>blue*1.12)&(red-blue>20)
+ count=0
+ for sy,sx in zip(*np.where(skin)):
+  if not skin[sy,sx]: continue
+  stack=[(sy,sx)];skin[sy,sx]=False;size=0
+  while stack:
+   py,px=stack.pop();size+=1
+   for ny,nx in [(py-1,px),(py+1,px),(py,px-1),(py,px+1)]:
+    if 0<=ny<h and 0<=nx<w and skin[ny,nx]:skin[ny,nx]=False;stack.append((ny,nx))
+  if size>=max(4,w*h*.0001):count+=1
+ rows.append({'bbox':[bw,bh],'area':bw*bh,'longAxisWorld':max(bw,bh)*f['scale'],'skinComponents':count})
+ feet.append((a[h//2:,:,:3].mean(axis=2)*a[h//2:,:,3]/255).flatten())
+corr=float(np.corrcoef(feet[0],feet[2])[0,1]);corr=1 if not np.isfinite(corr) else corr
+print(json.dumps({'frames':rows,'footCorrelation':corr}))
+`,path.join(root,'public/operators',record.frames[0].sprite)],{input:JSON.stringify(record),encoding:'utf8'}));
+}
+
+function quality(record,walk){
+ const metrics=sheetMetrics(record),reference=sheetMetrics(walk),mean=values=>values.reduce((a,b)=>a+b,0)/values.length;
+ const areas=metrics.frames.map(f=>f.area),average=mean(areas),bodyReference=mean(reference.frames.map(f=>f.longAxisWorld));
+ const muzzle=record.frames.map(f=>Math.hypot(f.muzzle[0]-f.pivot[0],f.muzzle[1]-f.pivot[1])*f.scale);
+ const muzzleReference=mean(walk.frames.map(f=>Math.hypot(f.muzzle[0]-f.pivot[0],f.muzzle[1]-f.pivot[1])*f.scale));
+ const vertical=record.frames.map(f=>f.muzzle[1]-f.pivot[1]);
+ const measured={areaDeviation:Math.max(...areas.map(a=>Math.abs(a/average-1))),bodyDeviation:Math.max(...metrics.frames.map(f=>Math.abs(f.longAxisWorld/bodyReference-1))),muzzleDeviation:Math.max(...muzzle.map(n=>Math.abs(n/muzzleReference-1))),muzzleVerticalRange:Math.max(...vertical)-Math.min(...vertical),footCorrelation:metrics.footCorrelation};
+ return {metrics,muzzle,muzzleReference,bodyReference,measured,gates:{4:measured.areaDeviation<=.08,5:measured.bodyDeviation<=.10,6:measured.muzzleDeviation<=.12,7:measured.muzzleVerticalRange<=record.frames[0].height*.03,8:measured.footCorrelation<.95},warnings:metrics.frames.map((f,i)=>({frame:i+1,skinComponents:f.skinComponents,warn:f.skinComponents>3}))};
+}
+
 // 외부 후보는 입고 전에 검사합니다. 실패한 파일을 public 폴더로 복사하지 않습니다.
 if(process.argv[2]){
   const info=inspect(path.resolve(process.argv[2]));
@@ -70,9 +107,15 @@ if(process.argv[2]){
     const lengths=record.frames.map(frame=>Math.hypot(frame.muzzle[0]-frame.pivot[0],frame.muzzle[1]-frame.pivot[1]));
     assert(Math.max(...lengths)/Math.min(...lengths)<1.06,'프레임별 총열 길이·원점 변화 검토 필요: '+operator.callSign);
     for(const frame of record.frames)checkSprite(frame);
-    return {callSign:operator.callSign,action,sprite:visual.sprite,frames:record.frames.length,sourceSizes:record.source.frames.map(frame=>frame.subjectSize),bytes:record.processing.bytes};
+    const walk=JSON.parse(fs.readFileSync(root+'/src/operators/'+operatorWalkVisual(operator.callSign).sprite.replace('.webp','.json')));
+    return {callSign:operator.callSign,action,sprite:visual.sprite,frames:record.frames.length,sourceSizes:record.source.frames.map(frame=>frame.subjectSize),bytes:record.processing.bytes,quality:quality(record,walk)};
   }));
   const report={kind:'Asset contracts and alpha only; not anatomy, firearm authenticity, animation or browser-play approval',operators:rows,downed,crawlFrames:crawl.length,crawlSprite:crawl[0].sprite,walks,operatorCount:rows.length,completeAnimationPacks:0};
   fs.writeFileSync(path.resolve(__dirname,'../validation/operator-sprite-audit.json'),JSON.stringify(report,null,2)+'\n');
-  console.log(`PASS ${rows.length} operator asset contracts + ${walks.length} four-frame movement sheets + COLLIER downed/crawl; complete animation packs: 0`);
+  report.kind='Asset contracts and measured v2 gates; not anatomy, firearm authenticity or browser approval';
+  report.gates=Object.fromEntries([4,5,6,7,8].map(gate=>[gate,{pass:walks.filter(w=>w.quality.gates[gate]).length,fail:walks.filter(w=>!w.quality.gates[gate]).length}]));
+  report.warningFrames=walks.flatMap(w=>w.quality.warnings).filter(w=>w.warn).length;
+  fs.writeFileSync(path.resolve(__dirname,'../validation/operator-sprite-audit.json'),JSON.stringify(report,null,2)+'\n');
+  console.log({contracts:'PASS alpha/anchors/crops: 24 sheets, 96 frames',gates:report.gates,warningFrames:report.warningFrames});
+  if(walks.some(w=>Object.values(w.quality.gates).includes(false)))process.exitCode=1;
 }

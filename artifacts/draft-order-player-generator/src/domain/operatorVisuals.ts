@@ -105,19 +105,21 @@ export function operatorWalkVisual(callSign: string, crouched = false): Operator
   return (crouched ? CROUCH_SHEETS : WALK_SHEETS)[callSign]?.frames[0];
 }
 
-/** 실제 이동·행동·경기 시각으로 시트를 고릅니다. 발사와 특수 동작에는 보행을 덧씌우지 않습니다. */
+/** 실제 보행은 4프레임, 정지 견착은 통과 프레임 2. 미제작 동작은 호출자가 폴백합니다. */
 export function operatorStateVisual(unit: RealtimeUnitState, time: number): OperatorVisual | undefined {
   const speed = Math.hypot(unit.velocity.x, unit.velocity.y);
   const moving = speed > .01;
   const crawling = unit.alive && unit.downed?.mode === 'crawl' && moving;
-  const fallback = operatorPoseVisual(unit.callSign, Boolean(unit.downed), crawling ? time : undefined);
+  if(!Number.isFinite(time)||time<0||!unit.alive)return undefined;
+  if(unit.downed)return unit.callSign==='COLLIER'?operatorPoseVisual(unit.callSign,true,crawling?time:undefined):undefined;
   const sheet = (unit.locomotion === 'crouch' ? CROUCH_SHEETS : WALK_SHEETS)[unit.callSign];
-  if (!sheet || !unit.alive || unit.downed || unit.traversal || unit.shieldRaised || unit.reviving
-    || unit.reloadRemaining > 0 || (unit.locomotion !== 'walk' && unit.locomotion !== 'crouch') || !WALK_ACTIONS.has(unit.action)
-    || !moving || !Number.isFinite(time) || time < 0) return fallback;
+  if (!sheet || unit.traversal || unit.shieldRaised || unit.reviving
+    || unit.reloadRemaining > 0 || (unit.locomotion !== 'walk' && unit.locomotion !== 'crouch')
+    || (!WALK_ACTIONS.has(unit.action) && !['hold','aim','fire'].includes(unit.action))) return undefined;
+  if(!moving)return sheet.frames[1];
   // 앞걸음 시트를 횡이동·후진에 재사용해 발이 미끄러지는 표현을 만들지 않습니다.
   const forward = (unit.velocity.x * Math.cos(unit.facing) + unit.velocity.y * Math.sin(unit.facing)) / speed;
-  if (forward < .7) return fallback;
+  if (forward < .7) return undefined;
   return sheet.frames[Math.floor(time * (unit.locomotion === 'crouch' ? 3 : 4)) % sheet.frames.length];
 }
 

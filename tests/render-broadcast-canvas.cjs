@@ -23,11 +23,14 @@ global.Image=LocalImage;global.window={devicePixelRatio:1,matchMedia:()=>({match
 let callback;global.requestAnimationFrame=fn=>{callback=fn;return 1;};global.cancelAnimationFrame=()=>{};
 const weaponRenderer=require(app+'/src/components/weaponParts.ts'),paintWeapon=weaponRenderer.paintWeaponPart;let weaponDraws=0;weaponRenderer.paintWeaponPart=(...args)=>{const drawn=paintWeapon(...args);if(drawn)weaponDraws++;return drawn;};
 const minimal=require(app+'/src/components/minimalOperator.ts'),paintOperator=minimal.paintMinimalOperator;let recordOperator=()=>{};minimal.paintMinimalOperator=(...args)=>{const result=paintOperator(...args);recordOperator(args[0],args[1]);return result;};
+const sheets=require(app+'/src/components/operatorSheet.ts'),paintSheet=sheets.drawOperatorSheet;
+let sheetDraws=0;const sheetNames=new Set();
+sheets.drawOperatorSheet=(...args)=>{const before=weaponDraws,result=paintSheet(...args);assert.equal(weaponDraws,before,'통짜 시트에 분리 총기를 중복하지 않음');if(result){sheetDraws++;sheetNames.add(args[1].sprite);recordOperator(args[0],args[2]);}return result;};
 const {BroadcastCanvas,canvasSize}=require(app+'/src/components/BroadcastCanvas.tsx');const rows=[];
 const {operatorStateVisual}=require(app+'/src/domain/operatorVisuals.ts');
 // Skia의 이미지 디코드 콜백이 끝난 뒤 실제 인물 픽셀까지 포함해 프레임 시간을 잽니다.
 (async()=>{for(const [name,width,height,ratio=1] of [['desktop',1280,720],['phone',390,844],['phone-landscape',844,390],['downed',1280,720],['collier-downed',1280,720],['collier-crawl',1280,720],['walk',1280,720],['crouch',1280,720],['team-visibility',1280,720],['tactical',1280,720],['phone-touch',390,844,3],['phone-small',360,800,2],['phone-large',430,932,3],['phone-android',412,915,2.625],['phone-retina-landscape',844,390,3],['tablet',1024,1366,2]]){
- weaponDraws=0;
+ weaponDraws=0;sheetDraws=0;sheetNames.clear();
  const touch=name.startsWith('phone');global.window={devicePixelRatio:ratio,matchMedia:query=>({matches:touch&&query.includes('pointer: coarse')})};let pointer;const centers=[];let selected=null;
  let rectWidth=width,rectHeight=height;const canvas=createCanvas(width,height);canvas.getBoundingClientRect=()=>({width:rectWidth,height:rectHeight,left:0,top:0});canvas.addEventListener=(type,fn)=>{if(type==='pointerup')pointer=fn;};canvas.removeEventListener=()=>{};
  const context=canvas.getContext('2d');let operatorDraws=0;const drawnIds=new Set();
@@ -54,9 +57,11 @@ const {operatorStateVisual}=require(app+'/src/domain/operatorVisuals.ts');
  for(let frame=0;frame<45;frame++){const started=performance.now();callback(stamp+=16.67);if(frame>=15)times.push(performance.now()-started);}
  assert.equal(canvas.width,canvasSize(width,height,ratio).width);assert.equal(canvas.height,canvasSize(width,height,ratio).height);assert(canvas.width*canvas.height<=4_000_000);if(ratio>1)assert(canvas.width>width,'고밀도 화면을 DPR 1로 열화시키지 않음');
  const armedVisible=renderedTick.snapshot.units.some(unit=>drawnIds.has(unit.id)&&unit.alive&&!unit.downed);
- if(armedVisible)assert(weaponDraws>0,`${name}: 새 PNG 총기가 실제로 그려져야 합니다`);
+ if(armedVisible)assert(weaponDraws+sheetDraws>0,`${name}: 통짜 시트 또는 미제작 행동 폴백이 그려져야 합니다`);
  else assert.equal(weaponDraws,0,`${name}: 다운 선수에게 파지 총기를 표시하지 않음`);
  assert(operatorDraws>0,`${name}: 실제 인물 합성기가 호출되어야 합니다`);
+ if(name==='walk'||name==='crouch')assert([...sheetNames].some(file=>file.endsWith('-'+name+'-v1.webp')),name+': 실제 상태 시트 drawImage 경로');
+ if(name==='team-visibility'){const expected=renderedTick.snapshot.units.filter(u=>u.side==='공격'&&operatorStateVisual(u,renderedTick.time)).length;assert(expected>0&&sheetDraws>=45*expected,'실제 전진/정지 조건에 맞는 아군 시트 표시');}
  const pixels=context.getImageData(0,0,canvas.width,canvas.height).data;assert(new Set(pixels).size>20,'비어 있는 지도나 단색 화면을 통과시키지 않습니다');
  if(name==='team-visibility'){assert(operatorDraws>=45*5,'아군 다섯 명이 매 프레임 표시되어야 합니다');for(const unit of renderedTick.snapshot.units.filter(u=>u.side==='공격'))assert(drawnIds.has(unit.id));}
  if(touch){

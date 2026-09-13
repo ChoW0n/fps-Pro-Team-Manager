@@ -1,5 +1,5 @@
 {
-  "kind": "Asset contracts and alpha only; not anatomy, firearm authenticity, animation or browser-play approval",
+  "kind": "Asset contracts and measured v2 gates; not anatomy, firearm authenticity or browser approval",
   "operators": [
     {
       "callSign": "MAGPIE",
@@ -328,7 +328,94 @@
           366
         ]
       ],
-      "bytes": 186634
+      "bytes": 186634,
+      "quality": {
+        "metrics": {
+          "frames": [
+            {
+              "bbox": [
+                498,
+                269
+              ],
+              "area": 133962,
+              "longAxisWorld": 42.796875,
+              "skinComponents": 73
+            },
+            {
+              "bbox": [
+                446,
+                289
+              ],
+              "area": 128894,
+              "longAxisWorld": 38.328125,
+              "skinComponents": 67
+            },
+            {
+              "bbox": [
+                495,
+                257
+              ],
+              "area": 127215,
+              "longAxisWorld": 42.5390625,
+              "skinComponents": 59
+            },
+            {
+              "bbox": [
+                446,
+                297
+              ],
+              "area": 132462,
+              "longAxisWorld": 38.328125,
+              "skinComponents": 65
+            }
+          ],
+          "footCorrelation": 0.7045995679244543
+        },
+        "muzzle": [
+          25.112828125000004,
+          24.693109375000002,
+          25.112828125000004,
+          24.62315625
+        ],
+        "muzzleReference": 24.885480468750004,
+        "bodyReference": 40.498046875,
+        "measured": {
+          "areaDeviation": 0.026166768414626396,
+          "bodyDeviation": 0.056763925729443,
+          "muzzleDeviation": 0.010541255937550287,
+          "muzzleVerticalRange": 0,
+          "footCorrelation": 0.7045995679244543
+        },
+        "gates": {
+          "4": true,
+          "5": true,
+          "6": true,
+          "7": true,
+          "8": true
+        },
+        "warnings": [
+          {
+            "frame": 1,
+            "skinComponents": 73,
+            "warn": true
+          },
+          {
+            "frame": 2,
+            "skinComponents": 67,
+            "warn": true
+          },
+          {
+            "frame": 3,
+            "skinComponents": 59,
+            "warn": true
+          },
+          {
+            "frame": 4,
+            "skinComponents": 65,
+            "warn": true
+          }
+        ]
+      }
     },
     {
       "callSign": "MAGPIE",
@@ -353,7 +440,94 @@
           381
         ]
       ],
-      "bytes": 182400
+      "bytes": 182400,
+      "quality": {
+        "metrics": {
+          "frames": [
+            {
+              "bbox": [
+                497,
+                313
+              ],
+              "area": 155561,
+              "longAxisWorld": 41.760296601748806,
+              "skinComponents": 59
+            },
+            {
+              "bbox": [
+                450,
+                299
+              ],
+              "area": 134550,
+              "longAxisWorld": 37.81113374403816,
+              "skinComponents": 54
+            },
+            {
+              "bbox": [
+                496,
+                280
+              ],
+              "area": 138880,
+              "longAxisWorld": 41.67627186009539,
+              "skinComponents": 66
+            },
+            {
+              "bbox": [
+                448,
+                315
+              ],
+              "area": 141120,
+              "longAxisWorld": 37.64308426073132,
+              "skinComponents": 65
+            }
+          ],
+          "footCorrelation": 0.6306080677825182
+        },
+        "muzzle": [
+          24.275100091001775,
+          23.574915159297888,
+          24.347013855706514,
+          23.510649759616577
+        ],
+        "muzzleReference": 24.885480468750004,
+        "bodyReference": 40.498046875,
+        "measured": {
+          "areaDeviation": 0.09144359607164221,
+          "bodyDeviation": 0.07049630376202376,
+          "muzzleDeviation": 0.05524629957857852,
+          "muzzleVerticalRange": 4.1629999999999825,
+          "footCorrelation": 0.6306080677825182
+        },
+        "gates": {
+          "4": false,
+          "5": true,
+          "6": true,
+          "7": true,
+          "8": true
+        },
+        "warnings": [
+          {
+            "frame": 1,
+            "skinComponents": 59,
+            "warn": true
+          },
+          {
+            "frame": 2,
+            "skinComponents": 54,
+            "warn": true
+          },
+          {
+            "frame": 3,
+            "skinComponents": 66,
+            "warn": true
+          },
+          {
+            "frame": 4,
+            "skinComponents": 65,
+            "warn": true
+          }
+        ]
+      }
     },
     {
       "callSign": "COLLIER",
@@ -378,7 +552,94 @@
           359
         ]
       ],
-      "bytes": 162482
+      "bytes": 162482,
+      "quality": {
+        "metrics": {
+          "frames": [
+            {
+              "bbox": [
+                488,
+                305
+              ],
+              "area": 148840,
+              "longAxisWorld": 39.078125,
+              "skinComponents": 1
+            },
+            {
+              "bbox": [
+                467,
+                297
+              ],
+              "area": 138699,
+              "longAxisWorld": 37.396484375,
+              "skinComponents": 0
+            },
+            {
+              "bbox": [
+                499,
+                302
+              ],
+              "area": 150698,
+              "longAxisWorld": 39.958984375,
+              "skinComponents": 1
+            },
+            {
+              "bbox": [
+                468,
+                299
+              ],
+              "area": 139932,
+              "longAxisWorld": 37.4765625,
+              "skinComponents": 0
+            }
+          ],
+          "footCorrelation": 0.603856094317786
+        },
+        "muzzle": [
+          22.27912441995215,
+          22.144410617032907,
+          22.27821484375,
+          22.144105584646024
+        ],
+        "muzzleReference": 22.211463866345273,
+        "bodyReference": 38.4775390625,
+        "measured": {
+          "areaDeviation": 0.04258789385110573,
+          "bodyDeviation": 0.03850156087408951,
+          "muzzleDeviation": 0.0030461996568085237,
+          "muzzleVerticalRange": 3.352000000000004,
+          "footCorrelation": 0.603856094317786
+        },
+        "gates": {
+          "4": true,
+          "5": true,
+          "6": true,
+          "7": true,
+          "8": true
+        },
+        "warnings": [
+          {
+            "frame": 1,
+            "skinComponents": 1,
+            "warn": false
+          },
+          {
+            "frame": 2,
+            "skinComponents": 0,
+            "warn": false
+          },
+          {
+            "frame": 3,
+            "skinComponents": 1,
+            "warn": false
+          },
+          {
+            "frame": 4,
+            "skinComponents": 0,
+            "warn": false
+          }
+        ]
+      }
     },
     {
       "callSign": "COLLIER",
@@ -403,7 +664,94 @@
           366
         ]
       ],
-      "bytes": 170360
+      "bytes": 170360,
+      "quality": {
+        "metrics": {
+          "frames": [
+            {
+              "bbox": [
+                485,
+                311
+              ],
+              "area": 150835,
+              "longAxisWorld": 37.75729465016367,
+              "skinComponents": 1
+            },
+            {
+              "bbox": [
+                480,
+                310
+              ],
+              "area": 148800,
+              "longAxisWorld": 37.368044189852704,
+              "skinComponents": 0
+            },
+            {
+              "bbox": [
+                497,
+                312
+              ],
+              "area": 155064,
+              "longAxisWorld": 38.69149575490999,
+              "skinComponents": 0
+            },
+            {
+              "bbox": [
+                476,
+                314
+              ],
+              "area": 149464,
+              "longAxisWorld": 37.056643821603934,
+              "skinComponents": 0
+            }
+          ],
+          "footCorrelation": 0.6985072647120507
+        },
+        "muzzle": [
+          22.21117621598814,
+          21.942749098557698,
+          22.21117621598814,
+          21.942749098557698
+        ],
+        "muzzleReference": 22.211463866345273,
+        "bodyReference": 38.4775390625,
+        "measured": {
+          "areaDeviation": 0.02663685131330462,
+          "bodyDeviation": 0.036927913674210555,
+          "muzzleDeviation": 0.01209802151738093,
+          "muzzleVerticalRange": 0,
+          "footCorrelation": 0.6985072647120507
+        },
+        "gates": {
+          "4": true,
+          "5": true,
+          "6": true,
+          "7": true,
+          "8": true
+        },
+        "warnings": [
+          {
+            "frame": 1,
+            "skinComponents": 1,
+            "warn": false
+          },
+          {
+            "frame": 2,
+            "skinComponents": 0,
+            "warn": false
+          },
+          {
+            "frame": 3,
+            "skinComponents": 0,
+            "warn": false
+          },
+          {
+            "frame": 4,
+            "skinComponents": 0,
+            "warn": false
+          }
+        ]
+      }
     },
     {
       "callSign": "해동",
@@ -428,7 +776,94 @@
           360
         ]
       ],
-      "bytes": 182730
+      "bytes": 182730,
+      "quality": {
+        "metrics": {
+          "frames": [
+            {
+              "bbox": [
+                496,
+                299
+              ],
+              "area": 148304,
+              "longAxisWorld": 42.625,
+              "skinComponents": 2
+            },
+            {
+              "bbox": [
+                488,
+                301
+              ],
+              "area": 146888,
+              "longAxisWorld": 41.9375,
+              "skinComponents": 2
+            },
+            {
+              "bbox": [
+                490,
+                305
+              ],
+              "area": 149450,
+              "longAxisWorld": 42.109375,
+              "skinComponents": 2
+            },
+            {
+              "bbox": [
+                490,
+                304
+              ],
+              "area": 148960,
+              "longAxisWorld": 42.109375,
+              "skinComponents": 2
+            }
+          ],
+          "footCorrelation": 0.7302587028762801
+        },
+        "muzzle": [
+          26.40010010860536,
+          26.254996875912262,
+          26.4,
+          26.264665281666375
+        ],
+        "muzzleReference": 26.329940566546,
+        "bodyReference": 42.1953125,
+        "measured": {
+          "areaDeviation": 0.010192014177849762,
+          "bodyDeviation": 0.010183299389002087,
+          "muzzleDeviation": 0.0028463296544223304,
+          "muzzleVerticalRange": 10.156000000000006,
+          "footCorrelation": 0.7302587028762801
+        },
+        "gates": {
+          "4": true,
+          "5": true,
+          "6": true,
+          "7": false,
+          "8": true
+        },
+        "warnings": [
+          {
+            "frame": 1,
+            "skinComponents": 2,
+            "warn": false
+          },
+          {
+            "frame": 2,
+            "skinComponents": 2,
+            "warn": false
+          },
+          {
+            "frame": 3,
+            "skinComponents": 2,
+            "warn": false
+          },
+          {
+            "frame": 4,
+            "skinComponents": 2,
+            "warn": false
+          }
+        ]
+      }
     },
     {
       "callSign": "해동",
@@ -453,7 +888,94 @@
           358
         ]
       ],
-      "bytes": 171448
+      "bytes": 171448,
+      "quality": {
+        "metrics": {
+          "frames": [
+            {
+              "bbox": [
+                497,
+                307
+              ],
+              "area": 152579,
+              "longAxisWorld": 41.722585227272724,
+              "skinComponents": 2
+            },
+            {
+              "bbox": [
+                485,
+                307
+              ],
+              "area": 148895,
+              "longAxisWorld": 40.71519886363636,
+              "skinComponents": 2
+            },
+            {
+              "bbox": [
+                495,
+                286
+              ],
+              "area": 141570,
+              "longAxisWorld": 41.55468749999999,
+              "skinComponents": 2
+            },
+            {
+              "bbox": [
+                485,
+                309
+              ],
+              "area": 149865,
+              "longAxisWorld": 40.71519886363636,
+              "skinComponents": 2
+            }
+          ],
+          "footCorrelation": 0.7423214981526188
+        },
+        "muzzle": [
+          26.618169886363635,
+          26.472870509276326,
+          26.618169886363635,
+          26.547959974835287
+        ],
+        "muzzleReference": 26.329940566546,
+        "bodyReference": 42.1953125,
+        "measured": {
+          "areaDeviation": 0.044912457054961163,
+          "bodyDeviation": 0.03507767921765337,
+          "muzzleDeviation": 0.010946827589267238,
+          "muzzleVerticalRange": 5.197999999999979,
+          "footCorrelation": 0.7423214981526188
+        },
+        "gates": {
+          "4": true,
+          "5": true,
+          "6": true,
+          "7": true,
+          "8": true
+        },
+        "warnings": [
+          {
+            "frame": 1,
+            "skinComponents": 2,
+            "warn": false
+          },
+          {
+            "frame": 2,
+            "skinComponents": 2,
+            "warn": false
+          },
+          {
+            "frame": 3,
+            "skinComponents": 2,
+            "warn": false
+          },
+          {
+            "frame": 4,
+            "skinComponents": 2,
+            "warn": false
+          }
+        ]
+      }
     },
     {
       "callSign": "ARBEL",
@@ -478,7 +1000,94 @@
           372
         ]
       ],
-      "bytes": 181392
+      "bytes": 181392,
+      "quality": {
+        "metrics": {
+          "frames": [
+            {
+              "bbox": [
+                497,
+                281
+              ],
+              "area": 139657,
+              "longAxisWorld": 40.76953125,
+              "skinComponents": 86
+            },
+            {
+              "bbox": [
+                450,
+                303
+              ],
+              "area": 136350,
+              "longAxisWorld": 36.9140625,
+              "skinComponents": 74
+            },
+            {
+              "bbox": [
+                493,
+                267
+              ],
+              "area": 131631,
+              "longAxisWorld": 40.44140625,
+              "skinComponents": 75
+            },
+            {
+              "bbox": [
+                451,
+                310
+              ],
+              "area": 139810,
+              "longAxisWorld": 36.99609375,
+              "skinComponents": 72
+            }
+          ],
+          "footCorrelation": 0.8172127979272161
+        },
+        "muzzle": [
+          23.493080621478974,
+          23.561411501282237,
+          23.49427166440986,
+          23.630844516898847
+        ],
+        "muzzleReference": 23.54490207601748,
+        "bodyReference": 38.7802734375,
+        "measured": {
+          "areaDeviation": 0.03822098171881161,
+          "bodyDeviation": 0.05129561078794298,
+          "muzzleDeviation": 0.003650150703701893,
+          "muzzleVerticalRange": 1.664999999999992,
+          "footCorrelation": 0.8172127979272161
+        },
+        "gates": {
+          "4": true,
+          "5": true,
+          "6": true,
+          "7": true,
+          "8": true
+        },
+        "warnings": [
+          {
+            "frame": 1,
+            "skinComponents": 86,
+            "warn": true
+          },
+          {
+            "frame": 2,
+            "skinComponents": 74,
+            "warn": true
+          },
+          {
+            "frame": 3,
+            "skinComponents": 75,
+            "warn": true
+          },
+          {
+            "frame": 4,
+            "skinComponents": 72,
+            "warn": true
+          }
+        ]
+      }
     },
     {
       "callSign": "ARBEL",
@@ -503,7 +1112,94 @@
           360
         ]
       ],
-      "bytes": 197198
+      "bytes": 197198,
+      "quality": {
+        "metrics": {
+          "frames": [
+            {
+              "bbox": [
+                491,
+                331
+              ],
+              "area": 162521,
+              "longAxisWorld": 35.88940548780488,
+              "skinComponents": 69
+            },
+            {
+              "bbox": [
+                488,
+                351
+              ],
+              "area": 171288,
+              "longAxisWorld": 35.670121951219514,
+              "skinComponents": 57
+            },
+            {
+              "bbox": [
+                496,
+                312
+              ],
+              "area": 154752,
+              "longAxisWorld": 36.25487804878049,
+              "skinComponents": 67
+            },
+            {
+              "bbox": [
+                489,
+                334
+              ],
+              "area": 163326,
+              "longAxisWorld": 35.74321646341464,
+              "skinComponents": 53
+            }
+          ],
+          "footCorrelation": 0.7043687476653719
+        },
+        "muzzle": [
+          23.424452134146346,
+          23.356108765243906,
+          23.424850076497275,
+          23.424850076497275
+        ],
+        "muzzleReference": 23.54490207601748,
+        "bodyReference": 38.7802734375,
+        "measured": {
+          "areaDeviation": 0.051028782595756716,
+          "bodyDeviation": 0.08019931812221348,
+          "muzzleDeviation": 0.00801843686433823,
+          "muzzleVerticalRange": 1.867999999999995,
+          "footCorrelation": 0.7043687476653719
+        },
+        "gates": {
+          "4": true,
+          "5": true,
+          "6": true,
+          "7": true,
+          "8": true
+        },
+        "warnings": [
+          {
+            "frame": 1,
+            "skinComponents": 69,
+            "warn": true
+          },
+          {
+            "frame": 2,
+            "skinComponents": 57,
+            "warn": true
+          },
+          {
+            "frame": 3,
+            "skinComponents": 67,
+            "warn": true
+          },
+          {
+            "frame": 4,
+            "skinComponents": 53,
+            "warn": true
+          }
+        ]
+      }
     },
     {
       "callSign": "AUBERT",
@@ -528,7 +1224,94 @@
           369
         ]
       ],
-      "bytes": 181772
+      "bytes": 181772,
+      "quality": {
+        "metrics": {
+          "frames": [
+            {
+              "bbox": [
+                497,
+                288
+              ],
+              "area": 143136,
+              "longAxisWorld": 38.828125,
+              "skinComponents": 0
+            },
+            {
+              "bbox": [
+                447,
+                304
+              ],
+              "area": 135888,
+              "longAxisWorld": 34.921875,
+              "skinComponents": 0
+            },
+            {
+              "bbox": [
+                489,
+                272
+              ],
+              "area": 133008,
+              "longAxisWorld": 38.203125,
+              "skinComponents": 0
+            },
+            {
+              "bbox": [
+                448,
+                311
+              ],
+              "area": 139328,
+              "longAxisWorld": 35,
+              "skinComponents": 0
+            }
+          ],
+          "footCorrelation": 0.7352064662327997
+        },
+        "muzzle": [
+          22.21649588408748,
+          22.084239686051824,
+          21.752210025167646,
+          22.08275539358042
+        ],
+        "muzzleReference": 22.033925247221845,
+        "bodyReference": 36.73828125,
+        "measured": {
+          "areaDeviation": 0.038421358096343505,
+          "bodyDeviation": 0.056884635832004316,
+          "muzzleDeviation": 0.012785521367316033,
+          "muzzleVerticalRange": 2.538000000000011,
+          "footCorrelation": 0.7352064662327997
+        },
+        "gates": {
+          "4": true,
+          "5": true,
+          "6": true,
+          "7": true,
+          "8": true
+        },
+        "warnings": [
+          {
+            "frame": 1,
+            "skinComponents": 0,
+            "warn": false
+          },
+          {
+            "frame": 2,
+            "skinComponents": 0,
+            "warn": false
+          },
+          {
+            "frame": 3,
+            "skinComponents": 0,
+            "warn": false
+          },
+          {
+            "frame": 4,
+            "skinComponents": 0,
+            "warn": false
+          }
+        ]
+      }
     },
     {
       "callSign": "AUBERT",
@@ -553,7 +1336,94 @@
           360
         ]
       ],
-      "bytes": 196978
+      "bytes": 196978,
+      "quality": {
+        "metrics": {
+          "frames": [
+            {
+              "bbox": [
+                497,
+                321
+              ],
+              "area": 159537,
+              "longAxisWorld": 36.06844008264463,
+              "skinComponents": 0
+            },
+            {
+              "bbox": [
+                478,
+                330
+              ],
+              "area": 157740,
+              "longAxisWorld": 34.68956611570248,
+              "skinComponents": 0
+            },
+            {
+              "bbox": [
+                485,
+                310
+              ],
+              "area": 150350,
+              "longAxisWorld": 35.19757231404959,
+              "skinComponents": 0
+            },
+            {
+              "bbox": [
+                481,
+                326
+              ],
+              "area": 156806,
+              "longAxisWorld": 34.90728305785124,
+              "skinComponents": 0
+            }
+          ],
+          "footCorrelation": 0.523032731690303
+        },
+        "muzzle": [
+          22.215778734342088,
+          22.016553202479336,
+          21.82064456349805,
+          22.01814139698949
+        ],
+        "muzzleReference": 22.033925247221845,
+        "bodyReference": 36.73828125,
+        "measured": {
+          "areaDeviation": 0.03688626321799138,
+          "bodyDeviation": 0.0557651328421227,
+          "muzzleDeviation": 0.009679649963897696,
+          "muzzleVerticalRange": 7.288000000000011,
+          "footCorrelation": 0.523032731690303
+        },
+        "gates": {
+          "4": true,
+          "5": true,
+          "6": true,
+          "7": true,
+          "8": true
+        },
+        "warnings": [
+          {
+            "frame": 1,
+            "skinComponents": 0,
+            "warn": false
+          },
+          {
+            "frame": 2,
+            "skinComponents": 0,
+            "warn": false
+          },
+          {
+            "frame": 3,
+            "skinComponents": 0,
+            "warn": false
+          },
+          {
+            "frame": 4,
+            "skinComponents": 0,
+            "warn": false
+          }
+        ]
+      }
     },
     {
       "callSign": "MEDVED",
@@ -578,7 +1448,94 @@
           373
         ]
       ],
-      "bytes": 154382
+      "bytes": 154382,
+      "quality": {
+        "metrics": {
+          "frames": [
+            {
+              "bbox": [
+                498,
+                270
+              ],
+              "area": 134460,
+              "longAxisWorld": 44.7421875,
+              "skinComponents": 76
+            },
+            {
+              "bbox": [
+                439,
+                290
+              ],
+              "area": 127310,
+              "longAxisWorld": 39.44140625,
+              "skinComponents": 61
+            },
+            {
+              "bbox": [
+                496,
+                263
+              ],
+              "area": 130448,
+              "longAxisWorld": 44.5625,
+              "skinComponents": 69
+            },
+            {
+              "bbox": [
+                441,
+                297
+              ],
+              "area": 130977,
+              "longAxisWorld": 39.62109375,
+              "skinComponents": 46
+            }
+          ],
+          "footCorrelation": 0.7726094487685914
+        },
+        "muzzle": [
+          26.53322777765607,
+          25.523848742557718,
+          26.53322777765607,
+          25.523848742557718
+        ],
+        "muzzleReference": 26.02853826010689,
+        "bodyReference": 42.091796875,
+        "measured": {
+          "areaDeviation": 0.02799147545370273,
+          "bodyDeviation": 0.06296691568836721,
+          "muzzleDeviation": 0.019389852495969695,
+          "muzzleVerticalRange": 0,
+          "footCorrelation": 0.7726094487685914
+        },
+        "gates": {
+          "4": true,
+          "5": true,
+          "6": true,
+          "7": true,
+          "8": true
+        },
+        "warnings": [
+          {
+            "frame": 1,
+            "skinComponents": 76,
+            "warn": true
+          },
+          {
+            "frame": 2,
+            "skinComponents": 61,
+            "warn": true
+          },
+          {
+            "frame": 3,
+            "skinComponents": 69,
+            "warn": true
+          },
+          {
+            "frame": 4,
+            "skinComponents": 46,
+            "warn": true
+          }
+        ]
+      }
     },
     {
       "callSign": "MEDVED",
@@ -603,7 +1560,94 @@
           363
         ]
       ],
-      "bytes": 147518
+      "bytes": 147518,
+      "quality": {
+        "metrics": {
+          "frames": [
+            {
+              "bbox": [
+                495,
+                266
+              ],
+              "area": 131670,
+              "longAxisWorld": 44.40294989224138,
+              "skinComponents": 105
+            },
+            {
+              "bbox": [
+                437,
+                277
+              ],
+              "area": 121049,
+              "longAxisWorld": 39.20018000587774,
+              "skinComponents": 85
+            },
+            {
+              "bbox": [
+                498,
+                267
+              ],
+              "area": 132966,
+              "longAxisWorld": 44.672058679467085,
+              "skinComponents": 97
+            },
+            {
+              "bbox": [
+                438,
+                292
+              ],
+              "area": 127896,
+              "longAxisWorld": 39.28988293495298,
+              "skinComponents": 74
+            }
+          ],
+          "footCorrelation": 0.6586190394376488
+        },
+        "muzzle": [
+          26.31915455669572,
+          25.022603388881567,
+          26.24496125340726,
+          25.01896823465812
+        ],
+        "muzzleReference": 26.02853826010689,
+        "bodyReference": 42.091796875,
+        "measured": {
+          "areaDeviation": 0.057215901678605685,
+          "bodyDeviation": 0.06869787188485899,
+          "muzzleDeviation": 0.03878704272057054,
+          "muzzleVerticalRange": 4.0190000000000055,
+          "footCorrelation": 0.6586190394376488
+        },
+        "gates": {
+          "4": true,
+          "5": true,
+          "6": true,
+          "7": true,
+          "8": true
+        },
+        "warnings": [
+          {
+            "frame": 1,
+            "skinComponents": 105,
+            "warn": true
+          },
+          {
+            "frame": 2,
+            "skinComponents": 85,
+            "warn": true
+          },
+          {
+            "frame": 3,
+            "skinComponents": 97,
+            "warn": true
+          },
+          {
+            "frame": 4,
+            "skinComponents": 74,
+            "warn": true
+          }
+        ]
+      }
     },
     {
       "callSign": "REUSS",
@@ -628,7 +1672,94 @@
           369
         ]
       ],
-      "bytes": 144484
+      "bytes": 144484,
+      "quality": {
+        "metrics": {
+          "frames": [
+            {
+              "bbox": [
+                499,
+                271
+              ],
+              "area": 135229,
+              "longAxisWorld": 44.83203125,
+              "skinComponents": 2
+            },
+            {
+              "bbox": [
+                447,
+                286
+              ],
+              "area": 127842,
+              "longAxisWorld": 40.16015625,
+              "skinComponents": 1
+            },
+            {
+              "bbox": [
+                495,
+                258
+              ],
+              "area": 127710,
+              "longAxisWorld": 44.47265625,
+              "skinComponents": 1
+            },
+            {
+              "bbox": [
+                448,
+                297
+              ],
+              "area": 133056,
+              "longAxisWorld": 40.25,
+              "skinComponents": 1
+            }
+          ],
+          "footCorrelation": 0.6592333370055616
+        },
+        "muzzle": [
+          26.555207031250003,
+          25.902324130285535,
+          26.555603435101954,
+          25.90222265625
+        ],
+        "muzzleReference": 26.228839313221876,
+        "bodyReference": 42.4287109375,
+        "measured": {
+          "areaDeviation": 0.03260365342654303,
+          "bodyDeviation": 0.05664372683959762,
+          "muzzleDeviation": 0.012458199845517326,
+          "muzzleVerticalRange": 2.421999999999997,
+          "footCorrelation": 0.6592333370055616
+        },
+        "gates": {
+          "4": true,
+          "5": true,
+          "6": true,
+          "7": true,
+          "8": true
+        },
+        "warnings": [
+          {
+            "frame": 1,
+            "skinComponents": 2,
+            "warn": false
+          },
+          {
+            "frame": 2,
+            "skinComponents": 1,
+            "warn": false
+          },
+          {
+            "frame": 3,
+            "skinComponents": 1,
+            "warn": false
+          },
+          {
+            "frame": 4,
+            "skinComponents": 1,
+            "warn": false
+          }
+        ]
+      }
     },
     {
       "callSign": "REUSS",
@@ -653,7 +1784,94 @@
           353
         ]
       ],
-      "bytes": 153632
+      "bytes": 153632,
+      "quality": {
+        "metrics": {
+          "frames": [
+            {
+              "bbox": [
+                485,
+                290
+              ],
+              "area": 140650,
+              "longAxisWorld": 41.1687019420347,
+              "skinComponents": 3
+            },
+            {
+              "bbox": [
+                472,
+                303
+              ],
+              "area": 143016,
+              "longAxisWorld": 40.065210962145116,
+              "skinComponents": 2
+            },
+            {
+              "bbox": [
+                497,
+                281
+              ],
+              "area": 139657,
+              "longAxisWorld": 42.18730900039432,
+              "skinComponents": 2
+            },
+            {
+              "bbox": [
+                473,
+                300
+              ],
+              "area": 141900,
+              "longAxisWorld": 40.15009488367508,
+              "skinComponents": 2
+            }
+          ],
+          "footCorrelation": 0.5408177345214426
+        },
+        "muzzle": [
+          26.555354954185955,
+          25.82976997888444,
+          26.563283573118774,
+          25.83466028830616
+        ],
+        "muzzleReference": 26.228839313221876,
+        "bodyReference": 42.4287109375,
+        "measured": {
+          "areaDeviation": 0.01210318759144613,
+          "bodyDeviation": 0.05570520346084662,
+          "muzzleDeviation": 0.015214906369732772,
+          "muzzleVerticalRange": 8.548000000000002,
+          "footCorrelation": 0.5408177345214426
+        },
+        "gates": {
+          "4": true,
+          "5": true,
+          "6": true,
+          "7": true,
+          "8": true
+        },
+        "warnings": [
+          {
+            "frame": 1,
+            "skinComponents": 3,
+            "warn": false
+          },
+          {
+            "frame": 2,
+            "skinComponents": 2,
+            "warn": false
+          },
+          {
+            "frame": 3,
+            "skinComponents": 2,
+            "warn": false
+          },
+          {
+            "frame": 4,
+            "skinComponents": 2,
+            "warn": false
+          }
+        ]
+      }
     },
     {
       "callSign": "BRANDT",
@@ -678,7 +1896,94 @@
           371
         ]
       ],
-      "bytes": 153050
+      "bytes": 153050,
+      "quality": {
+        "metrics": {
+          "frames": [
+            {
+              "bbox": [
+                496,
+                259
+              ],
+              "area": 128464,
+              "longAxisWorld": 49.40625,
+              "skinComponents": 45
+            },
+            {
+              "bbox": [
+                439,
+                281
+              ],
+              "area": 123359,
+              "longAxisWorld": 43.728515625,
+              "skinComponents": 37
+            },
+            {
+              "bbox": [
+                493,
+                250
+              ],
+              "area": 123250,
+              "longAxisWorld": 49.107421875,
+              "skinComponents": 32
+            },
+            {
+              "bbox": [
+                441,
+                287
+              ],
+              "area": 126567,
+              "longAxisWorld": 43.927734375,
+              "skinComponents": 28
+            }
+          ],
+          "footCorrelation": 0.7166018004110567
+        },
+        "muzzle": [
+          29.78580396696528,
+          30.094356927483222,
+          29.78310591891733,
+          30.091686544587702
+        ],
+        "muzzleReference": 29.93873833948838,
+        "bodyReference": 46.54248046875,
+        "measured": {
+          "areaDeviation": 0.024352125029901917,
+          "bodyDeviation": 0.061530230069555936,
+          "muzzleDeviation": 0.005198362696726466,
+          "muzzleVerticalRange": 2.3240000000000123,
+          "footCorrelation": 0.7166018004110567
+        },
+        "gates": {
+          "4": true,
+          "5": true,
+          "6": true,
+          "7": true,
+          "8": true
+        },
+        "warnings": [
+          {
+            "frame": 1,
+            "skinComponents": 45,
+            "warn": true
+          },
+          {
+            "frame": 2,
+            "skinComponents": 37,
+            "warn": true
+          },
+          {
+            "frame": 3,
+            "skinComponents": 32,
+            "warn": true
+          },
+          {
+            "frame": 4,
+            "skinComponents": 28,
+            "warn": true
+          }
+        ]
+      }
     },
     {
       "callSign": "BRANDT",
@@ -703,7 +2008,94 @@
           364
         ]
       ],
-      "bytes": 159170
+      "bytes": 159170,
+      "quality": {
+        "metrics": {
+          "frames": [
+            {
+              "bbox": [
+                498,
+                291
+              ],
+              "area": 144918,
+              "longAxisWorld": 46.528578857791224,
+              "skinComponents": 49
+            },
+            {
+              "bbox": [
+                466,
+                292
+              ],
+              "area": 136072,
+              "longAxisWorld": 43.5387906580938,
+              "skinComponents": 45
+            },
+            {
+              "bbox": [
+                495,
+                268
+              ],
+              "area": 132660,
+              "longAxisWorld": 46.248286214069594,
+              "skinComponents": 50
+            },
+            {
+              "bbox": [
+                469,
+                300
+              ],
+              "area": 140700,
+              "longAxisWorld": 43.81908330181543,
+              "skinComponents": 33
+            }
+          ],
+          "footCorrelation": 0.6316222285092667
+        },
+        "muzzle": [
+          30.330196775665136,
+          30.098829623214627,
+          30.32263789152903,
+          30.09121261992488
+        ],
+        "muzzleReference": 29.93873833948838,
+        "bodyReference": 46.54248046875,
+        "measured": {
+          "areaDeviation": 0.04567872282853802,
+          "bodyDeviation": 0.06453652191298576,
+          "muzzleDeviation": 0.01307531505629389,
+          "muzzleVerticalRange": 5.781000000000006,
+          "footCorrelation": 0.6316222285092667
+        },
+        "gates": {
+          "4": true,
+          "5": true,
+          "6": true,
+          "7": true,
+          "8": true
+        },
+        "warnings": [
+          {
+            "frame": 1,
+            "skinComponents": 49,
+            "warn": true
+          },
+          {
+            "frame": 2,
+            "skinComponents": 45,
+            "warn": true
+          },
+          {
+            "frame": 3,
+            "skinComponents": 50,
+            "warn": true
+          },
+          {
+            "frame": 4,
+            "skinComponents": 33,
+            "warn": true
+          }
+        ]
+      }
     },
     {
       "callSign": "MARCHAND",
@@ -728,7 +2120,94 @@
           364
         ]
       ],
-      "bytes": 233058
+      "bytes": 233058,
+      "quality": {
+        "metrics": {
+          "frames": [
+            {
+              "bbox": [
+                490,
+                290
+              ],
+              "area": 142100,
+              "longAxisWorld": 38.28125,
+              "skinComponents": 3
+            },
+            {
+              "bbox": [
+                450,
+                303
+              ],
+              "area": 136350,
+              "longAxisWorld": 35.15625,
+              "skinComponents": 3
+            },
+            {
+              "bbox": [
+                489,
+                273
+              ],
+              "area": 133497,
+              "longAxisWorld": 38.203125,
+              "skinComponents": 3
+            },
+            {
+              "bbox": [
+                451,
+                314
+              ],
+              "area": 141614,
+              "longAxisWorld": 35.234375,
+              "skinComponents": 3
+            }
+          ],
+          "footCorrelation": 0.649870491256665
+        },
+        "muzzle": [
+          21.35151319357758,
+          21.892292210445646,
+          21.418906250000003,
+          21.893543794079594
+        ],
+        "muzzleReference": 21.639063862025704,
+        "bodyReference": 36.71875,
+        "measured": {
+          "areaDeviation": 0.035358343524923175,
+          "bodyDeviation": 0.042553191489361764,
+          "muzzleDeviation": 0.013288498535869886,
+          "muzzleVerticalRange": 4.324999999999989,
+          "footCorrelation": 0.649870491256665
+        },
+        "gates": {
+          "4": true,
+          "5": true,
+          "6": true,
+          "7": true,
+          "8": true
+        },
+        "warnings": [
+          {
+            "frame": 1,
+            "skinComponents": 3,
+            "warn": false
+          },
+          {
+            "frame": 2,
+            "skinComponents": 3,
+            "warn": false
+          },
+          {
+            "frame": 3,
+            "skinComponents": 3,
+            "warn": false
+          },
+          {
+            "frame": 4,
+            "skinComponents": 3,
+            "warn": false
+          }
+        ]
+      }
     },
     {
       "callSign": "MARCHAND",
@@ -753,7 +2232,94 @@
           357
         ]
       ],
-      "bytes": 236864
+      "bytes": 236864,
+      "quality": {
+        "metrics": {
+          "frames": [
+            {
+              "bbox": [
+                492,
+                332
+              ],
+              "area": 163344,
+              "longAxisWorld": 35.7105152027027,
+              "skinComponents": 3
+            },
+            {
+              "bbox": [
+                485,
+                330
+              ],
+              "area": 160050,
+              "longAxisWorld": 35.20243876689189,
+              "skinComponents": 3
+            },
+            {
+              "bbox": [
+                492,
+                296
+              ],
+              "area": 145632,
+              "longAxisWorld": 35.7105152027027,
+              "skinComponents": 3
+            },
+            {
+              "bbox": [
+                486,
+                330
+              ],
+              "area": 160380,
+              "longAxisWorld": 35.27502111486486,
+              "skinComponents": 3
+            }
+          ],
+          "footCorrelation": 0.5575938553505306
+        },
+        "muzzle": [
+          21.351331556165537,
+          21.555006684140753,
+          21.353042394651855,
+          21.554054054054053
+        ],
+        "muzzleReference": 21.639063862025704,
+        "bodyReference": 36.71875,
+        "measured": {
+          "areaDeviation": 0.07447974757151976,
+          "bodyDeviation": 0.04129528464634857,
+          "muzzleDeviation": 0.013296892494739976,
+          "muzzleVerticalRange": 6.515999999999991,
+          "footCorrelation": 0.5575938553505306
+        },
+        "gates": {
+          "4": true,
+          "5": true,
+          "6": true,
+          "7": true,
+          "8": true
+        },
+        "warnings": [
+          {
+            "frame": 1,
+            "skinComponents": 3,
+            "warn": false
+          },
+          {
+            "frame": 2,
+            "skinComponents": 3,
+            "warn": false
+          },
+          {
+            "frame": 3,
+            "skinComponents": 3,
+            "warn": false
+          },
+          {
+            "frame": 4,
+            "skinComponents": 3,
+            "warn": false
+          }
+        ]
+      }
     },
     {
       "callSign": "HALLORAN",
@@ -778,7 +2344,94 @@
           372
         ]
       ],
-      "bytes": 191404
+      "bytes": 191404,
+      "quality": {
+        "metrics": {
+          "frames": [
+            {
+              "bbox": [
+                499,
+                258
+              ],
+              "area": 128742,
+              "longAxisWorld": 49.705078125,
+              "skinComponents": 17
+            },
+            {
+              "bbox": [
+                440,
+                278
+              ],
+              "area": 122320,
+              "longAxisWorld": 43.828125,
+              "skinComponents": 15
+            },
+            {
+              "bbox": [
+                498,
+                255
+              ],
+              "area": 126990,
+              "longAxisWorld": 49.60546875,
+              "skinComponents": 15
+            },
+            {
+              "bbox": [
+                441,
+                289
+              ],
+              "area": 127449,
+              "longAxisWorld": 43.927734375,
+              "skinComponents": 15
+            }
+          ],
+          "footCorrelation": 0.7706575668230479
+        },
+        "muzzle": [
+          30.073267104564348,
+          30.073267104564348,
+          30.07536465604322,
+          30.07536465604322
+        ],
+        "muzzleReference": 30.074315880303782,
+        "bodyReference": 46.7666015625,
+        "measured": {
+          "areaDeviation": 0.032088957291874776,
+          "bodyDeviation": 0.06283280085197018,
+          "muzzleDeviation": 0.00003487280454228525,
+          "muzzleVerticalRange": 2.334000000000003,
+          "footCorrelation": 0.7706575668230479
+        },
+        "gates": {
+          "4": true,
+          "5": true,
+          "6": true,
+          "7": true,
+          "8": true
+        },
+        "warnings": [
+          {
+            "frame": 1,
+            "skinComponents": 17,
+            "warn": true
+          },
+          {
+            "frame": 2,
+            "skinComponents": 15,
+            "warn": true
+          },
+          {
+            "frame": 3,
+            "skinComponents": 15,
+            "warn": true
+          },
+          {
+            "frame": 4,
+            "skinComponents": 15,
+            "warn": true
+          }
+        ]
+      }
     },
     {
       "callSign": "HALLORAN",
@@ -803,7 +2456,94 @@
           351
         ]
       ],
-      "bytes": 198288
+      "bytes": 198288,
+      "quality": {
+        "metrics": {
+          "frames": [
+            {
+              "bbox": [
+                494,
+                272
+              ],
+              "area": 134368,
+              "longAxisWorld": 45.8418087481003,
+              "skinComponents": 16
+            },
+            {
+              "bbox": [
+                472,
+                287
+              ],
+              "area": 135464,
+              "longAxisWorld": 43.80027070668693,
+              "skinComponents": 16
+            },
+            {
+              "bbox": [
+                497,
+                278
+              ],
+              "area": 138166,
+              "longAxisWorld": 46.120200299202125,
+              "skinComponents": 13
+            },
+            {
+              "bbox": [
+                472,
+                293
+              ],
+              "area": 138296,
+              "longAxisWorld": 43.80027070668693,
+              "skinComponents": 15
+            }
+          ],
+          "footCorrelation": 0.6922542558554917
+        },
+        "muzzle": [
+          29.144511848008072,
+          28.989549366950694,
+          29.145440353531693,
+          28.990482835604215
+        ],
+        "muzzleReference": 30.074315880303782,
+        "bodyReference": 46.7666015625,
+        "measured": {
+          "areaDeviation": 0.016148813642470894,
+          "bodyDeviation": 0.06342840310619524,
+          "muzzleDeviation": 0.036069532476498356,
+          "muzzleVerticalRange": 0.8360000000000127,
+          "footCorrelation": 0.6922542558554917
+        },
+        "gates": {
+          "4": true,
+          "5": true,
+          "6": true,
+          "7": true,
+          "8": true
+        },
+        "warnings": [
+          {
+            "frame": 1,
+            "skinComponents": 16,
+            "warn": true
+          },
+          {
+            "frame": 2,
+            "skinComponents": 16,
+            "warn": true
+          },
+          {
+            "frame": 3,
+            "skinComponents": 13,
+            "warn": true
+          },
+          {
+            "frame": 4,
+            "skinComponents": 15,
+            "warn": true
+          }
+        ]
+      }
     },
     {
       "callSign": "성곽",
@@ -828,7 +2568,94 @@
           370
         ]
       ],
-      "bytes": 186468
+      "bytes": 186468,
+      "quality": {
+        "metrics": {
+          "frames": [
+            {
+              "bbox": [
+                497,
+                278
+              ],
+              "area": 138166,
+              "longAxisWorld": 41.740234375,
+              "skinComponents": 120
+            },
+            {
+              "bbox": [
+                449,
+                296
+              ],
+              "area": 132904,
+              "longAxisWorld": 37.708984375,
+              "skinComponents": 88
+            },
+            {
+              "bbox": [
+                495,
+                266
+              ],
+              "area": 131670,
+              "longAxisWorld": 41.572265625,
+              "skinComponents": 114
+            },
+            {
+              "bbox": [
+                449,
+                308
+              ],
+              "area": 138292,
+              "longAxisWorld": 37.708984375,
+              "skinComponents": 90
+            }
+          ],
+          "footCorrelation": 0.6916220166825157
+        },
+        "muzzle": [
+          24.292228515625002,
+          24.29232876941209,
+          24.22334309481964,
+          24.222538284767584
+        ],
+        "muzzleReference": 24.25760966615608,
+        "bodyReference": 39.6826171875,
+        "measured": {
+          "areaDeviation": 0.02652708157742978,
+          "bodyDeviation": 0.051851851851851816,
+          "muzzleDeviation": 0.0014457888419824316,
+          "muzzleVerticalRange": 3.3249999999999886,
+          "footCorrelation": 0.6916220166825157
+        },
+        "gates": {
+          "4": true,
+          "5": true,
+          "6": true,
+          "7": true,
+          "8": true
+        },
+        "warnings": [
+          {
+            "frame": 1,
+            "skinComponents": 120,
+            "warn": true
+          },
+          {
+            "frame": 2,
+            "skinComponents": 88,
+            "warn": true
+          },
+          {
+            "frame": 3,
+            "skinComponents": 114,
+            "warn": true
+          },
+          {
+            "frame": 4,
+            "skinComponents": 90,
+            "warn": true
+          }
+        ]
+      }
     },
     {
       "callSign": "성곽",
@@ -853,7 +2680,94 @@
           370
         ]
       ],
-      "bytes": 193356
+      "bytes": 193356,
+      "quality": {
+        "metrics": {
+          "frames": [
+            {
+              "bbox": [
+                495,
+                315
+              ],
+              "area": 155925,
+              "longAxisWorld": 38.062918526785715,
+              "skinComponents": 112
+            },
+            {
+              "bbox": [
+                484,
+                325
+              ],
+              "area": 157300,
+              "longAxisWorld": 37.217075892857146,
+              "skinComponents": 85
+            },
+            {
+              "bbox": [
+                496,
+                283
+              ],
+              "area": 140368,
+              "longAxisWorld": 38.139813311688314,
+              "skinComponents": 109
+            },
+            {
+              "bbox": [
+                484,
+                336
+              ],
+              "area": 162624,
+              "longAxisWorld": 37.217075892857146,
+              "skinComponents": 90
+            }
+          ],
+          "footCorrelation": 0.5565600544755143
+        },
+        "muzzle": [
+          24.29311900375061,
+          23.944106738273074,
+          24.2233004771323,
+          23.944106065726267
+        ],
+        "muzzleReference": 24.25760966615608,
+        "bodyReference": 39.6826171875,
+        "measured": {
+          "areaDeviation": 0.08884045717661149,
+          "bodyDeviation": 0.06213151927437632,
+          "muzzleDeviation": 0.012923927985666661,
+          "muzzleVerticalRange": 5.446999999999974,
+          "footCorrelation": 0.5565600544755143
+        },
+        "gates": {
+          "4": false,
+          "5": true,
+          "6": true,
+          "7": true,
+          "8": true
+        },
+        "warnings": [
+          {
+            "frame": 1,
+            "skinComponents": 112,
+            "warn": true
+          },
+          {
+            "frame": 2,
+            "skinComponents": 85,
+            "warn": true
+          },
+          {
+            "frame": 3,
+            "skinComponents": 109,
+            "warn": true
+          },
+          {
+            "frame": 4,
+            "skinComponents": 90,
+            "warn": true
+          }
+        ]
+      }
     },
     {
       "callSign": "SAVELLI",
@@ -878,7 +2792,94 @@
           369
         ]
       ],
-      "bytes": 168524
+      "bytes": 168524,
+      "quality": {
+        "metrics": {
+          "frames": [
+            {
+              "bbox": [
+                497,
+                273
+              ],
+              "area": 135681,
+              "longAxisWorld": 42.7109375,
+              "skinComponents": 5
+            },
+            {
+              "bbox": [
+                445,
+                290
+              ],
+              "area": 129050,
+              "longAxisWorld": 38.2421875,
+              "skinComponents": 10
+            },
+            {
+              "bbox": [
+                495,
+                259
+              ],
+              "area": 128205,
+              "longAxisWorld": 42.5390625,
+              "skinComponents": 5
+            },
+            {
+              "bbox": [
+                445,
+                299
+              ],
+              "area": 133055,
+              "longAxisWorld": 38.2421875,
+              "skinComponents": 9
+            }
+          ],
+          "footCorrelation": 0.8172923326791269
+        },
+        "muzzle": [
+          25.18278125,
+          24.693109375000002,
+          25.18278125,
+          24.693109375000002
+        ],
+        "muzzleReference": 24.937945312500002,
+        "bodyReference": 40.43359375,
+        "measured": {
+          "areaDeviation": 0.03181233138970052,
+          "bodyDeviation": 0.05632306057385761,
+          "muzzleDeviation": 0.009817807138155832,
+          "muzzleVerticalRange": 0,
+          "footCorrelation": 0.8172923326791269
+        },
+        "gates": {
+          "4": true,
+          "5": true,
+          "6": true,
+          "7": true,
+          "8": true
+        },
+        "warnings": [
+          {
+            "frame": 1,
+            "skinComponents": 5,
+            "warn": true
+          },
+          {
+            "frame": 2,
+            "skinComponents": 10,
+            "warn": true
+          },
+          {
+            "frame": 3,
+            "skinComponents": 5,
+            "warn": true
+          },
+          {
+            "frame": 4,
+            "skinComponents": 9,
+            "warn": true
+          }
+        ]
+      }
     },
     {
       "callSign": "SAVELLI",
@@ -903,9 +2904,119 @@
           362
         ]
       ],
-      "bytes": 182348
+      "bytes": 182348,
+      "quality": {
+        "metrics": {
+          "frames": [
+            {
+              "bbox": [
+                495,
+                302
+              ],
+              "area": 149490,
+              "longAxisWorld": 38.81943064387918,
+              "skinComponents": 8
+            },
+            {
+              "bbox": [
+                487,
+                316
+              ],
+              "area": 153892,
+              "longAxisWorld": 38.19204590620032,
+              "skinComponents": 6
+            },
+            {
+              "bbox": [
+                496,
+                294
+              ],
+              "area": 145824,
+              "longAxisWorld": 38.89785373608903,
+              "skinComponents": 6
+            },
+            {
+              "bbox": [
+                487,
+                323
+              ],
+              "area": 157301,
+              "longAxisWorld": 38.19204590620032,
+              "skinComponents": 6
+            }
+          ],
+          "footCorrelation": 0.6833038960562149
+        },
+        "muzzle": [
+          25.18526011309742,
+          24.484896180672184,
+          25.183219888010964,
+          24.48369700929932
+        ],
+        "muzzleReference": 24.937945312500002,
+        "bodyReference": 40.43359375,
+        "measured": {
+          "areaDeviation": 0.03826996225929791,
+          "bodyDeviation": 0.055437759444760704,
+          "muzzleDeviation": 0.01821514553458392,
+          "muzzleVerticalRange": 6.244,
+          "footCorrelation": 0.6833038960562149
+        },
+        "gates": {
+          "4": true,
+          "5": true,
+          "6": true,
+          "7": true,
+          "8": true
+        },
+        "warnings": [
+          {
+            "frame": 1,
+            "skinComponents": 8,
+            "warn": true
+          },
+          {
+            "frame": 2,
+            "skinComponents": 6,
+            "warn": true
+          },
+          {
+            "frame": 3,
+            "skinComponents": 6,
+            "warn": true
+          },
+          {
+            "frame": 4,
+            "skinComponents": 6,
+            "warn": true
+          }
+        ]
+      }
     }
   ],
   "operatorCount": 12,
-  "completeAnimationPacks": 0
+  "completeAnimationPacks": 0,
+  "gates": {
+    "4": {
+      "pass": 22,
+      "fail": 2
+    },
+    "5": {
+      "pass": 24,
+      "fail": 0
+    },
+    "6": {
+      "pass": 24,
+      "fail": 0
+    },
+    "7": {
+      "pass": 23,
+      "fail": 1
+    },
+    "8": {
+      "pass": 24,
+      "fail": 0
+    }
+  },
+  "warningFrames": 56
 }
