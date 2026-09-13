@@ -185,9 +185,9 @@ export function throwArmPose(progress:number):{elbow:Point;hand:Point}{
 }
 
 function strokeArm(ctx:CanvasRenderingContext2D,pose:ArmPose,color:string):void {
-  ctx.lineCap='round';ctx.lineJoin='round';ctx.strokeStyle='#10191C';ctx.lineWidth=6;
+  ctx.lineCap='round';ctx.lineJoin='round';ctx.strokeStyle='#10191C';ctx.lineWidth=4.8;
   ctx.beginPath();ctx.moveTo(pose.shoulder.x,pose.shoulder.y);ctx.lineTo(pose.elbow.x,pose.elbow.y);ctx.lineTo(pose.hand.x,pose.hand.y);ctx.stroke();
-  ctx.strokeStyle=color;ctx.lineWidth=3.6;ctx.stroke();
+  ctx.strokeStyle=color;ctx.lineWidth=2.6;ctx.stroke();
 }
 function hand(ctx:CanvasRenderingContext2D,point:Point,angle:number):void {
   ctx.save();ctx.translate(point.x,point.y);ctx.rotate(angle);ctx.fillStyle='#657064';ctx.strokeStyle='#10191C';ctx.lineWidth=1.3;ctx.beginPath();ctx.ellipse(0,0,3,2,0,0,Math.PI*2);ctx.fill();ctx.stroke();ctx.restore();
@@ -203,7 +203,7 @@ function paintLowerBody(ctx:CanvasRenderingContext2D,pose:OperatorAssemblyPose,t
   // 회전 중에도 아래로 내려간 다리의 투영이 헬멧 뒤로 솟지 않게 몸 아래 가림 범위를 유지합니다.
   // 승인된 서기·앉기와 보행 진폭은 이 범위 안에 모두 들어갑니다. 포복은 별도입니다.
   if(!pose.prone){ctx.beginPath();ctx.rect(-17.5,-8.5,28,17);ctx.clip();}
-  ctx.rotate(relative);ctx.strokeStyle='#10191C';ctx.lineWidth=2;ctx.lineJoin='round';
+  ctx.rotate(relative);if(!pose.prone)ctx.scale(1,.78);ctx.strokeStyle='#10191C';ctx.lineWidth=2;ctx.lineJoin='round';
   // 서기/앉기에서는 다리가 골반 아래로 내려가므로 탑뷰에 짧게만 투영됩니다.
   // 포복의 뒤로 뻗은 다리를 서 있는 자세에 재사용하지 않습니다.
   for(const side of [-1,1]){const rear=pose.prone?-29:-10+3*crouch+side*step;
@@ -214,21 +214,22 @@ function paintLowerBody(ctx:CanvasRenderingContext2D,pose:OperatorAssemblyPose,t
 
 function paintTorso(ctx:CanvasRenderingContext2D,color:string):void {
   ctx.strokeStyle='#10191C';ctx.lineWidth=2;ctx.lineJoin='round';
-  polygon(ctx,[[-14,-5],[-6,-7.5],[4,-7],[7,-3.5],[6,6],[0,7.5],[-13,5.5],[-16,2]],color);
-  ctx.fillStyle='#29373A';ctx.fillRect(-16,-5,5,10);ctx.strokeRect(-16,-5,5,10);
+  // 사용자 체형 피드백: 흉곽 폭을 15→10.4로 줄이고 복부·허리를 안쪽으로 모읍니다.
+  polygon(ctx,[[-12,-3.6],[-6,-5.2],[3,-4.8],[5,-2.5],[4,4.2],[0,5.2],[-12,3.8],[-14,1.4]],color);
+  ctx.fillStyle='#29373A';ctx.fillRect(-14,-3.5,3,7);ctx.strokeRect(-14,-3.5,3,7);
 }
 
 function paintHeadAndKit(ctx:CanvasRenderingContext2D,color:string,pack:number,tool:string):void {
   ctx.strokeStyle='#10191C';ctx.lineWidth=2;ctx.lineJoin='round';
-  ctx.fillStyle='#29373A';ctx.fillRect(-18,-pack*.32,5,pack*.64);ctx.strokeRect(-18,-pack*.32,5,pack*.64);
+  ctx.fillStyle='#29373A';ctx.fillRect(-17,-pack*.24,3,pack*.48);ctx.strokeRect(-17,-pack*.24,3,pack*.48);
   ctx.save();ctx.translate(-1,-3);ctx.scale(.72,.72);
   polygon(ctx,[[-13,-7],[-8,-12],[0,-11],[7,-5],[6,3],[-1,7],[-11,4],[-15,-1]],'#334246');
   polygon(ctx,[[-11,-7],[-7,-10],[0,-9],[4,-5],[3,1],[-2,4],[-10,2]],color);
   ctx.fillStyle='#859080';ctx.fillRect(-7,-11,7,3);ctx.restore();
   if(tool==='battery'||tool==='interceptor'||tool==='charge'||tool==='plate'){
-    ctx.fillStyle=color;ctx.fillRect(-14,5.5,9,3.5);ctx.strokeRect(-14,5.5,9,3.5);
+    ctx.fillStyle=color;ctx.fillRect(-13,4,7,2.3);ctx.strokeRect(-13,4,7,2.3);
   } else if(tool==='coil'||tool==='roll'){
-    ctx.fillStyle='#859080';ctx.beginPath();ctx.arc(-10,6.5,2.2,0,Math.PI*2);ctx.fill();ctx.stroke();
+    ctx.fillStyle='#859080';ctx.beginPath();ctx.arc(-10,4.8,1.6,0,Math.PI*2);ctx.fill();ctx.stroke();
   }
 }
 

@@ -16,7 +16,7 @@ const base={id:'equipment',callSign:'REUSS',side:'수비',weaponName:'HK417',pos
   const ctx=new Proxy(native,{get(target,key){const value=target[key];if(typeof value!=='function')return value;return(...args)=>{
    if(key==='beginPath')points=[];
    if(key==='moveTo'||key==='lineTo')points.push({x:args[0],y:args[1]});
-   if(key==='stroke'&&points.length===3&&target.lineWidth===6)arms.push(points.slice());
+   if(key==='stroke'&&points.length===3&&Math.abs(target.lineWidth-4.8)<1e-5)arms.push(points.slice());
    if(key==='ellipse'&&args[2]===3&&args[3]===2)hands.push({drawCount:drawn.length,transform:target.getTransform()});
    if(key==='drawImage')drawn.push({image:args[0],transform:target.getTransform(),args});
    return value.apply(target,args);
