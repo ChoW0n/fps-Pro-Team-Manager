@@ -29,7 +29,7 @@ const PISTOL=part('pistol','top/pistol',18,[489,250],17,[120,250],[210,250],[140
 export function weaponPart(name:string):WeaponPart{return /글록 17|글록 19|P226|K5 권총|HK USP|베레타 92FS|SR-1|MR73/.test(name)?PISTOL:WEAPON_PARTS.find(item=>name.includes(item.id))??WEAPON_PARTS[0];}
 
 /** 탑뷰 전장에서 총은 오른어깨 앞을 지나며 개머리판이 몸 뒤끝 밖으로 나가지 않습니다. */
-export function weaponMuzzleOffset(name:string):{x:number;y:number}{const part=weaponPart(name);return {x:part.length-8,y:15};}
+export function weaponMuzzleOffset(name:string):{x:number;y:number}{const part=weaponPart(name);return {x:part.length-3,y:7.5};}
 // 큰 원본을 매 프레임 직접 축소하지 않고 중간 해상도를 한 번만 준비합니다.
 const thumbnails=new WeakMap<HTMLImageElement,Map<number,{color:HTMLCanvasElement;ink:HTMLCanvasElement}>>();
 /** 표시 밀도에 맞춰 PNG 축소본과 알파 외곽을 캐시합니다. */

@@ -67,8 +67,10 @@ export function paintMinimalOperator(ctx:CanvasRenderingContext2D,unit:RealtimeU
   const tip={x:dx*c+dy*s,y:-dx*s+dy*c};
   const ink='#10191C',shade='#29373A',light='#859080',outline=2;
   ctx.save();ctx.globalAlpha=unit.alive?1:.4;
-  ctx.fillStyle='#04090C55';ctx.beginPath();ctx.ellipse(unit.position.x,unit.position.y+3,19,15,0,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle='#04090C55';ctx.beginPath();ctx.ellipse(unit.position.x,unit.position.y+2,15,11,0,0,Math.PI*2);ctx.fill();
   ctx.translate(unit.position.x,unit.position.y);ctx.rotate(unit.facing);
+  // 40단위/m 전장 기준: 군장 포함 폭 약 0.6m. 총기 PNG에는 이 몸체 축척을 적용하지 않습니다.
+  ctx.save();ctx.scale(.8,.7);
   ctx.strokeStyle=ink;ctx.lineWidth=outline;ctx.lineJoin='round';ctx.lineCap='round';
   const poly=(points:number[][],fill:string)=>{ctx.fillStyle=fill;ctx.beginPath();points.forEach(([x,y],i)=>i?ctx.lineTo(x,y):ctx.moveTo(x,y));ctx.closePath();ctx.fill();ctx.stroke();};
   const box=(x:number,y:number,w:number,h:number,fill=kit.color)=>{ctx.fillStyle=fill;ctx.fillRect(x,y,w,h);ctx.strokeRect(x,y,w,h);};
@@ -100,11 +102,10 @@ export function paintMinimalOperator(ctx:CanvasRenderingContext2D,unit:RealtimeU
   box(-9,-12,8,3,light);box(-8,4,6,3,shade);
   ctx.restore();
   ctx.fillStyle=unit.side==='공격'?'#2FD4C4':'#F0873C';ctx.fillRect(-18,-5,2,5);
+  ctx.restore();
   if(!down){
     const gunStowed=installing||throwing;
-    // 탑뷰 축척에서 팔·손을 총기 파지점까지 억지로 연결하면 관절이 접혀 보입니다.
-    // 그래서 인물은 군장 실루엣, 총기는 어깨 전방의 독립 실루엣으로만 읽게 합니다.
-    // 총기 원화 전체는 실제 발사 시 총구 위치에 정렬합니다.
+    // 개머리판은 오른어깨 안쪽에, 총구는 엔진 발사 원점에 정렬합니다.
     ctx.save();ctx.translate(tip.x,tip.y);if(gunStowed){const lower=installing?1:1-throwProgress;ctx.translate(-7*lower,9*lower);}ctx.translate(-kick,0);
     paintWeaponPart(ctx,unit.weaponName??'',_asset);
     if(unit.shieldRaised){ctx.fillStyle=shade;ctx.strokeStyle=ink;ctx.lineWidth=outline/.75;ctx.fillRect(-5,-18,7,36);ctx.strokeRect(-5,-18,7,36);ctx.fillStyle=light;ctx.fillRect(-4,-9,5,9);}ctx.restore();

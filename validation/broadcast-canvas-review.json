@@ -1,7 +1,7 @@
 {
   "kind": "Actual Canvas renderer in local Skia; not browser or iPhone performance validation",
   "seed": 41,
-  "time": 59.8,
+  "time": 79.4,
   "rows": [
     {
       "name": "desktop",
@@ -10,8 +10,8 @@
       "dpr": 1,
       "backingWidth": 1280,
       "backingHeight": 720,
-      "medianMs": 21.17,
-      "p95Ms": 24.13,
+      "medianMs": 3.85,
+      "p95Ms": 5.84,
       "file": "broadcast-canvas-desktop.png"
     },
     {
@@ -21,8 +21,8 @@
       "dpr": 1,
       "backingWidth": 390,
       "backingHeight": 844,
-      "medianMs": 1.67,
-      "p95Ms": 2.17,
+      "medianMs": 2.61,
+      "p95Ms": 5.08,
       "file": "broadcast-canvas-phone.png"
     },
     {
@@ -32,8 +32,8 @@
       "dpr": 1,
       "backingWidth": 844,
       "backingHeight": 390,
-      "medianMs": 1.55,
-      "p95Ms": 2.22,
+      "medianMs": 1.39,
+      "p95Ms": 1.85,
       "file": "broadcast-canvas-phone-landscape.png"
     },
     {
@@ -43,8 +43,8 @@
       "dpr": 1,
       "backingWidth": 1280,
       "backingHeight": 720,
-      "medianMs": 1.9,
-      "p95Ms": 2.53,
+      "medianMs": 2.67,
+      "p95Ms": 3.59,
       "file": "broadcast-canvas-downed.png"
     },
     {
@@ -54,8 +54,8 @@
       "dpr": 1,
       "backingWidth": 1280,
       "backingHeight": 720,
-      "medianMs": 18.56,
-      "p95Ms": 22.02,
+      "medianMs": 1.94,
+      "p95Ms": 4.22,
       "file": "broadcast-canvas-collier-downed.png"
     },
     {
@@ -65,8 +65,8 @@
       "dpr": 1,
       "backingWidth": 1280,
       "backingHeight": 720,
-      "medianMs": 2.52,
-      "p95Ms": 3.39,
+      "medianMs": 2.38,
+      "p95Ms": 2.93,
       "file": "broadcast-canvas-collier-crawl.png"
     },
     {
@@ -76,8 +76,8 @@
       "dpr": 1,
       "backingWidth": 1280,
       "backingHeight": 720,
-      "medianMs": 1.93,
-      "p95Ms": 3.95,
+      "medianMs": 1.56,
+      "p95Ms": 1.88,
       "file": "broadcast-canvas-walk.png"
     },
     {
@@ -87,8 +87,8 @@
       "dpr": 1,
       "backingWidth": 1280,
       "backingHeight": 720,
-      "medianMs": 1.87,
-      "p95Ms": 2.27,
+      "medianMs": 1.92,
+      "p95Ms": 2.63,
       "file": "broadcast-canvas-crouch.png"
     },
     {
@@ -98,8 +98,8 @@
       "dpr": 1,
       "backingWidth": 1280,
       "backingHeight": 720,
-      "medianMs": 1.5,
-      "p95Ms": 2.84,
+      "medianMs": 1.44,
+      "p95Ms": 1.98,
       "file": "broadcast-canvas-team-visibility.png"
     },
     {
@@ -109,8 +109,8 @@
       "dpr": 1,
       "backingWidth": 1280,
       "backingHeight": 720,
-      "medianMs": 2.21,
-      "p95Ms": 2.76,
+      "medianMs": 1.98,
+      "p95Ms": 2.46,
       "file": "broadcast-canvas-tactical.png"
     },
     {
@@ -120,8 +120,8 @@
       "dpr": 3,
       "backingWidth": 1170,
       "backingHeight": 2532,
-      "medianMs": 47.17,
-      "p95Ms": 73.5,
+      "medianMs": 9.61,
+      "p95Ms": 16.86,
       "file": "broadcast-canvas-phone-touch.png"
     },
     {
@@ -131,8 +131,8 @@
       "dpr": 2,
       "backingWidth": 720,
       "backingHeight": 1600,
-      "medianMs": 1.95,
-      "p95Ms": 2.71,
+      "medianMs": 1.87,
+      "p95Ms": 4.22,
       "file": "broadcast-canvas-phone-small.png"
     },
     {
@@ -142,8 +142,8 @@
       "dpr": 3,
       "backingWidth": 1290,
       "backingHeight": 2796,
-      "medianMs": 55.53,
-      "p95Ms": 68.29,
+      "medianMs": 9.07,
+      "p95Ms": 56.29,
       "file": "broadcast-canvas-phone-large.png"
     },
     {
@@ -153,8 +153,8 @@
       "dpr": 2.625,
       "backingWidth": 1081,
       "backingHeight": 2401,
-      "medianMs": 41.04,
-      "p95Ms": 48.82,
+      "medianMs": 7.01,
+      "p95Ms": 9.2,
       "file": "broadcast-canvas-phone-android.png"
     },
     {
@@ -164,8 +164,8 @@
       "dpr": 3,
       "backingWidth": 2532,
       "backingHeight": 1170,
-      "medianMs": 3.4,
-      "p95Ms": 3.74,
+      "medianMs": 3.94,
+      "p95Ms": 9.25,
       "file": "broadcast-canvas-phone-retina-landscape.png"
     },
     {
@@ -175,8 +175,8 @@
       "dpr": 2,
       "backingWidth": 1731,
       "backingHeight": 2309,
-      "medianMs": 3.73,
-      "p95Ms": 10,
+      "medianMs": 4.08,
+      "p95Ms": 10.9,
       "file": "broadcast-canvas-tablet.png"
     }
   ]
