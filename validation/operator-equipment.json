@@ -1,6 +1,6 @@
 {
   "scope": "Node Canvas; no browser",
-  "equipmentDirectionCases": 320,
+  "equipmentDirectionCases": 224,
   "sidearmSprites": 8,
   "shieldSprites": 2,
   "checks": [

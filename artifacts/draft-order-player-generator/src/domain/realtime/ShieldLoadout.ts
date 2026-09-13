@@ -11,10 +11,10 @@ export class ShieldLoadout {
   constructor(primary:{name:string;profile:AmmoProfile},secondary?:{name:string;profile:AmmoProfile}) {
     this.slots=[primary,...secondary?[secondary]:[]].map(item=>({...item,ammo:item.profile.magazineSize,reserveAmmo:item.profile.reserveAmmo}));
   }
-  update(unit:RealtimeUnitState,now:number,threat:boolean,wantsShield:boolean,forceSecondary:boolean):{profile:AmmoProfile;switched:boolean} {
+  update(unit:RealtimeUnitState,now:number,threat:boolean,wantsShield:boolean):{profile:AmmoProfile;switched:boolean} {
     if(threat)this.lastThreat=now;
     // 발사 쿨다운마다 주/부무기를 왕복하지 않고 접촉이 끊긴 뒤 복귀합니다.
-    const desired=forceSecondary&&this.slots.length>1&&(threat||now-this.lastThreat<.8)?1:0;
+    const desired=this.slots.length>1&&(wantsShield||threat||now-this.lastThreat<.8)?1:0;
     let switched=false;
     if(desired!==this.active&&unit.reloadRemaining<=0&&now>=(unit.weaponReadyAt??0)){
       this.slots[this.active].ammo=unit.ammo;this.slots[this.active].reserveAmmo=unit.reserveAmmo;
@@ -25,9 +25,9 @@ export class ShieldLoadout {
       unit.weaponReadyAt=now+.45;unit.cooldown=Math.max(unit.cooldown,.45);switched=true;
     }
     unit.weaponSlot=this.active===1?'secondary':'primary';
-    // 교체·장전 중에는 방패를 내립니다. 보조무장이 없으면 강제 조건에서 들지 않습니다.
+    // 교체·장전 중에는 방패를 내립니다. 보조무장이 없으면 방패를 들지 않습니다.
     unit.shieldRaised=wantsShield&&unit.alive&&!unit.downed&&unit.reloadRemaining<=0
-      &&now>=(unit.weaponReadyAt??0)&&(!forceSecondary||this.active===1);
+      &&now>=(unit.weaponReadyAt??0)&&this.active===1;
     return {profile:this.slots[this.active].profile,switched};
   }
 }

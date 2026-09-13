@@ -49,8 +49,6 @@ export interface TacticalRealtimeSimulationInput {
   attackStyle?: 'balanced'|'smoke'|'breach';
   defenseStyle?: 'crossfire'|'roam'|'anchor';
   defensePreparation?: 'camera'|'reinforce'|'shield';
-  /** 휴대 방패 사용 시 실제 보조무장을 강제합니다. 생략 시 켜짐. */
-  shieldRequiresSecondary?: boolean;
   anticipatedEntry?: number;
   reinforcementIds?: string[];
 }
@@ -933,7 +931,7 @@ export class TacticalRealtimeSimulation {
         }
         const shieldLoadout=shieldLoadouts.get(unit.id);
         if(shieldLoadout){
-          const equipment=shieldLoadout.update(unit,now,Boolean(seen),Boolean(seen)&&(unit.cooldown>0||losingPosition),input.shieldRequiresSecondary??true);
+          const equipment=shieldLoadout.update(unit,now,Boolean(seen),Boolean(seen)&&(unit.cooldown>0||losingPosition));
           weapon={name:unit.weaponName,profile:equipment.profile};
           if(equipment.switched)log({time:now,type:'action',actor:unit.id,side:unit.side,position:{...unit.position},goal:'weapon-switched',message:unit.weaponName+' 전환 · 방패 운용'});
         } else unit.shieldRaised=false;

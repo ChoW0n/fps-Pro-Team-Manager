@@ -92,9 +92,9 @@ export function weaponMountPose(name:string):WeaponMountPose {
 /** 방패의 표시용 장착. 총기 장착 기준은 유지하고 몸의 투영과 분리합니다. */
 export function equipmentMountPose(unit:RealtimeUnitState):WeaponMountPose {
   const mount=weaponMountPose(unit.weaponName??'');
-  if(unit.shieldRaised){
-    const shift=(p:Point):Point=>({x:p.x+(mount.kind==='pistol'?7:0),y:p.y+9});
-    return {...mount,stock:shift(mount.stock),muzzle:shift(mount.muzzle),triggerHand:shift(mount.triggerHand),magazine:shift(mount.magazine),supportHand:{...HANDHELD_SHIELD.hand},triggerShoulder:mount.kind==='pistol'?{x:1,y:7}:mount.triggerShoulder};
+  if(unit.shieldRaised&&mount.kind==='pistol'){
+    const shift=(p:Point):Point=>({x:p.x+3,y:p.y+8});
+    return {...mount,stock:shift(mount.stock),muzzle:shift(mount.muzzle),triggerHand:shift(mount.triggerHand),magazine:shift(mount.magazine),supportHand:{...HANDHELD_SHIELD.hand},triggerShoulder:{x:-5,y:5},supportShoulder:{x:-3,y:-9}};
   }
   return mount;
 }
@@ -229,7 +229,7 @@ function paintHeadAndKit(ctx:CanvasRenderingContext2D,color:string,pack:number,t
  */
 export function paintModularOperator(ctx:CanvasRenderingContext2D,unit:RealtimeUnitState,time:number,shotAt:number|undefined,asset:PartLoader,reducedMotion=false,motion:OperatorMotion={}):boolean {
   const pose=operatorAssemblyPose(unit),kit=KITS[unit.callSign]??KITS.MAGPIE,down=Boolean(unit.downed)||!unit.alive;
-  const shielding=Boolean(unit.shieldRaised)&&!pose.inactive;
+  const shielding=Boolean(unit.shieldRaised)&&pose.weapon?.kind==='pistol'&&!pose.inactive;
   const thrown=motion.thrown,throwAge=thrown?.thrownAt===undefined?-1:time-thrown.thrownAt;
   const throwing=!down&&!shielding&&unit.action!=='reload'&&throwAge>=0&&throwAge<.45;
   const installing=!down&&!shielding&&(unit.action==='plant'||unit.action==='disable'||unit.action==='utility'&&/설치/.test(unit.goal??''));
@@ -249,9 +249,10 @@ export function paintModularOperator(ctx:CanvasRenderingContext2D,unit:RealtimeU
   const reach=reducedMotion?0:motion.frame?.reloadReach??reloadReach(unit,time,motion);
   if(reach>0&&!shielding)supportTarget=displaced(mix(mount.supportHand,mount.magazine,reach));
   if(installing){triggerTarget={x:8,y:5};supportTarget={x:9,y:-5};}
-  const triggerArm=solveArm(mount.triggerShoulder,triggerTarget,shielding&&mount.kind==='pistol'?10:8,shielding&&mount.kind==='pistol'?10:9,-1);
+  // 방패 자세는 화면에 투영된 어깨→손 경로를 사용합니다. 고정 길이 IK의 역꺾임을 피합니다.
+  const triggerArm=shielding?{shoulder:mount.triggerShoulder,elbow:mix(mount.triggerShoulder,triggerTarget,.5),hand:triggerTarget}:solveArm(mount.triggerShoulder,triggerTarget,8,9,-1);
   // 방패 팔은 과도한 옆꺾임 없이 짧게 투영된 위팔·아래팔로 손잡이에 닿습니다.
-  let supportArm=solveArm(mount.supportShoulder,supportTarget,shielding?8:mount.kind==='pistol'?7+5*reach:12,shielding?10:mount.kind==='pistol'?8+4*reach:12,shielding?-1:1);
+  let supportArm=shielding?{shoulder:mount.supportShoulder,elbow:{x:3,y:-9},hand:supportTarget}:solveArm(mount.supportShoulder,supportTarget,mount.kind==='pistol'?7+5*reach:12,mount.kind==='pistol'?8+4*reach:12,1);
   if(throwing){const thrownPose=throwArmPose(throwProgress);supportArm={shoulder:mount.supportShoulder,elbow:thrownPose.elbow,hand:thrownPose.hand};}
   strokeArm(ctx,supportArm,kit.color,shielding);strokeArm(ctx,triggerArm,kit.color,shielding);
   // 탑뷰에서 아래로 내려간 위팔은 흉곽/어깨 아래에 가립니다.
