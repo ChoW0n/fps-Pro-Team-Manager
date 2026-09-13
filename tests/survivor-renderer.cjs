@@ -1,7 +1,7 @@
 // 실제 원본 파츠 PNG와 활성 렌더러를 실행합니다. 브라우저는 사용하지 않습니다.
 const fs=require('node:fs'),assert=require('node:assert/strict'),ts=require('typescript');
 require.extensions['.ts']=(m,f)=>m._compile(ts.transpileModule(fs.readFileSync(f,'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText,f);
-const {createCanvas}=require('@napi-rs/canvas');
+const {createCanvas,loadImage}=require('@napi-rs/canvas');
 const {paintModularOperator,modularMuzzlePosition,equipmentMountPose,OperatorAnimator}=require('../artifacts/draft-order-player-generator/src/components/modularOperator.ts');
 const {weaponPart,weaponMuzzleOffset}=require('../artifacts/draft-order-player-generator/src/components/weaponParts.ts');
 const {OPERATORS}=require('../artifacts/draft-order-player-generator/src/domain/Operator.ts');
@@ -16,6 +16,9 @@ const base={id:'survivor',callSign:'REUSS',side:'수비',weaponName:'HK417',posi
   assert(calls.some(x=>x.im===asset('survivor/torso.png')));assert(calls.some(x=>x.im===asset('survivor/arm.png')));
   const layer=name=>calls.findIndex(x=>x.im===asset('survivor/'+name+'.png'));
   assert(layer('torso')<layer('forearm')&&layer('forearm')<layer('head'),'몸통이 아래팔을 덮지 않고 머리는 팔 위에 표시');
+  for(const name of ['torso','head','backpack']){
+   const draw=calls[layer(name)].args;assert(Math.abs(draw[7]/draw[8]-draw[3]/draw[4])<1e-7,'원본 신체 파츠 종횡비: '+name);
+  }
   const weapon=calls.filter(x=>x.args.length===5&&x.im!==asset('effects/handheld-shield-v3.png')).at(-1);assert(weapon,'총기 썸네일 그리기');
   const muzzle=modularMuzzlePosition(u,1.07,1);assert(Math.abs(weapon.m.e-muzzle.x-80)<1e-4);assert(Math.abs(weapon.m.f-muzzle.y-80)<1e-4);
   const hand=calls.find(x=>x.im===asset('survivor/hand_holding_gun.png'));const mount=equipmentMountPose(u),x=mount.triggerHand.x-1.2,y=mount.triggerHand.y;
@@ -49,6 +52,15 @@ const base={id:'survivor',callSign:'REUSS',side:'수비',weaponName:'HK417',posi
   ctx.save();ctx.translate(x+125,y+145);ctx.scale(4,4);paintModularOperator(ctx,{...base,...extra},1,undefined,asset,false,{reloadStartedAt:.3});ctx.restore();
  }
  fs.writeFileSync('validation/survivor-operator-sheet.png',sheet.toBuffer('image/png'));
+ const comparison=createCanvas(900,520),cc=comparison.getContext('2d');cc.fillStyle='#263237';cc.fillRect(0,0,900,520);
+ for(const [row,name,weaponName] of [[0,'rifle','L119A2 카빈'],[1,'pistol','HK USP']]){
+  const original=await loadImage('art-source/survivor/reference-'+name+'.png');
+  cc.fillStyle='#E5ECE9';cc.font='18px sans-serif';cc.fillText('ORIGINAL / '+name.toUpperCase(),25,row*260+30);cc.fillText('GAME / '+name.toUpperCase(),475,row*260+30);
+  // 원본과 게임 모두 머리 폭을 같은 크기로 맞춰 비율을 비교합니다.
+  cc.drawImage(original,30,row*260+45,original.width*.8,original.height*.8);
+  cc.save();cc.translate(580,row*260+140);cc.scale(4,4);paintModularOperator(cc,{...base,weaponName},1,undefined,asset);cc.restore();
+ }
+ fs.writeFileSync('validation/survivor-reference-comparison.png',comparison.toBuffer('image/png'));
  fs.writeFileSync('validation/survivor-renderer.json',JSON.stringify({scope:'Node Canvas; no browser',cases,checks:['source PNG assembly','weapon texture and muzzle alignment','trigger contact during recoil','hands below gun','readonly unit state','distance-driven feet','no primary shield','inactive unarmed']},null,2)+'\n');
  console.log('PASS '+cases+' survivor equipment/facing cases, source parts and simulation isolation');
 })().catch(e=>{console.error(e);process.exitCode=1;});

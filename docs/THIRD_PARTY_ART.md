@@ -13,3 +13,5 @@
 - 원작자의 후원이나 보증을 의미하지 않는다. 위 CC BY 조건은 해당 원본 및 그 파생 아트에 적용한다.
 
 재현: 원본 페이지의 두 ZIP을 내려받은 뒤 `python scripts/import-survivor.py --spine <Spine-ZIP> --frames <프레임-ZIP>` 실행. Python/Pillow는 제작 도구이며 앱 실행 의존성이 아니다.
+
+검증용 reference-rifle.png / reference-pistol.png는 같은 저작자의 원본 idle 0번 프레임이며 원본 CC BY 3.0 표기를 따른다. 원본/게임 비교 이미지에서 왼쪽은 원본, 오른쪽은 수정된 게임 조립이다.

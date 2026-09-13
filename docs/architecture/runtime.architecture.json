@@ -1,0 +1,182 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "DRAFT ORDER · 현재 경기 구조",
+    "quality_profile": "showcase"
+  },
+  "components": [
+    {
+      "id": "manager",
+      "type": "frontend",
+      "label": "감독의 경기 준비",
+      "sublabel": "선수 · 오퍼레이터 · 전술",
+      "pos": [
+        60,
+        80
+      ],
+      "size": [
+        210,
+        70
+      ]
+    },
+    {
+      "id": "match",
+      "type": "frontend",
+      "label": "경기 진행 화면",
+      "sublabel": "라운드 상태와 관전 제어",
+      "pos": [
+        420,
+        80
+      ],
+      "size": [
+        210,
+        70
+      ]
+    },
+    {
+      "id": "engine",
+      "type": "backend",
+      "label": "전술 시뮬레이션",
+      "sublabel": "5대5 · 판정 · 목표",
+      "pos": [
+        780,
+        80
+      ],
+      "size": [
+        210,
+        70
+      ]
+    },
+    {
+      "id": "rules",
+      "type": "database",
+      "label": "오퍼레이터와 맵",
+      "sublabel": "능력 · 무기 · 통행 데이터",
+      "pos": [
+        780,
+        270
+      ],
+      "size": [
+        210,
+        70
+      ]
+    },
+    {
+      "id": "snapshot",
+      "type": "messagebus",
+      "label": "관전 상태와 사건",
+      "sublabel": "유닛 상태 · 발사 · 피격",
+      "pos": [
+        420,
+        270
+      ],
+      "size": [
+        210,
+        70
+      ]
+    },
+    {
+      "id": "canvas",
+      "type": "frontend",
+      "label": "Canvas 중계",
+      "sublabel": "시야 · 선수 · 사건 표시",
+      "pos": [
+        60,
+        270
+      ],
+      "size": [
+        210,
+        70
+      ]
+    },
+    {
+      "id": "parts",
+      "type": "frontend",
+      "label": "캐릭터 조립",
+      "sublabel": "Survivor · 총기 · 방패",
+      "pos": [
+        60,
+        460
+      ],
+      "size": [
+        210,
+        70
+      ]
+    },
+    {
+      "id": "audio",
+      "type": "frontend",
+      "label": "전투 음향",
+      "sublabel": "게임 사건에 따른 재생",
+      "pos": [
+        420,
+        460
+      ],
+      "size": [
+        210,
+        70
+      ]
+    }
+  ],
+  "connections": [
+    {
+      "from": "manager",
+      "to": "match",
+      "label": "편성",
+      "variant": "emphasis"
+    },
+    {
+      "from": "match",
+      "to": "engine",
+      "label": "진행",
+      "variant": "emphasis"
+    },
+    {
+      "from": "rules",
+      "to": "engine",
+      "label": "규칙"
+    },
+    {
+      "from": "engine",
+      "to": "snapshot",
+      "label": "상태"
+    },
+    {
+      "from": "snapshot",
+      "to": "canvas",
+      "label": "관전",
+      "variant": "emphasis"
+    },
+    {
+      "from": "canvas",
+      "to": "parts",
+      "label": "그리기",
+      "labelDy": 50
+    },
+    {
+      "from": "snapshot",
+      "to": "audio",
+      "label": "사건",
+      "labelDy": 50
+    }
+  ],
+  "cards": [
+    {
+      "dot": "emerald",
+      "title": "현재 기준",
+      "items": [
+        "인체 비율은 Survivor 원본 우선",
+        "외형 변경은 전투 판정과 분리"
+      ]
+    },
+    {
+      "dot": "amber",
+      "title": "다음 집중 영역",
+      "items": [
+        "AI 판단 왕복과 통행 안정화",
+        "실기기 관전 확인은 별도"
+      ]
+    }
+  ]
+}

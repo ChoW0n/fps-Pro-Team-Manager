@@ -1,0 +1,125 @@
+[
+  {
+    "commits": [
+      {
+        "message": "오퍼레이터를 무기 기준 조립식 레이어로 전환",
+        "remoteEquivalent": null,
+        "sha": "8a5ef8c07919977bed96efc140d5444bc745d54b",
+        "tree": "4ead87076e2507fcff4568e0ebee6a32f6ffe449"
+      },
+      {
+        "message": "Merge pull request #14 from ChoW0n/feat/broadcast-event-motion",
+        "remoteEquivalent": "a6e595dd80e60938a302483f567f9e70d9dea842",
+        "sha": "a6e595dd80e60938a302483f567f9e70d9dea842",
+        "tree": "29292e7fe63cbe404afd71aae3129820a2db1478"
+      },
+      {
+        "message": "Canvas 병렬 검사 임시 자산 격리",
+        "remoteEquivalent": "a6e595dd80e60938a302483f567f9e70d9dea842",
+        "sha": "f4795759724d2a9ae857dd1f74430a2e218bec1f",
+        "tree": "29292e7fe63cbe404afd71aae3129820a2db1478"
+      },
+      {
+        "message": "경기 중계 사건 연출 연결",
+        "remoteEquivalent": "54351eba476e36bfaa8b6605b38f3232add86931",
+        "sha": "54351eba476e36bfaa8b6605b38f3232add86931",
+        "tree": "ba3d721dfb7e5950326e62bdef1080f48efd22e9"
+      },
+      {
+        "message": "경기 중계 사건 연출 연결",
+        "remoteEquivalent": "75d00361e97a5b452b90a37e1e23627a55660441",
+        "sha": "75d00361e97a5b452b90a37e1e23627a55660441",
+        "tree": "714cf0c7b1d74fbfa8b1f60634aed17e9501d5ba"
+      },
+      {
+        "message": "경기 중계 사건 연출 연결",
+        "remoteEquivalent": "7b3dc14616a05f5a373f3b286cda4f3e0a4313d1",
+        "sha": "7b3dc14616a05f5a373f3b286cda4f3e0a4313d1",
+        "tree": "a77a22709862e6b8537e78939d0442aef86a61f7"
+      }
+    ],
+    "path": "/workspace/scratch/6114ee834a75"
+  },
+  {
+    "commits": [
+      {
+        "message": "사용자 승인 아트 기준 확정과 다음 채팅 인수인계 기록",
+        "remoteEquivalent": "ed403e598966bf259ceb2cf520188d86c400fdf8",
+        "sha": "db8aeb338796a8a319982c1fd81431e18605094d",
+        "tree": "82d153ef556bf53d1bd8804ad8289a1d11e66666"
+      },
+      {
+        "message": "등 뒤로 돌출되던 다리와 군화의 탑뷰 투영 보정",
+        "remoteEquivalent": "36c72b7859569d26b3c1207c160a9e8a60853ec7",
+        "sha": "b474dd1212e3e670015f2a4d986efe7232307007",
+        "tree": "93ae88375a4fca701f2a59b08b256cb8c422e215"
+      },
+      {
+        "message": "머리 크기를 유지하고 몸통·하체·군장을 슬림하게 보정",
+        "remoteEquivalent": "6d160278d4948aa554db56db44401854a00f13a2",
+        "sha": "c2fea58093ec07cdf990fcbf15e29a934b580705",
+        "tree": "0e0f792a1d24f587c8c0cde3e00587a95586364d"
+      },
+      {
+        "message": "사용자 반려한 머리 위 팔 고리 수정 및 외형 품질 판정 철회",
+        "remoteEquivalent": "c5ae6936b7bf1272b9accb644a256c366a632230",
+        "sha": "0634fb865b48e2ff0db2ab6c71cdf7c92f89c004",
+        "tree": "fa1f4afe16194d2e611fce32215ade005338714a"
+      },
+      {
+        "message": "총기 견착을 몸 중심으로 보정하고 C14 전용 자세와 양손 접촉 검증",
+        "remoteEquivalent": "def1592a5b63f413ae5ed3c89168734bfc785176",
+        "sha": "4283c0788004ee82d11e7508e295131d7725e286",
+        "tree": "e55629f21ce1e68ab0ee701c17fb7cae94898c03"
+      },
+      {
+        "message": "오퍼레이터를 무기 기준 조립식 레이어로 전환",
+        "remoteEquivalent": "2a02c653c93f2f79c165fae144194373455ca502",
+        "sha": "2a02c653c93f2f79c165fae144194373455ca502",
+        "tree": "625826b811d40698ec59a236dcef109175f108de"
+      }
+    ],
+    "path": "/workspace/scratch/f094f8b03b47/fps-Pro-Team-Manager"
+  },
+  {
+    "commits": [
+      {
+        "message": "Survivor 원본 파츠 기반 캐릭터 렌더러 및 이동 애니메이션 도입",
+        "remoteEquivalent": "430dea972e071a1793df20cecf1f5c99ebfba724",
+        "sha": "3a75d555e95483ebfd1f86babe1dcf0f142107f8",
+        "tree": "e093d4e1fb35f67160856cd587153de062569594"
+      },
+      {
+        "message": "몸통 전면 돌출 정리 및 앉아 조준 하체 개선",
+        "remoteEquivalent": "5c25afaf7bd97af0bd94fdb531f4bf1959b1a41a",
+        "sha": "5c25afaf7bd97af0bd94fdb531f4bf1959b1a41a",
+        "tree": "3df806e4f6e5c228bc8f17452135432fd1160751"
+      },
+      {
+        "message": "방패 보조무장 규칙 고정 및 팔 연결 자세 정정",
+        "remoteEquivalent": "10b87fe10b49808594855f681084258810f85c35",
+        "sha": "10b87fe10b49808594855f681084258810f85c35",
+        "tree": "7fc58f16864d184ee83dfddcad803136f82010ee"
+      },
+      {
+        "message": "포복 외형 제거 및 방패 위치와 권총 팔 수정",
+        "remoteEquivalent": "1981db43ecde1454fb719461801907964c136a4d",
+        "sha": "1981db43ecde1454fb719461801907964c136a4d",
+        "tree": "8e00a34c5f08176ab7130d76645051ae6cf233f1"
+      },
+      {
+        "message": "승인 포복·방패 자세를 게임에 도입하고 하부 파지 구현",
+        "remoteEquivalent": "78ccc7acd42c3cc0eaee71d79398b803bbdcda9f",
+        "sha": "78ccc7acd42c3cc0eaee71d79398b803bbdcda9f",
+        "tree": "aa8dd76eda1bda4ce1ceaf813d00ff4eff08d725"
+      },
+      {
+        "message": "반려된 체형·포복을 재작업하고 중앙 지지 방패 자세 설계",
+        "remoteEquivalent": "3704527e3ca910c419821a1a514a3786ea9f6680",
+        "sha": "3704527e3ca910c419821a1a514a3786ea9f6680",
+        "tree": "0972a3f798e97afb16a08545ba73483505f3fe55"
+      }
+    ],
+    "path": "/workspace/scratch/46dcb092ba2f/project"
+  }
+]

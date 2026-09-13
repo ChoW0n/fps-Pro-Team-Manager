@@ -104,6 +104,25 @@ node --test scripts/codex-auto.test.mjs
 
 현재 요청의 완료 조건 중 실제 `--check` 성공, 실제 `--verify`, 3단계 실행, 2개 이상 모델 전환은 충족하지 못했다. 속도·품질 최적화 역시 실측하지 않았다.
 
+## 2026-09-12 Codex Cloud 재검증
+
+작업 시작 시 저장소에는 `main` 브랜치와 Git remote가 없었다. 따라서 원격 최신 `main`을 가져오거나 대조할 수 없었으며, 제공된 최신 로컬 기준인 `e0602dc1d3036e54b27c4a68e8600d15c677c2c4`에서 검증했다. 이 제약을 최신 `main` 확인 성공으로 간주하지 않는다.
+
+이 Cloud worker에는 호출 가능한 `/opt/codex/bin/codex`가 있고 버전은 `codex-cli 0.144.0-alpha.4`이다. 그러나 `/opt/codex/bin/codex login status`는 `Not logged in`과 종료 코드 1을 반환했다. 부모 ChatGPT/Codex 작업 세션의 인증은 이 자식 프로세스의 Codex home으로 위임되지 않았다. API 키 관련 환경 변수는 설정되지 않았고, 로그인·토큰 복사·별도 과금으로 우회하지 않았다.
+
+| 항목 | 실제 관찰 | 판정 |
+|---|---|---|
+| 로컬 기준 | Git remote와 `main` ref 없음; HEAD `e0602dc1d3036e54b27c4a68e8600d15c677c2c4` | 원격 최신 main 확인 불가 |
+| 실행기 | `/opt/codex/bin/codex --version`: `codex-cli 0.144.0-alpha.4` | 자식 프로세스에서 호출 가능 |
+| 인증 경계 | `/opt/codex/bin/codex login status`: `Not logged in`, 종료 1 | 부모 세션 인증 미위임 |
+| 실제 `--check` | `CHATGPT_LOGIN_REQUIRED`, 종료 1 | 미통과; 서버·모델 조회 전 중단 |
+| 실제 `--verify` | 같은 오류, 종료 1; 안전한 임시 감사 파일에 실패 1건 기록 후 삭제 | 미통과; 모델 호출 없음 |
+| FAST / NORMAL / DEEP | 실제 완료 작업 각각 0개 | 모두 미검증 |
+| 서로 다른 런타임 모델 ID | 완료 모델 0개 | 최소 2개 조건 미충족 |
+| 오프라인 테스트 | Node v20.20.2에서 28/28 통과 | 모의 검증일 뿐 실제 실행 증거 아님 |
+
+이번 재검증은 로그인되지 않은 상태를 이미 올바르게 차단했으므로 라우터나 테스트의 성공 기준을 바꾸지 않았다. 다음 실제 검증은 자식 프로세스에 공식 ChatGPT 로그인이 위임된 worker에서 동일 명령을 실행해야 한다. 부모 작업 UI의 로그인만으로 자식 CLI 인증을 추정하지 않는다.
+
 ## 공식 인터페이스 대조
 
 설치된 실행기의 `app-server generate-ts --experimental`로 스키마를 생성하여 `ThreadStartParams`, `ThreadStartResponse`, `TurnStartParams`, `Turn`, `Thread`, `ThreadSettingsUpdatedNotification`, `ModelReroutedNotification`을 확인했다. 생성 스키마 전체나 인증 자료는 저장소에 추가하지 않았다.

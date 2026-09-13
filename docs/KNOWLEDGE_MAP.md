@@ -22,10 +22,10 @@
 
 | 작업 | 두 번째 문서 | 필요할 때 세 번째 문서 |
 |---|---|---|
-| 현재 상태·이어하기 | `docs/PROJECT_STATE.md` | 해당 `*-current.md` |
+| 현재 상태·이어하기 | `docs/PROJECT_STATE.md` | `docs/NEXT_WORK.md` |
 | 맵·레벨 디자인 | `docs/namsan-map-current.md` | `docs/level-design-and-vertical-combat.md`의 해당 단계 |
 | AI·전투·밸런스 QA | `docs/qa-remediation-current.md` | `docs/2026-09-12-qa-debrief.md` |
-| 스프라이트·무기·오퍼레이터 | `docs/sprite-production-current.md` | `docs/weapon-art-standard.md` |
+| 스프라이트·무기·오퍼레이터 | `docs/ART_APPROVED.md` | `docs/survivor-renderer-current.md` |
 | 모바일·관전 UI | `docs/mobile-qa-stack-20260912.md` | 관련 테스트 파일 |
 | 자동 실행·모델 라우팅 | `docs/CODEX_AUTO.md` | 실행 로그 또는 스크립트 |
 | 기획 원칙 확인 | 마스터프롬프트의 관련 절 | `docs/PROJECT_STATE.md` |
@@ -65,3 +65,12 @@ Library 자료를 구현 근거로 썼다면, 결론과 검증 결과를 저장�
 - 세부 QA·아트 작업은 해당 `*-current.md`에 이어 쓴다.
 - 완료·미완료·다음 1~3개를 분리한다.
 - 새 전달 ZIP은 꼭 필요한 경우에만 만들고, 만든다면 Library 보관 구역에 둔다.
+
+## 통합된 작업 입구
+
+- `docs/planning/README.md`: 경기 명세·작업 분해·UI 설계 원문 3종
+- `docs/architecture/runtime.html`: Archify로 생성한 현재 경기 구조
+- `docs/WORK_RECONCILIATION_20260913.md`: PR와 로컬 변경 대조
+- `docs/NEXT_WORK.md`: 다음 채팅에서 실행할 단일 티켓
+
+현재 상태 문서에 “최신” 단락을 계속 덧붙이지 않는다. 현재 본문을 갱신하고 과거 증거는 이력·커밋으로 연결한다.

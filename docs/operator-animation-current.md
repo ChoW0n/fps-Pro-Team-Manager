@@ -1,3 +1,5 @@
+> 이 문서는 단계별 이력입니다. 현재 아트 기준은 [ART_APPROVED.md](ART_APPROVED.md), 다음 작업은 [PROJECT_STATE.md](PROJECT_STATE.md)를 따릅니다.
+
 > 후속: [보조무장 8종·포복/방패 파지](operator-equipment-current.md)를 구현했다. 아래 40개 승인 비교는 교체 전 권총 원화 시점의 기록이며 현재는 기존 주무기 24개와 새 장비 검사로 구분한다.
 
 # 승인 외형 유지 · 기본 동작 전환 — 2026-09-13
