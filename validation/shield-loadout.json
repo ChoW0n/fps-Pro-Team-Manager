@@ -1,0 +1,28 @@
+{
+  "scope": "actual engine seed 41 + inventory contracts; no browser",
+  "rows": [
+    {
+      "enabled": true,
+      "snapshots": 707,
+      "raised": 16,
+      "switches": 3,
+      "shots": 4
+    },
+    {
+      "enabled": false,
+      "snapshots": 1191,
+      "raised": 66,
+      "switches": 0,
+      "shots": 13
+    }
+  ],
+  "checks": [
+    "slot ammo conservation",
+    "reload isolation",
+    "switch delay",
+    "contact hysteresis",
+    "option on/off",
+    "missing secondary",
+    "actual shield uses pistol"
+  ]
+}

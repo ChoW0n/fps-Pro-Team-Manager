@@ -16,8 +16,7 @@
   ],
   "limits": [
     "New art awaits user feedback",
-    "No secondary weapon selection logic",
-    "Shield raised reload/throw hand transitions not added",
+    "No full draw/holster animation",
     "No real-device or performance gate claim"
   ]
 }

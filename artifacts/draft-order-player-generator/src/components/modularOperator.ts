@@ -81,7 +81,9 @@ export function weaponMountPose(name:string):WeaponMountPose {
   const stock=kind==='pistol'?{x:8,y:0}:shoulderPocket;
   const muzzle={x:stock.x+part.length,y:stock.y};
   const trigger=add(muzzle,part.gripPoint),rawSupport=add(muzzle,part.supportPoint),magazine=add(muzzle,part.magazinePoint);
-  const support=kind==='bolt'?mix(magazine,rawSupport,.22):kind==='marksman'?mix(magazine,rawSupport,.55):kind==='pistol'?{x:trigger.x+1.4,y:trigger.y-1.2}:rawSupport;
+  // 권총 손목은 슬라이드 중심보다 손잡이 아래에 둡니다.
+  if(kind==='pistol')trigger.y+=1.5;
+  const support=kind==='bolt'?mix(magazine,rawSupport,.22):kind==='marksman'?mix(magazine,rawSupport,.55):kind==='pistol'?{x:trigger.x-1,y:trigger.y-1.5}:rawSupport;
   return {kind,stock,triggerHand:trigger,supportHand:support,magazine,muzzle,
     torsoYaw,shoulderPocket,
     triggerShoulder:rotate({x:-1,y:6}),supportShoulder:rotate({x:1,y:-5.5}),cheek:{x:stock.x+5,y:stock.y-3.5}};
@@ -257,20 +259,27 @@ export function paintModularOperator(ctx:CanvasRenderingContext2D,unit:RealtimeU
   if(reach>0&&!shielding)supportTarget=displaced(mix(mount.supportHand,mount.magazine,reach));
   if(installing){triggerTarget={x:8,y:5};supportTarget={x:9,y:-5};}
   const triggerArm=solveArm(mount.triggerShoulder,triggerTarget,8,9,-1);
-  let supportArm=solveArm(mount.supportShoulder,supportTarget,12,12,1);
+  // 방패 팔은 과도한 옆꺾임 없이 짧게 투영된 위팔·아래팔로 손잡이에 닿습니다.
+  let supportArm=solveArm(mount.supportShoulder,supportTarget,shielding?8:12,shielding?10:12,1);
   if(throwing){const thrownPose=throwArmPose(throwProgress);supportArm={shoulder:mount.supportShoulder,elbow:thrownPose.elbow,hand:thrownPose.hand};}
   strokeArm(ctx,supportArm,kit.color);strokeArm(ctx,triggerArm,kit.color);
   // 탑뷰에서 아래로 내려간 위팔은 흉곽/어깨 아래에 가립니다.
   // 손 접촉이 맞아도 팔 뿌리를 헬멧 위에 그리면 고리 모양의 기형이 됩니다.
   ctx.save();ctx.rotate(mount.torsoYaw);if(pose.prone)ctx.scale(1.15,.72);paintTorso(ctx,kit.color);paintHeadAndKit(ctx,kit.color,kit.pack,kit.tool);ctx.restore();
 
+  const pistolHands=mount.kind==='pistol'&&!gunStowed;
+  const wristAngle=(arm:ArmPose)=>Math.atan2(arm.hand.y-arm.elbow.y,arm.hand.x-arm.elbow.x);
+  // 권총은 손잡이를 감싼 손 위에 원화를 얹어 슬라이드가 가려지지 않게 합니다.
+  if(pistolHands){hand(ctx,triggerTarget,wristAngle(triggerArm));if(!shielding)hand(ctx,supportTarget,wristAngle(supportArm));}
   ctx.save();ctx.translate(mount.muzzle.x+offset.x,mount.muzzle.y+offset.y);
   const weaponDrawn=paintWeaponPart(ctx,unit.weaponName??'',asset);ctx.restore();
 
   const shieldDrawn=!shielding||paintHandheldShield(ctx,asset);
   if(!gunStowed){
     const axis=Math.atan2(mount.muzzle.y-mount.stock.y,mount.muzzle.x-mount.stock.x);
-    hand(ctx,triggerTarget,axis+Math.PI/2);hand(ctx,supportTarget,axis+Math.PI/2);
+    if(!pistolHands)hand(ctx,triggerTarget,axis+Math.PI/2);
+    if(shielding)hand(ctx,supportTarget,wristAngle(supportArm));
+    else if(!pistolHands)hand(ctx,supportTarget,axis+Math.PI/2);
   } else {hand(ctx,triggerTarget,0);hand(ctx,supportArm.hand,0);}
 
   ctx.fillStyle=unit.side==='공격'?'#2FD4C4':'#F0873C';ctx.fillRect(-16,-4,2,4);

@@ -40,6 +40,7 @@ export function OperatorPreparation({homeTeam,awayTeam,onStart,onBack,homeSide='
   const awaySide:OperatorSide=homeSide==='공격'?'수비':'공격';
   const [entryRoute,setEntryRoute]=useState(0),[style,setStyle]=useState<'balanced'|'smoke'|'breach'|'crossfire'|'roam'|'anchor'>(homeSide==='공격'?'balanced':'crossfire');
   const [intel,setIntel]=useState<Intel>('direct'),[defensePreparation,setDefensePreparation]=useState<'reinforce'|'camera'|'shield'>('reinforce'),[viewFloor,setViewFloor]=useState(0),[error,setError]=useState('');
+  const [shieldRequiresSecondary,setShieldRequiresSecondary]=useState(true);
   const [lineup,setLineup]=useState<string[]>(()=>automaticLineup(homeTeam,homeSide));
   const opponent=useMemo(()=>planOpponent(history,awaySide,seed),[history,awaySide,seed]);
   const draft=useMemo(()=>{try{return {away:opponentDraft(awayTeam,awaySide,opponent),error:''};}catch(cause){return {away:[],error:cause instanceof Error?cause.message:'상대 자동 편성을 만들지 못했습니다.'};}},[awayTeam,awaySide,opponent]);
@@ -62,6 +63,7 @@ export function OperatorPreparation({homeTeam,awayTeam,onStart,onBack,homeSide='
       defenseStyle:homeSide==='수비'?style as 'crossfire'|'roam'|'anchor':opponent.defenseStyle,
       anticipatedEntry:homeSide==='수비'?entryRoute:opponent.anticipatedEntry,
       defensePreparation:activeDefensePreparation,
+      shieldRequiresSecondary:homeSide==='수비'?shieldRequiresSecondary:true,
       reinforcementIds:homeSide==='수비'?reinforcements:undefined,
       scoutPlan:homeSide==='공격'?{...scoutPlan,entryRoute}:{indices:[],seconds:25,entryRoute:opponent.entry}});
   }catch(cause){setError(cause instanceof Error?cause.message:'작전을 확정하지 못했습니다.');}}
@@ -75,6 +77,7 @@ export function OperatorPreparation({homeTeam,awayTeam,onStart,onBack,homeSide='
       <section className="choice-axis"><h2>방향</h2><p>어느 길로 장면을 시작할지 정합니다.</p><div>{NAMSAN_MAP.attackerRoutes.map((item,index)=><button key={item.id} aria-pressed={entryRoute===index} onClick={()=>setEntryRoute(index)}>{item.label}</button>)}</div><output>{route.label} · {site} 사이트 우선</output></section>
       <section className="choice-axis"><h2>교전 태도</h2><p>선수들이 교전에서 우선할 판단입니다.</p><div>{plans.map(plan=><button key={plan.id} aria-pressed={style===plan.id} onClick={()=>setStyle(plan.id)}>{plan.title}</button>)}</div><strong>{selected.title}</strong><output>{selected.summary} {selected.gain} {selected.risk}</output></section>
       {homeSide==='공격'?<section className="choice-axis"><h2>정보 우선순위</h2><p>양 팀 준비 뒤 빠르게 개시할지, 외곽 탐문을 거칠지 정합니다.</p><div>{INTEL.map(option=><button key={option.id} aria-pressed={intel===option.id} onClick={()=>setIntel(option.id)}>{option.title}</button>)}</div><output>{INTEL.find(option=>option.id===intel)?.summary}</output></section>:<section className="choice-axis"><h2>방어 준비</h2><p>같은 준비 시간에 실제로 설치할 방어 자산을 정합니다.</p><div>{DEFENSE_PREP.map(option=><button key={option.id} aria-pressed={defensePreparation===option.id} onClick={()=>setDefensePreparation(option.id)}>{option.title}</button>)}</div><output>{DEFENSE_PREP.find(option=>option.id===defensePreparation)?.summary}</output></section>}
+      {homeSide==='수비'&&lineup.includes('REUSS')&&<section className="choice-axis"><h2>휴대 방패 운용</h2><label><input type="checkbox" checked={shieldRequiresSecondary} onChange={event=>setShieldRequiresSecondary(event.target.checked)}/> 방패 사용 시 보조무장 강제</label><p>켜면 REUSS가 교전 시 보조무장으로 전환합니다. 끄면 주무기를 유지합니다. 설치형 방패에는 적용하지 않습니다.</p></section>}
       <section className="choice-axis lineup-axis"><h2>전술 라인업</h2><p>선수–오퍼레이터를 1:1로 묶지 않습니다. 선택한 다섯 자리를 선수 역할·능력에 맞춰 자동 배정합니다.</p><div>{OPERATORS.filter(operator=>operator.side===homeSide).map(operator=><button key={operator.callSign} aria-pressed={lineup.includes(operator.callSign)} onClick={()=>setLineup(current=>current.includes(operator.callSign)?current.filter(name=>name!==operator.callSign):current.length<5?[...current,operator.callSign]:current)}>{operator.callSign}</button>)}</div><output>{lineup.length}/5 선택 · <button onClick={()=>setLineup(automaticLineup(homeTeam,homeSide))}>자동 추천 복원</button></output></section>
     </div>
     {error||draft.error||lineup.length!==5?<p role="alert" className="op-prep-error">{error||draft.error||(lineup.length<5?'라인업 다섯 자리를 선택해 주세요.':'')}</p>:null}
