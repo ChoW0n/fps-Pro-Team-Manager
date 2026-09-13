@@ -8,7 +8,12 @@ for(const required of ['cast-decisions','선수 판단 피드','unit.decision','
 for(const required of ["'prep'|'combat'|'plant'|'end'",'roundBroadcastPhase','cast-round-flow','aria-current','aliveBySide',"phaseDetail"])assert(live.includes(required),'모바일 라운드 흐름 '+required);
 assert(/if\(ended\|\|objectivePhase==='resolved'\)return 'end'/.test(live),'종료 판정이 중계 단계보다 우선해야 함');
 assert(/\['planting','active','disabling'\]/.test(live),'설치 시작부터 장치 무력화까지 설치 단계로 보여야 함');
+assert(/if\(!operationPhase\)return 'prep'/.test(live),'첫 틱 전에는 교전 단계를 미리 표시하지 않아야 함');
 assert(/operationPhase==='preparing'\?'prep':'combat'/.test(live),'준비 종료 뒤에는 교전 단계로 전환해야 함');
+for(const required of ['장치 무력화 진행','장치 작동 잔여 시간',"objective?.phase==='disabling'?1:45"])assert(live.includes(required),'목표 HUD 상태 일치 '+required);
+const css=fs.readFileSync('artifacts/draft-order-player-generator/src/components/matchBroadcast.css','utf8');
+assert(css.includes('(pointer:coarse) and (orientation:landscape)'),'가로 전용 HUD가 세로 터치 화면에 적용되면 안 됨');
+assert(css.lastIndexOf('.cast-player{left:max(8px')>css.lastIndexOf('.cast-player{width:300px'),'가로 전용 선수 카드가 뒤쪽 공통 규칙보다 우선해야 함');
 for(const required of ['AnimatePresence','motion.div','motion.p','useReducedMotion'])assert(live.includes(required),'중계 사건 애니메이션 '+required);
 assert(/duration:reducedMotion\?0:/.test(live),'사용자 모션 감소 설정에서는 중계 전환 시간을 제거해야 함');
 assert(!/className="cast-player"[\s\S]*selected\.goal/.test(live),'판단 피드는 선수 카드에 종속되지 않아야 함');
