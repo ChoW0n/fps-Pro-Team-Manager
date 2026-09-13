@@ -1,5 +1,6 @@
 import type { RealtimeUnitState, RealtimeGadget } from '../domain/realtime/TacticalRealtimeSimulation';
 import { paintWeaponPart, weaponPart } from './weaponParts';
+import { HANDHELD_SHIELD, paintHandheldShield } from './shieldParts';
 
 export type PartLoader = (file:string) => HTMLImageElement;
 type Point = {x:number;y:number};
@@ -86,6 +87,26 @@ export function weaponMountPose(name:string):WeaponMountPose {
     triggerShoulder:rotate({x:-1,y:6}),supportShoulder:rotate({x:1,y:-5.5}),cheek:{x:stock.x+5,y:stock.y-3.5}};
 }
 
+/** 포복/방패의 표시용 장착. 일반 승인 견착은 원래 좌표 그대로 반환합니다. */
+export function equipmentMountPose(unit:RealtimeUnitState):WeaponMountPose {
+  const mount=weaponMountPose(unit.weaponName??'');
+  if(unit.locomotion==='crawl'&&!unit.downed&&unit.alive){
+    const yaw=mount.torsoYaw-.18;
+    const project=(p:Point):Point=>{
+      const a=mount.torsoYaw,x=(p.x*Math.cos(a)+p.y*Math.sin(a))*1.15,y=(-p.x*Math.sin(a)+p.y*Math.cos(a))*.72;
+      return {x:x*Math.cos(yaw)-y*Math.sin(yaw),y:x*Math.sin(yaw)+y*Math.cos(yaw)};
+    };
+    const stock=mount.kind==='pistol'?{x:10,y:0}:project(mount.stock);
+    const shift=(p:Point):Point=>({x:p.x+stock.x-mount.stock.x,y:p.y+stock.y-mount.stock.y});
+    return {...mount,torsoYaw:yaw,stock,shoulderPocket:project(mount.shoulderPocket),triggerShoulder:project(mount.triggerShoulder),supportShoulder:project(mount.supportShoulder),triggerHand:shift(mount.triggerHand),supportHand:shift(mount.supportHand),magazine:shift(mount.magazine),muzzle:shift(mount.muzzle)};
+  }
+  if(unit.shieldRaised){
+    const shift=(p:Point):Point=>({x:p.x,y:p.y+6});
+    return {...mount,stock:shift(mount.stock),muzzle:shift(mount.muzzle),triggerHand:shift(mount.triggerHand),magazine:shift(mount.magazine),supportHand:{...HANDHELD_SHIELD.hand}};
+  }
+  return mount;
+}
+
 function normalize(angle:number):number { return Math.atan2(Math.sin(angle),Math.cos(angle)); }
 function recoilOffset(time:number,shotAt:number|undefined,reducedMotion:boolean):number {
   const age=shotAt===undefined?1:time-shotAt;
@@ -141,7 +162,7 @@ export function operatorAssemblyPose(unit:RealtimeUnitState):OperatorAssemblyPos
   const installing=unit.action==='plant'||unit.action==='disable'||unit.action==='utility'&&/설치/.test(unit.goal??'');
   const prone=unit.locomotion==='crawl'||Boolean(unit.downed)||!unit.alive;
   return {lowerFacing:moving?Math.atan2(unit.velocity.y,unit.velocity.x):unit.facing,upperFacing:unit.facing,moving,
-    crouched:unit.locomotion==='crouch'||installing,prone,weapon:prone?undefined:weaponMountPose(unit.weaponName??'')};
+    crouched:unit.locomotion==='crouch'||installing,prone,weapon:unit.downed||!unit.alive?undefined:equipmentMountPose(unit)};
 }
 
 interface ArmPose { shoulder:Point; elbow:Point; hand:Point; }
@@ -184,7 +205,8 @@ function paintLowerBody(ctx:CanvasRenderingContext2D,pose:OperatorAssemblyPose,t
   // 서기/앉기에서는 다리가 골반 아래로 내려가므로 탑뷰에 짧게만 투영됩니다.
   // 포복의 뒤로 뻗은 다리를 서 있는 자세에 재사용하지 않습니다.
   for(const side of [-1,1]){const rear=pose.prone?-29:-10+3*crouch+side*step;
-    polygon(ctx,[[rear-5,side*2.5],[rear+7,side*2.5],[rear+8,side*5.5],[rear-4,side*7]],side<0?'#29373A':color);}
+    const thigh=pose.prone?10:0;
+    polygon(ctx,[[rear-5,side*2.5],[rear+7+thigh,side*2.5],[rear+8+thigh,side*5.5],[rear-4,side*7]],side<0?'#29373A':color);}
   ctx.restore();
 }
 
@@ -213,11 +235,12 @@ function paintHeadAndKit(ctx:CanvasRenderingContext2D,color:string,pack:number,t
  * 외형은 RealtimeUnitState를 읽기만 하며 성능·충돌·탄약을 수정하지 않습니다.
  */
 export function paintModularOperator(ctx:CanvasRenderingContext2D,unit:RealtimeUnitState,time:number,shotAt:number|undefined,asset:PartLoader,reducedMotion=false,motion:OperatorMotion={}):boolean {
-  const pose=operatorAssemblyPose(unit),kit=KITS[unit.callSign]??KITS.MAGPIE,down=pose.prone;
+  const pose=operatorAssemblyPose(unit),kit=KITS[unit.callSign]??KITS.MAGPIE,down=Boolean(unit.downed)||!unit.alive;
+  const shielding=Boolean(unit.shieldRaised)&&!pose.prone;
   const thrown=motion.thrown,throwAge=thrown?.thrownAt===undefined?-1:time-thrown.thrownAt;
-  const throwing=!down&&unit.action!=='reload'&&throwAge>=0&&throwAge<.45;
-  const installing=!down&&(unit.action==='plant'||unit.action==='disable'||unit.action==='utility'&&/설치/.test(unit.goal??''));
-  const kick=recoilOffset(time,shotAt,reducedMotion);
+  const throwing=!down&&!shielding&&unit.action!=='reload'&&throwAge>=0&&throwAge<.45;
+  const installing=!down&&!shielding&&(unit.action==='plant'||unit.action==='disable'||unit.action==='utility'&&/설치/.test(unit.goal??''));
+  const kick=down?0:recoilOffset(time,shotAt,reducedMotion);
 
   ctx.save();ctx.globalAlpha=unit.alive?1:.4;
   ctx.fillStyle='#04090C55';ctx.beginPath();ctx.ellipse(unit.position.x,unit.position.y+2,12,8,0,0,Math.PI*2);ctx.fill();
@@ -229,9 +252,9 @@ export function paintModularOperator(ctx:CanvasRenderingContext2D,unit:RealtimeU
   const gunStowed=installing||throwing,lower=installing?1:throwing?1-throwProgress:0;
   const offset={x:-kick-7*lower,y:9*lower};
   const displaced=(p:Point):Point=>({x:p.x+offset.x,y:p.y+offset.y});
-  let triggerTarget=displaced(mount.triggerHand),supportTarget=displaced(mount.supportHand);
+  let triggerTarget=displaced(mount.triggerHand),supportTarget=shielding?mount.supportHand:displaced(mount.supportHand);
   const reach=reducedMotion?0:motion.frame?.reloadReach??reloadReach(unit,time,motion);
-  if(reach>0)supportTarget=displaced(mix(mount.supportHand,mount.magazine,reach));
+  if(reach>0&&!shielding)supportTarget=displaced(mix(mount.supportHand,mount.magazine,reach));
   if(installing){triggerTarget={x:8,y:5};supportTarget={x:9,y:-5};}
   const triggerArm=solveArm(mount.triggerShoulder,triggerTarget,8,9,-1);
   let supportArm=solveArm(mount.supportShoulder,supportTarget,12,12,1);
@@ -239,23 +262,24 @@ export function paintModularOperator(ctx:CanvasRenderingContext2D,unit:RealtimeU
   strokeArm(ctx,supportArm,kit.color);strokeArm(ctx,triggerArm,kit.color);
   // 탑뷰에서 아래로 내려간 위팔은 흉곽/어깨 아래에 가립니다.
   // 손 접촉이 맞아도 팔 뿌리를 헬멧 위에 그리면 고리 모양의 기형이 됩니다.
-  ctx.save();ctx.rotate(mount.torsoYaw);paintTorso(ctx,kit.color);paintHeadAndKit(ctx,kit.color,kit.pack,kit.tool);ctx.restore();
+  ctx.save();ctx.rotate(mount.torsoYaw);if(pose.prone)ctx.scale(1.15,.72);paintTorso(ctx,kit.color);paintHeadAndKit(ctx,kit.color,kit.pack,kit.tool);ctx.restore();
 
   ctx.save();ctx.translate(mount.muzzle.x+offset.x,mount.muzzle.y+offset.y);
   const weaponDrawn=paintWeaponPart(ctx,unit.weaponName??'',asset);ctx.restore();
 
+  const shieldDrawn=!shielding||paintHandheldShield(ctx,asset);
   if(!gunStowed){
     const axis=Math.atan2(mount.muzzle.y-mount.stock.y,mount.muzzle.x-mount.stock.x);
     hand(ctx,triggerTarget,axis+Math.PI/2);hand(ctx,supportTarget,axis+Math.PI/2);
   } else {hand(ctx,triggerTarget,0);hand(ctx,supportArm.hand,0);}
-  if(unit.shieldRaised){ctx.fillStyle='#29373A';ctx.strokeStyle='#10191C';ctx.lineWidth=1.5;ctx.fillRect(10,-18,8,36);ctx.strokeRect(10,-18,8,36);ctx.fillStyle='#859080';ctx.fillRect(11,-9,6,9);}
+
   ctx.fillStyle=unit.side==='공격'?'#2FD4C4':'#F0873C';ctx.fillRect(-16,-4,2,4);
-  ctx.restore();return weaponDrawn;
+  ctx.restore();return weaponDrawn&&shieldDrawn;
 }
 
 /** 표시 전용 총구. 시뮬레이션 발사 원점·충돌에는 역으로 전달하지 않습니다. */
 export function modularMuzzlePosition(unit:RealtimeUnitState,time=0,shotAt?:number,reducedMotion=false):Point {
-  const offset=weaponMountPose(unit.weaponName??'').muzzle,c=Math.cos(unit.facing),s=Math.sin(unit.facing);
+  const offset=equipmentMountPose(unit).muzzle,c=Math.cos(unit.facing),s=Math.sin(unit.facing);
   const x=offset.x-recoilOffset(time,shotAt,reducedMotion);
   return {x:unit.position.x+x*c-offset.y*s,y:unit.position.y+x*s+offset.y*c};
 }

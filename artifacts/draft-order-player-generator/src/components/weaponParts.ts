@@ -3,10 +3,10 @@ type Point=[number,number];
 export type WeaponAssetLoader=(file:string)=>HTMLImageElement;
 export interface WeaponPart { id:string;file:string;length:number;muzzle:Point;rear:number;gripPoint:Point;supportPoint:Point;magazinePoint:Point; }
 /** 원본 픽셀 기준점을 총구 중심의 전장 좌표로 변환합니다. */
-function part(id:string,file:string,length:number,muzzle:Point,rear:number,gripPoint:Point,supportPoint:Point,magazinePoint:Point):WeaponPart{
+function part(id:string,file:string,length:number,muzzle:Point,rear:number,gripPoint:Point,supportPoint:Point,magazinePoint:Point,version=1):WeaponPart{
  const scale=length/(muzzle[0]-rear),local=(p:Point):Point=>[(p[0]-muzzle[0])*scale,(p[1]-muzzle[1])*scale];
  const mag=local(magazinePoint);
- return {id,file:'weapons/'+file+'-v1.png',length,muzzle,rear,gripPoint:local(gripPoint),supportPoint:local(supportPoint),magazinePoint:mag};
+ return {id,file:'weapons/'+file+'-v'+version+'.png',length,muzzle,rear,gripPoint:local(gripPoint),supportPoint:local(supportPoint),magazinePoint:mag};
 }
 /** 수직 상부 PNG의 총구·손 기준점. 기존 측면 원본은 별도 보존합니다. */
 export const WEAPON_PARTS:WeaponPart[]=[
@@ -23,13 +23,22 @@ export const WEAPON_PARTS:WeaponPart[]=[
  part('K1A','top/k1a',41,[2117,358],57,[950,423],[1510,408],[1070,448]),
  part('ARX','top/arx',42,[2139,355],31,[850,420],[1530,405],[970,445]),
 ];
-/** 보조무기는 공통 탑뷰 권총 원화를 사용합니다. 개별 모델의 실측 외형은 아닙니다. */
-const PISTOL=part('pistol','top/pistol',18,[489,250],17,[120,250],[210,250],[140,260]);
-/** 실제 총기 이름에 대응하는 원본을 선택합니다. */
-export function weaponPart(name:string):WeaponPart{return /글록 17|글록 19|P226|K5 권총|HK USP|베레타 92FS|SR-1|MR73/.test(name)?PISTOL:WEAPON_PARTS.find(item=>name.includes(item.id))??WEAPON_PARTS[0];}
+/** 개별 보조무장 상부 원화. 길이는 표시 전용이며 전투 발사 원점에 사용하지 않습니다. */
+export const SIDEARM_PARTS:WeaponPart[]=[
+ part('글록 17','top/glock17',18,[507,47],4,[104,47],[120,47],[104,54],2),
+ part('글록 19','top/glock19',16.7,[507,48],4,[104,48],[120,48],[104,55],2),
+ part('P226','top/p226',18.2,[507,49],4,[108,49],[124,49],[108,57],2),
+ part('K5 권총','top/k5',17.8,[507,54],4,[108,54],[124,54],[108,62],2),
+ part('HK USP','top/usp',18.2,[507,51],4,[112,51],[128,51],[112,59],2),
+ part('베레타 92FS','top/beretta92',19,[507,56],4,[115,56],[130,56],[115,64],2),
+ part('SR-1','top/sr1',18,[507,44],4,[126,44],[140,44],[126,52],2),
+ // 리볼버의 장전 접점은 탄창 밑이 아니라 실린더입니다.
+ part('MR73','top/mr73',23,[507,56],4,[116,56],[132,56],[214,56],2),
+];
+export function weaponPart(name:string):WeaponPart{return SIDEARM_PARTS.find(item=>name.includes(item.id))??WEAPON_PARTS.find(item=>name.includes(item.id))??WEAPON_PARTS[0];}
 
-/** 탑뷰 전장에서 총은 오른어깨 앞을 지나며 개머리판이 몸 뒤끝 밖으로 나가지 않습니다. */
-export function weaponMuzzleOffset(name:string):{x:number;y:number}{const part=weaponPart(name);return {x:part.length-3,y:7.5};}
+/** 기존 시뮬레이션 발사 원점 계약. 새 보조무장 원화의 전장 표시 크기와 분리합니다. */
+export function weaponMuzzleOffset(name:string):{x:number;y:number}{return {x:SIDEARM_PARTS.some(item=>name.includes(item.id))?15:weaponPart(name).length-3,y:7.5};}
 // 큰 원본을 매 프레임 직접 축소하지 않고 중간 해상도를 한 번만 준비합니다.
 const thumbnails=new WeakMap<HTMLImageElement,Map<number,{color:HTMLCanvasElement;ink:HTMLCanvasElement}>>();
 /** 표시 밀도에 맞춰 PNG 축소본과 알파 외곽을 캐시합니다. */

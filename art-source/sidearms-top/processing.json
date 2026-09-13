@@ -1,0 +1,232 @@
+[
+  {
+    "source": "art-source/sidearms-top/usp-source.webp",
+    "output": "artifacts/draft-order-player-generator/public/operators/weapons/top/usp-v2.png",
+    "mode": "dark-checker",
+    "bbox": [
+      53,
+      362,
+      1484,
+      624
+    ],
+    "crop": [
+      41,
+      350,
+      1496,
+      636
+    ],
+    "size": [
+      512,
+      101
+    ],
+    "alphaCoverage": 0.18749300638834634,
+    "sourceRgbPreserved": true
+  },
+  {
+    "source": "art-source/sidearms-top/glock17-source.webp",
+    "output": "artifacts/draft-order-player-generator/public/operators/weapons/top/glock17-v2.png",
+    "mode": "magenta",
+    "bbox": [
+      56,
+      385,
+      1480,
+      628
+    ],
+    "crop": [
+      44,
+      373,
+      1492,
+      640
+    ],
+    "size": [
+      512,
+      94
+    ],
+    "alphaCoverage": 0.1858043670654297,
+    "sourceRgbPreserved": true
+  },
+  {
+    "source": "art-source/sidearms-top/glock19-source.webp",
+    "output": "artifacts/draft-order-player-generator/public/operators/weapons/top/glock19-v2.png",
+    "mode": "magenta",
+    "bbox": [
+      88,
+      375,
+      1451,
+      610
+    ],
+    "crop": [
+      76,
+      363,
+      1463,
+      622
+    ],
+    "size": [
+      512,
+      96
+    ],
+    "alphaCoverage": 0.17806561787923178,
+    "sourceRgbPreserved": true
+  },
+  {
+    "source": "art-source/sidearms-top/p226-source.webp",
+    "output": "artifacts/draft-order-player-generator/public/operators/weapons/top/p226-v2.png",
+    "mode": "magenta",
+    "bbox": [
+      63,
+      384,
+      1473,
+      634
+    ],
+    "crop": [
+      51,
+      372,
+      1485,
+      646
+    ],
+    "size": [
+      512,
+      98
+    ],
+    "alphaCoverage": 0.17015457153320312,
+    "sourceRgbPreserved": true
+  },
+  {
+    "source": "art-source/sidearms-top/k5-source.webp",
+    "output": "artifacts/draft-order-player-generator/public/operators/weapons/top/k5-v2.png",
+    "mode": "magenta",
+    "bbox": [
+      58,
+      365,
+      1479,
+      646
+    ],
+    "crop": [
+      46,
+      353,
+      1491,
+      658
+    ],
+    "size": [
+      512,
+      108
+    ],
+    "alphaCoverage": 0.1722844441731771,
+    "sourceRgbPreserved": true
+  },
+  {
+    "source": "art-source/sidearms-top/beretta92-source.webp",
+    "output": "artifacts/draft-order-player-generator/public/operators/weapons/top/beretta92-v2.png",
+    "mode": "magenta",
+    "bbox": [
+      56,
+      343,
+      1480,
+      636
+    ],
+    "crop": [
+      44,
+      331,
+      1492,
+      648
+    ],
+    "size": [
+      512,
+      112
+    ],
+    "alphaCoverage": 0.16690444946289062,
+    "sourceRgbPreserved": true
+  },
+  {
+    "source": "art-source/sidearms-top/sr1-source.webp",
+    "output": "artifacts/draft-order-player-generator/public/operators/weapons/top/sr1-v2.png",
+    "mode": "magenta",
+    "bbox": [
+      53,
+      383,
+      1477,
+      608
+    ],
+    "crop": [
+      41,
+      371,
+      1489,
+      620
+    ],
+    "size": [
+      512,
+      88
+    ],
+    "alphaCoverage": 0.16477203369140625,
+    "sourceRgbPreserved": true
+  },
+  {
+    "source": "art-source/sidearms-top/mr73-source.webp",
+    "output": "artifacts/draft-order-player-generator/public/operators/weapons/top/mr73-v2.png",
+    "mode": "magenta",
+    "bbox": [
+      45,
+      346,
+      1495,
+      646
+    ],
+    "crop": [
+      33,
+      334,
+      1507,
+      658
+    ],
+    "size": [
+      512,
+      113
+    ],
+    "alphaCoverage": 0.14391581217447916,
+    "sourceRgbPreserved": true
+  },
+  {
+    "source": "art-source/sidearms-top/handheld-shield-source.webp",
+    "output": "artifacts/draft-order-player-generator/public/operators/effects/handheld-shield-v2.png",
+    "mode": "magenta",
+    "bbox": [
+      327,
+      138,
+      615,
+      1533
+    ],
+    "crop": [
+      315,
+      126,
+      627,
+      1545
+    ],
+    "size": [
+      256,
+      1164
+    ],
+    "alphaCoverage": 0.16590375198938317,
+    "sourceRgbPreserved": true
+  },
+  {
+    "source": "art-source/sidearms-top/deployed-shield-source.webp",
+    "output": "artifacts/draft-order-player-generator/public/operators/effects/deployed-shield-v2.png",
+    "mode": "magenta",
+    "bbox": [
+      294,
+      78,
+      594,
+      1569
+    ],
+    "crop": [
+      282,
+      66,
+      606,
+      1581
+    ],
+    "size": [
+      256,
+      1197
+    ],
+    "alphaCoverage": 0.1189522436117533,
+    "sourceRgbPreserved": true
+  }
+]

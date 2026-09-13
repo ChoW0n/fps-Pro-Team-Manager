@@ -1,3 +1,4 @@
+import { paintDeployedShield } from './shieldParts';
 import { drawEffect } from './effectParts';
 import { useEffect, useRef, type ReactElement } from 'react';
 import type { OperatorSide } from '../domain/Operator';
@@ -208,7 +209,7 @@ export function BroadcastCanvas(props: Props): ReactElement {
       }
       const objective=snapshot.objective,device=objective?.devicePosition;
       if(device&&(device.floor??0)===visibleFloor&&(objective.activeUntil||p.side==='공격'||vision.some(friend=>observer.canObserve(friend,device,map,snapshot.gadgets,time)))){sprite(ROOT+'effects/objective-device-v1.png',1,1,0,device.x,device.y,28,18);}
-      for(const cover of map.covers.filter(cover=>cover.kind==='shield')){const r=cover.rect;ctx.save();ctx.translate(r.x+r.width/2,r.y+r.height/2);if(r.width>r.height)ctx.rotate(Math.PI/2);sprite(ROOT+'effects/deployed-shield-v1.png',1,1,0,0,0,Math.min(r.width,r.height)*1.7,Math.max(r.width,r.height));ctx.restore();}
+      for(const cover of map.covers.filter(cover=>cover.kind==='shield')){const r=cover.rect;ctx.save();ctx.translate(r.x+r.width/2,r.y+r.height/2);if(r.width>r.height)ctx.rotate(Math.PI/2);paintDeployedShield(ctx,asset,Math.min(r.width,r.height)*1.7,Math.max(r.width,r.height));ctx.restore();}
       hitTargets=[];
       const displayMuzzles=new Map<string,{x:number;y:number}>();
       // 실체를 연장해서 그리지 않습니다. 끊긴 접촉은 고정된 목격 표식으로만 페이드아웃합니다.

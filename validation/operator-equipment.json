@@ -1,0 +1,23 @@
+{
+  "scope": "Node Canvas; no browser",
+  "equipmentDirectionCases": 320,
+  "sidearmSprites": 8,
+  "shieldSprites": 2,
+  "checks": [
+    "rendered arm lengths",
+    "prone weapon retained",
+    "shield grip contact including recoil",
+    "display muzzle matches draw transform",
+    "shield uniform scale",
+    "shield clears muzzle axis",
+    "legacy sidearm simulation origin",
+    "frozen inputs",
+    "down/dead unarmed"
+  ],
+  "limits": [
+    "New art awaits user feedback",
+    "No secondary weapon selection logic",
+    "Shield raised reload/throw hand transitions not added",
+    "No real-device or performance gate claim"
+  ]
+}

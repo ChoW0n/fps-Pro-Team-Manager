@@ -1,0 +1,112 @@
+[
+  {
+    "id": "usp",
+    "size": [
+      512,
+      101
+    ],
+    "mode": "RGBA",
+    "transparentPixels": 13337,
+    "sourceDecodedSha256": "a98303ef57e81b8585aafb06806bb49d8ea442388b908c697d5e721aa847b96d",
+    "deterministic": true
+  },
+  {
+    "id": "glock17",
+    "size": [
+      512,
+      94
+    ],
+    "mode": "RGBA",
+    "transparentPixels": 10116,
+    "sourceDecodedSha256": "a445c49ac1d5f9e40ffb103008af2d0d825f449413fb4f59352098ead5edd4bf",
+    "deterministic": true
+  },
+  {
+    "id": "glock19",
+    "size": [
+      512,
+      96
+    ],
+    "mode": "RGBA",
+    "transparentPixels": 8893,
+    "sourceDecodedSha256": "c53fc7f4877e50a7ef66e8d3dd0d60a552a067733e8871a0f578e5c9ada14e7e",
+    "deterministic": true
+  },
+  {
+    "id": "p226",
+    "size": [
+      512,
+      98
+    ],
+    "mode": "RGBA",
+    "transparentPixels": 14141,
+    "sourceDecodedSha256": "b6a79a8f4071839424176219091be33f86b239fb15b05de64702e2d58ad34859",
+    "deterministic": true
+  },
+  {
+    "id": "k5",
+    "size": [
+      512,
+      108
+    ],
+    "mode": "RGBA",
+    "transparentPixels": 19585,
+    "sourceDecodedSha256": "afce34f50e8e9d8d875661fa0d3bba6647255a64423058dd1e7b1db1d1f1b9d7",
+    "deterministic": true
+  },
+  {
+    "id": "beretta92",
+    "size": [
+      512,
+      112
+    ],
+    "mode": "RGBA",
+    "transparentPixels": 22927,
+    "sourceDecodedSha256": "b0f49a1bc07290e00f54a4d782e2e123c9c175a2044eeed22b71b93907e507d4",
+    "deterministic": true
+  },
+  {
+    "id": "sr1",
+    "size": [
+      512,
+      88
+    ],
+    "mode": "RGBA",
+    "transparentPixels": 10899,
+    "sourceDecodedSha256": "597d3f3b4d95f20a766855d068ca040e9406df1eabb4d5265c7cee8b3b53f148",
+    "deterministic": true
+  },
+  {
+    "id": "mr73",
+    "size": [
+      512,
+      113
+    ],
+    "mode": "RGBA",
+    "transparentPixels": 28650,
+    "sourceDecodedSha256": "763fbc89ee380bfa15d0b3aebd3c6f2ef65b2f359499aa990a8507ffa5cac593",
+    "deterministic": true
+  },
+  {
+    "id": "handheld-shield",
+    "size": [
+      256,
+      1164
+    ],
+    "mode": "RGBA",
+    "transparentPixels": 117333,
+    "sourceDecodedSha256": "487efc641fdb040cda0b764870cb7da5a1263b42fbc1c6dd356bba67dceedd32",
+    "deterministic": true
+  },
+  {
+    "id": "deployed-shield",
+    "size": [
+      256,
+      1197
+    ],
+    "mode": "RGBA",
+    "transparentPixels": 183802,
+    "sourceDecodedSha256": "811400fe7c4b2199732f906d23c72a7a9411a994bf5d7331422ff6378ba03d90",
+    "deterministic": true
+  }
+]

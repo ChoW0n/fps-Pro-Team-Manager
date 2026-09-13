@@ -22,7 +22,8 @@ const frozen=u=>Object.freeze({...u,position:Object.freeze({...u.position}),velo
   const baselineSource=execFileSync('git',['show','36c72b7859569d26b3c1207c160a9e8a60853ec7:artifacts/draft-order-player-generator/src/components/modularOperator.ts'],{cwd:path.resolve(__dirname,'..'),encoding:'utf8'});
   const baseline=new Module(root+'/components/approved-baseline.ts',module);baseline.filename=root+'/components/approved-baseline.ts';baseline.paths=module.paths;baseline._compile(compile(baselineSource),baseline.filename);
   const names=[...new Set(OPERATORS.flatMap(o=>o.firearms))];
-  for(const weaponName of names)for(const locomotion of ['walk','crouch']){
+  const approvedNames=[...new Set(OPERATORS.map(o=>o.firearms[0]))];
+  for(const weaponName of approvedNames)for(const locomotion of ['walk','crouch']){
     const u={...base,weaponName,locomotion},animator=new OperatorAnimator(),frame=animator.sample(frozen(u),1);
     assert.deepEqual(render(u,1,{frame}).toBuffer('image/png'),render(u,1,{},baseline.exports.paintModularOperator).toBuffer('image/png'),'승인 정적 외형 '+weaponName+' '+locomotion);
   }
@@ -89,6 +90,6 @@ const frozen=u=>Object.freeze({...u,position:Object.freeze({...u.position}),velo
   const poses=[['Stand',{}],['Walk',{frame:frame30}],['Stop',{frame:atStop}],['Crouch 50%',{frame:middle}],['Crouch',{frame:{...middle,crouchAmount:1}}],['Reload',{frame:half}],['Cancel',{frame:cancelled}]];
   poses.forEach(([label,motion],i)=>{ctx.drawImage(render(base,1,motion),0,36,96,56,i*200,24,200,117);ctx.fillStyle='#E5ECE9';ctx.font='16px sans-serif';ctx.fillText(label,i*200+18,184);});
   fs.writeFileSync(output+'/modular-operator-animation.png',sheet.toBuffer('image/png'));
-  fs.writeFileSync(output+'/modular-operator-animation.json',JSON.stringify({scope:'Node Canvas; no browser',approvedCommit:'36c72b7859569d26b3c1207c160a9e8a60853ec7',staticComparisons:names.length*2,directionCases,armCases,checks:['30/60/120 fps distance phase','blocked movement','stop turn','crouch reversal','reload cancellation','pause','rewind/floor/teleport/down reset','reduced motion','frozen simulation inputs','active renderer binding'],limits:['Not a real-device or new motion art approval','Projected gait, not world-space planted feet','Prone and shield action art remain outside this scope']},null,2)+'\n');
-  console.log(`PASS ${names.length*2} approved static comparisons, ${directionCases} movement/aim poses, ${armCases} rendered arm contracts; transitions and isolation`);
+  fs.writeFileSync(output+'/modular-operator-animation.json',JSON.stringify({scope:'Node Canvas; no browser',approvedCommit:'36c72b7859569d26b3c1207c160a9e8a60853ec7',staticComparisons:approvedNames.length*2,directionCases,armCases,checks:['30/60/120 fps distance phase','blocked movement','stop turn','crouch reversal','reload cancellation','pause','rewind/floor/teleport/down reset','reduced motion','frozen simulation inputs','active renderer binding'],limits:['Not a real-device or new motion art approval','Projected gait, not world-space planted feet','New sidearm sprites and prone/shield poses have separate equipment checks']},null,2)+'\n');
+  console.log(`PASS ${approvedNames.length*2} approved static comparisons, ${directionCases} movement/aim poses, ${armCases} rendered arm contracts; transitions and isolation`);
 })().catch(error=>{console.error(error);process.exitCode=1;});
