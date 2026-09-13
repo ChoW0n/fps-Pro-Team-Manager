@@ -2,7 +2,7 @@
   "summary": {
     "games": 20,
     "entering": 20,
-    "attackWins": 2
+    "attackWins": 3
   },
   "rows": [
     {
@@ -18,7 +18,7 @@
       "winner": "수비",
       "reason": "attackers-eliminated",
       "entering": true,
-      "duration": 136.8,
+      "duration": 115.2,
       "rally": [
         {
           "id": "공격:검사0:MAGPIE:0",
@@ -71,7 +71,7 @@
       "winner": "수비",
       "reason": "device-disabled",
       "entering": true,
-      "duration": 169.1,
+      "duration": 158.4,
       "rally": [
         {
           "id": "공격:검사0:MAGPIE:0",
@@ -121,10 +121,10 @@
         "seconds": 25,
         "entryRoute": 0
       },
-      "winner": "수비",
-      "reason": "attackers-eliminated",
+      "winner": "공격",
+      "reason": "bombs-defused",
       "entering": true,
-      "duration": 117.4,
+      "duration": 189,
       "rally": [
         {
           "id": "공격:검사0:MAGPIE:0",
@@ -177,7 +177,7 @@
       "winner": "수비",
       "reason": "attackers-eliminated",
       "entering": true,
-      "duration": 118.6,
+      "duration": 115.7,
       "rally": [
         {
           "id": "공격:검사0:MAGPIE:0",
@@ -228,9 +228,9 @@
         "entryRoute": 0
       },
       "winner": "수비",
-      "reason": "device-disabled",
+      "reason": "attackers-eliminated",
       "entering": true,
-      "duration": 154.4,
+      "duration": 125.4,
       "rally": [
         {
           "id": "공격:검사0:MAGPIE:0",
@@ -280,10 +280,10 @@
         "seconds": 25,
         "entryRoute": 0
       },
-      "winner": "공격",
-      "reason": "bombs-defused",
+      "winner": "수비",
+      "reason": "attackers-eliminated",
       "entering": true,
-      "duration": 203.4,
+      "duration": 128.3,
       "rally": [
         {
           "id": "공격:검사0:MAGPIE:0",
@@ -336,7 +336,7 @@
       "winner": "수비",
       "reason": "attackers-eliminated",
       "entering": true,
-      "duration": 118,
+      "duration": 123.6,
       "rally": [
         {
           "id": "공격:검사0:MAGPIE:0",
@@ -389,7 +389,7 @@
       "winner": "수비",
       "reason": "attackers-eliminated",
       "entering": true,
-      "duration": 120,
+      "duration": 137.6,
       "rally": [
         {
           "id": "공격:검사0:MAGPIE:0",
@@ -439,10 +439,10 @@
         "seconds": 25,
         "entryRoute": 0
       },
-      "winner": "수비",
-      "reason": "attackers-eliminated",
+      "winner": "공격",
+      "reason": "bombs-defused",
       "entering": true,
-      "duration": 121.2,
+      "duration": 185.4,
       "rally": [
         {
           "id": "공격:검사0:MAGPIE:0",
@@ -493,9 +493,9 @@
         "entryRoute": 0
       },
       "winner": "수비",
-      "reason": "device-disabled",
+      "reason": "attackers-eliminated",
       "entering": true,
-      "duration": 190.2,
+      "duration": 131.2,
       "rally": [
         {
           "id": "공격:검사0:MAGPIE:0",
@@ -548,7 +548,7 @@
       "winner": "수비",
       "reason": "attackers-eliminated",
       "entering": true,
-      "duration": 111.1,
+      "duration": 128.8,
       "rally": [
         {
           "id": "공격:검사0:MAGPIE:0",
@@ -601,7 +601,7 @@
       "winner": "수비",
       "reason": "attackers-eliminated",
       "entering": true,
-      "duration": 129,
+      "duration": 123.3,
       "rally": [
         {
           "id": "공격:검사0:MAGPIE:0",
@@ -654,7 +654,7 @@
       "winner": "수비",
       "reason": "attackers-eliminated",
       "entering": true,
-      "duration": 128.5,
+      "duration": 116.2,
       "rally": [
         {
           "id": "공격:검사0:MAGPIE:0",
@@ -707,7 +707,7 @@
       "winner": "수비",
       "reason": "attackers-eliminated",
       "entering": true,
-      "duration": 110.9,
+      "duration": 126.1,
       "rally": [
         {
           "id": "공격:검사0:MAGPIE:0",
@@ -760,7 +760,7 @@
       "winner": "수비",
       "reason": "attackers-eliminated",
       "entering": true,
-      "duration": 137.3,
+      "duration": 124.7,
       "rally": [
         {
           "id": "공격:검사0:MAGPIE:0",
@@ -811,9 +811,9 @@
         "entryRoute": 0
       },
       "winner": "수비",
-      "reason": "attackers-eliminated",
+      "reason": "time-expired",
       "entering": true,
-      "duration": 138,
+      "duration": 180,
       "rally": [
         {
           "id": "공격:검사0:MAGPIE:0",
@@ -863,10 +863,10 @@
         "seconds": 25,
         "entryRoute": 0
       },
-      "winner": "수비",
-      "reason": "attackers-eliminated",
+      "winner": "공격",
+      "reason": "bombs-defused",
       "entering": true,
-      "duration": 108.6,
+      "duration": 174.2,
       "rally": [
         {
           "id": "공격:검사0:MAGPIE:0",
@@ -919,7 +919,7 @@
       "winner": "수비",
       "reason": "attackers-eliminated",
       "entering": true,
-      "duration": 109.4,
+      "duration": 137.7,
       "rally": [
         {
           "id": "공격:검사0:MAGPIE:0",
@@ -969,10 +969,10 @@
         "seconds": 25,
         "entryRoute": 0
       },
-      "winner": "공격",
-      "reason": "defenders-eliminated",
+      "winner": "수비",
+      "reason": "attackers-eliminated",
       "entering": true,
-      "duration": 133.5,
+      "duration": 115.3,
       "rally": [
         {
           "id": "공격:검사0:MAGPIE:0",
@@ -1025,7 +1025,7 @@
       "winner": "수비",
       "reason": "attackers-eliminated",
       "entering": true,
-      "duration": 119.1,
+      "duration": 125.3,
       "rally": [
         {
           "id": "공격:검사0:MAGPIE:0",

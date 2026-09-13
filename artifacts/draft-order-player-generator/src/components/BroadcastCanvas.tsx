@@ -220,7 +220,7 @@ export function BroadcastCanvas(props: Props): ReactElement {
         const rescued=unit.reviving&&visible.find(other=>other.id===unit.reviving!.targetId);
         if(rescued){ctx.save();ctx.strokeStyle='#9ECDB9';ctx.lineWidth=1.5*cssUnit;ctx.setLineDash([4,4]);ctx.beginPath();ctx.moveTo(unit.position.x,unit.position.y);ctx.lineTo(rescued.position.x,rescued.position.y);ctx.stroke();ctx.restore();}
         // 팀 색상은 군장을 덮지 않는 바깥 고리로 구분하며 선택 고리는 같은 몸 중심에 둡니다.
-        if(unit.alive){ctx.strokeStyle=unit.id===p.selectedId?'#FFC53D':unit.side===p.side?'#2FD4C4':'#F0873C';ctx.lineWidth=(unit.id===p.selectedId?2:1.2)*cssUnit;ctx.beginPath();ctx.arc(unit.position.x,unit.position.y,Math.max(20,7*cssUnit),0,Math.PI*2);ctx.stroke();}
+        if(unit.alive){ctx.strokeStyle=unit.id===p.selectedId?'#FFC53D':unit.side===p.side?'#2FD4C4':'#F0873C';ctx.lineWidth=(unit.id===p.selectedId?2:1.2)*cssUnit;ctx.beginPath();ctx.arc(unit.position.x,unit.position.y,Math.max(16,7*cssUnit),0,Math.PI*2);ctx.stroke();}
         if(unit.side===p.side)hitTargets.push({id:unit.id,x:ox+(unit.position.x-camera.x)*scale,y:oy+(unit.position.y-camera.y)*scale});
         const focused=unit.side===p.side&&(unit.id===focusId||unit.id===p.selectedId);
         if(focused||p.mode==='full')label((unit.side===p.side?(p.playerNames?.get(unit.id)??unit.callSign):unit.callSign)+' · '+(visibleFloor+1)+'F',unit.position.x,unit.position.y+25*cssUnit);

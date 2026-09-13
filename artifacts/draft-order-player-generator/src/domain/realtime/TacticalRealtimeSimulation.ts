@@ -1841,7 +1841,7 @@ export class TacticalRealtimeSimulation {
       const key = `${unit.side}:${portal.id}`;
       const reservation = reservations.get(key);
       const owner = units.find(other => other.id === reservation?.ownerId);
-      if (reservation && (!owner?.alive || reservation.expires < now
+      if (reservation && (!owner?.alive || owner.downed || reservation.expires < now
         || (owner.position[axis] - portal.center[axis]) * reservation.approach < -65)) reservations.delete(key);
       if (!crossing || distance(unit.position, portal.center) > 125) continue;
       if(unit.side==='공격'&&entryRole(unit,units)==='point'&&unit.action==='approach'

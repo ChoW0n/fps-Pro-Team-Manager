@@ -1,0 +1,127 @@
+{
+  "unitsPerMetre": 40,
+  "doorWidth": 96,
+  "rows": [
+    {
+      "operator": "MAGPIE",
+      "width": 23,
+      "metres": 0.575,
+      "doorwayRatio": 0.23958333333333334,
+      "stock": {
+        "x": -3,
+        "y": 7.5
+      }
+    },
+    {
+      "operator": "COLLIER",
+      "width": 23,
+      "metres": 0.575,
+      "doorwayRatio": 0.23958333333333334,
+      "stock": {
+        "x": -3,
+        "y": 7.5
+      }
+    },
+    {
+      "operator": "해동",
+      "width": 25,
+      "metres": 0.625,
+      "doorwayRatio": 0.2604166666666667,
+      "stock": {
+        "x": -3,
+        "y": 7.5
+      }
+    },
+    {
+      "operator": "ARBEL",
+      "width": 23,
+      "metres": 0.575,
+      "doorwayRatio": 0.23958333333333334,
+      "stock": {
+        "x": -3,
+        "y": 7.5
+      }
+    },
+    {
+      "operator": "AUBERT",
+      "width": 23,
+      "metres": 0.575,
+      "doorwayRatio": 0.23958333333333334,
+      "stock": {
+        "x": -3,
+        "y": 7.5
+      }
+    },
+    {
+      "operator": "MEDVED",
+      "width": 25,
+      "metres": 0.625,
+      "doorwayRatio": 0.2604166666666667,
+      "stock": {
+        "x": -3,
+        "y": 7.5
+      }
+    },
+    {
+      "operator": "REUSS",
+      "width": 22,
+      "metres": 0.55,
+      "doorwayRatio": 0.22916666666666666,
+      "stock": {
+        "x": -3,
+        "y": 7.5
+      }
+    },
+    {
+      "operator": "BRANDT",
+      "width": 23,
+      "metres": 0.575,
+      "doorwayRatio": 0.23958333333333334,
+      "stock": {
+        "x": -3,
+        "y": 7.5
+      }
+    },
+    {
+      "operator": "MARCHAND",
+      "width": 25,
+      "metres": 0.625,
+      "doorwayRatio": 0.2604166666666667,
+      "stock": {
+        "x": -3,
+        "y": 7.5
+      }
+    },
+    {
+      "operator": "HALLORAN",
+      "width": 23,
+      "metres": 0.575,
+      "doorwayRatio": 0.23958333333333334,
+      "stock": {
+        "x": -3,
+        "y": 7.5
+      }
+    },
+    {
+      "operator": "성곽",
+      "width": 24,
+      "metres": 0.6,
+      "doorwayRatio": 0.25,
+      "stock": {
+        "x": -3,
+        "y": 7.5
+      }
+    },
+    {
+      "operator": "SAVELLI",
+      "width": 25,
+      "metres": 0.625,
+      "doorwayRatio": 0.2604166666666667,
+      "stock": {
+        "x": -3,
+        "y": 7.5
+      }
+    }
+  ],
+  "limits": "Design proportions inspired by Siege imagery, not measured Siege dimensions; static Canvas only."
+}

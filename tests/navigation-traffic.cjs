@@ -66,3 +66,16 @@ for(let tick=0;tick<300;tick++){
 }
 assert(completed,'밀집 양방향 대형이 30초 안에 통과해야 합니다');
 console.log('PASS crowded opposite teams clear the doorway without overlap');
+
+// 문에서 떨어져 다운된 예약자는 통행권을 붙잡지 않습니다. 몸 충돌은 별도로 유지합니다.
+for (const ownerX of [280, 208]) {
+ const walker={...makeUnit('walker',180),side:'수비',formationIndex:0};
+ const owner={...makeUnit('fallen',ownerX),side:'수비',formationIndex:1,downed:{mode:'stabilize'}};
+ const reserved=new Map([['수비:door',{ownerId:owner.id,approach:-1,expires:6}]]);
+ const previous={...walker.position};
+ engine.move(walker,{x:330,y:200},me,map,1,[walker,owner],nodes,new Map(),new Map(),new Map(),()=>{},reserved);
+ assert.equal(reserved.get('수비:door')?.ownerId,walker.id,'다운된 예약자의 통행권 해제');
+ assert(engine.canTraverse(previous,walker.position,map),'양보 중 문틀 충돌 유지');
+ if(ownerX===280)assert(walker.position.x>previous.x&&walker.position.y===previous.y,'실제 방해자가 없으면 문으로 전진');
+ else assert(Math.hypot(walker.position.x-owner.position.x,walker.position.y-owner.position.y)>=Math.hypot(previous.x-owner.position.x,previous.y-owner.position.y),'다운된 몸을 향해 겹쳐 이동하지 않음');
+}
