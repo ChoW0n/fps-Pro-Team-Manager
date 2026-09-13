@@ -1,0 +1,9 @@
+{
+  "sheets": 24,
+  "directionalFrames": 768,
+  "sourceHashes": {
+    "domain/realtime/TacticalRealtimeSimulation.ts": "b13c5d300210acbc952192dc061236ceb0be417dbb8aa6f55ac818dc920368b8",
+    "components/weaponParts.ts": "ed59755906cc6fede38b4f764f103c513c1cef555d37c5b6774dbd49c2cbb117"
+  },
+  "scope": "Actual Canvas transform, single sheet draw, display anchor, immutable engine sources"
+}

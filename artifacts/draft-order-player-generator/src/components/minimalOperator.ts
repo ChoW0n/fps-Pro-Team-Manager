@@ -69,6 +69,13 @@ export function paintMinimalOperator(ctx:CanvasRenderingContext2D,unit:RealtimeU
   ctx.save();ctx.globalAlpha=unit.alive?1:.4;
   ctx.fillStyle='#04090C55';ctx.beginPath();ctx.ellipse(unit.position.x,unit.position.y+2,15,11,0,0,Math.PI*2);ctx.fill();
   ctx.translate(unit.position.x,unit.position.y);ctx.rotate(unit.facing);
+  if(!down){
+    const gunStowed=installing||throwing;
+    // 개머리판은 오른어깨 안쪽에, 총구는 엔진 발사 원점에 정렬합니다.
+    ctx.save();ctx.translate(tip.x,tip.y);if(gunStowed){const lower=installing?1:1-throwProgress;ctx.translate(-7*lower,9*lower);}ctx.translate(-kick,0);
+    paintWeaponPart(ctx,unit.weaponName??'',_asset);
+    if(unit.shieldRaised){ctx.fillStyle=shade;ctx.strokeStyle=ink;ctx.lineWidth=outline/.75;ctx.fillRect(-5,-18,7,36);ctx.strokeRect(-5,-18,7,36);ctx.fillStyle=light;ctx.fillRect(-4,-9,5,9);}ctx.restore();
+  }
   // 40단위/m 전장 기준: 군장 포함 폭 약 0.6m. 총기 PNG에는 이 몸체 축척을 적용하지 않습니다.
   ctx.save();ctx.scale(.8,.7);
   ctx.strokeStyle=ink;ctx.lineWidth=outline;ctx.lineJoin='round';ctx.lineCap='round';
@@ -103,12 +110,6 @@ export function paintMinimalOperator(ctx:CanvasRenderingContext2D,unit:RealtimeU
   ctx.restore();
   ctx.fillStyle=unit.side==='공격'?'#2FD4C4':'#F0873C';ctx.fillRect(-18,-5,2,5);
   ctx.restore();
-  if(!down){
-    const gunStowed=installing||throwing;
-    // 개머리판은 오른어깨 안쪽에, 총구는 엔진 발사 원점에 정렬합니다.
-    ctx.save();ctx.translate(tip.x,tip.y);if(gunStowed){const lower=installing?1:1-throwProgress;ctx.translate(-7*lower,9*lower);}ctx.translate(-kick,0);
-    paintWeaponPart(ctx,unit.weaponName??'',_asset);
-    if(unit.shieldRaised){ctx.fillStyle=shade;ctx.strokeStyle=ink;ctx.lineWidth=outline/.75;ctx.fillRect(-5,-18,7,36);ctx.strokeRect(-5,-18,7,36);ctx.fillStyle=light;ctx.fillRect(-4,-9,5,9);}ctx.restore();
-  }
+
   ctx.restore();return true;
 }
