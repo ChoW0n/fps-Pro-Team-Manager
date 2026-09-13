@@ -25,7 +25,7 @@ OPERATORS.forEach((op,i)=>{
   for(let y=0;y<128;y++)for(let x=0;x<128;x++){
    const dx=x-64,dy=y-68,forward=dx*Math.cos(facing)+dy*Math.sin(facing),lateral=-dx*Math.sin(facing)+dy*Math.cos(facing),offset=(y*128+x)*4;
    // 몸체 전방 끝은 로컬 X=7, 외곽선을 포함해 X=8입니다.
-   if(forward>10&&Math.abs(lateral)<10&&Math.abs(full[offset]-without[offset])+Math.abs(full[offset+1]-without[offset+1])+Math.abs(full[offset+2]-without[offset+2])+Math.abs(full[offset+3]-without[offset+3])>30)visible++;
+   if(forward>10&&Math.abs(lateral-weapons.weaponMuzzleOffset(unit.weaponName).y)<10&&Math.abs(full[offset]-without[offset])+Math.abs(full[offset+1]-without[offset+1])+Math.abs(full[offset+2]-without[offset+2])+Math.abs(full[offset+3]-without[offset+3])>30)visible++;
   }
   assert(visible>8,op.callSign+' '+angle*45+'도 몸 밖 무기 실루엣 픽셀 '+visible);checks++;
  }

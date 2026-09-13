@@ -11,7 +11,7 @@ import { isMatchAudioMuted, playMatchAudio, setMatchAudioMuted, stopMatchAudio, 
 import './matchBroadcast.css';
 
 export interface TacticalRoundLiveProps { input:TacticalRealtimeSimulationInput; map?:TacticalMapDefinition; roundNumber?:number; directorSide?:OperatorSide; score?:[number,number]; onComplete?:(result:TacticalRealtimeResult)=>void }
-interface DecisionFeedItem { id:string; text:string; time:number }
+interface DecisionFeedItem { unitId:string; id:string; text:string; time:number }
 /** 방송 시간은 실제 경기 시각에서 계산합니다. */
 function clock(seconds:number):string { const n=Math.max(0,Math.ceil(seconds));return `${Math.floor(n/60)}:${String(n%60).padStart(2,'0')}`; }
 
@@ -43,9 +43,9 @@ export function TacticalRoundLive({input,map=NAMSAN_MAP,roundNumber=1,directorSi
         if(seenDecisions.current.get(unit.id)===unit.decision)continue;
         seenDecisions.current.set(unit.id,unit.decision);
         const nickname=participants.get(unit.id)?.player.nickname??unit.callSign;
-        changed.push({id:`${unit.id}:${next.time}:${unit.decision}`,text:`${nickname} · ${unit.decision}`,time:next.time});
+        changed.push({unitId:unit.id,id:`${unit.id}:${next.time}:${unit.decision}`,text:`${nickname} · ${unit.decision}`,time:next.time});
       }
-      if(changed.length)setDecisionFeed(previous=>[...previous,...changed].slice(-3));
+      if(changed.length)setDecisionFeed(previous=>[...previous.filter(item=>!changed.some(next=>next.unitId===item.unitId)),...changed].slice(-3));
     };
     const receiveResult=(value:TacticalRealtimeResult):void=>{if(stopped||reported)return;reported=true;setResult(value);complete.current?.(value);};
     if(typeof Worker!=='undefined'){
@@ -72,12 +72,14 @@ export function TacticalRoundLive({input,map=NAMSAN_MAP,roundNumber=1,directorSi
       if(heardEvents.current.has(key))continue;
       heardEvents.current.add(key);
       // 음소거 중 사건도 소비해 소리를 다시 켰을 때 과거 총성이 몰리지 않게 합니다.
-      if(muted||paused||result||speed!==1||document.hidden||tick.time-event.time>.25||event.time>tick.time||!listener)continue;
+      if(muted||paused||result||document.hidden||tick.time-event.time>.25||event.time>tick.time||!listener)continue;
       if(event.side!==directorSide&&!event.seenBy?.includes(directorSide))continue;
       const actor=snapshot.units.find(unit=>unit.id===event.actor);
       if((event.position?.floor??actor?.floor??listener.floor??0)!==(listener.floor??0))continue;
       const distance=event.position?Math.hypot(event.position.x-listener.position.x,event.position.y-listener.position.y):0;
       const pan=event.position?(event.position.x-listener.position.x)/700:0;
+      if(speed>1&&event.type==='sound')continue;
+      if(speed>=4&&!['shot','death','downed','objective'].includes(event.type)&&event.goal!=='grenade-exploded'&&event.goal!=='wall-breached')continue;
       playMatchAudio(event,actor?.weaponName??'',pan,1/(1+distance/320),Math.max(0,event.time-(tick.time-.1)));
     }
     if(heardEvents.current.size>180)heardEvents.current=new Set([...heardEvents.current].slice(-120));
@@ -87,7 +89,8 @@ export function TacticalRoundLive({input,map=NAMSAN_MAP,roundNumber=1,directorSi
   const viewedId=mode==='broadcast'?focusedId??selectedId:selectedId;
   const selected=own.find(unit=>unit.id===viewedId),source=viewedId?participants.get(viewedId):undefined;
   const known=events.filter(event=>event.seenBy?.includes(directorSide));
-  const kills=known.filter(event=>['death','downed','revive'].includes(event.type)&&time-event.time<6).slice(-2);
+  const combatEvents=known.filter(event=>['death','downed','revive'].includes(event.type)&&time-event.time<6);
+  const kills=combatEvents.filter((event,index)=>!combatEvents.slice(index+1).some(next=>next.target===event.target)).slice(-2);
   const objective=tick?.snapshot.objective,active=objective?.phase==='active'||objective?.phase==='disabling';
   const left=(active?objective?.activeUntil:input.maxSeconds??180)??180;
   const outcome=result?.objective.reason?BOMB_RESULT_LABELS[result.objective.reason]:'';
@@ -111,8 +114,8 @@ export function TacticalRoundLive({input,map=NAMSAN_MAP,roundNumber=1,directorSi
     {selected?.downed&&<div className="cast-injury" role="status"><strong>DOWN · {selected.downed.mode==='crawl'?'엄폐로 이동':'지혈 중'}</strong><span>동료 구조 필요</span>{selected.downed.progress>0&&<progress aria-label="소생 진행" max="1" value={selected.downed.progress}/>}</div>}
     {selected?.reviving&&<div className="cast-injury" role="status"><strong>동료 소생 중</strong><span>{playerName(selected.reviving.targetId)}</span></div>}
     <aside className="cast-decisions" aria-label="선수 판단 피드">{decisionFeed.map(item=><p key={item.id}><small>{clock(item.time)}</small>{item.text}</p>)}</aside>
-    <div className="cast-player" aria-label="관전 선수"><div className="cast-portrait">{selected&&<OperatorArt callSign={selected.callSign}/>}</div><div><small>{selected?.callSign}</small><strong>{source?.player.nickname??'입장 중'}</strong><progress aria-label="체력" max={selected?.maxHp??100} value={selected?.hp??100}/></div></div>
+    <div className="cast-player" aria-label="관전 선수"><div className="cast-portrait">{selected&&<OperatorArt callSign={selected.callSign}/>}</div><div><small>{selected?.callSign}</small><strong>{source?.player.nickname??'입장 중'}</strong><progress aria-label="체력" max={selected?.maxHp??100} value={selected?.hp??100}/>{selected&&<><span>HP {Math.ceil(selected.hp)}/{selected.maxHp}</span><span>{selected.weaponName}</span><span>탄약 {selected.ammo}/{selected.reserveAmmo}{selected.reloadRemaining>0?` · 장전 ${selected.reloadRemaining.toFixed(1)}초`:''}</span><span>{source?.operator.equipment.name} · {['MAGPIE','MEDVED'].includes(selected.callSign)?selected.utility.breach+'회':selected.callSign==='ARBEL'?selected.utility.smoke+'회':selected.callSign==='MARCHAND'?selected.utility.camera+'회':['해동','AUBERT','성곽','SAVELLI'].includes(selected.callSign)?(selected.specialUsed?'사용 완료':'1회'):'상시'}</span><span>{Object.entries(selected.utility).map(([kind,count])=>`${({camera:'카메라',smoke:'연막',grenade:'수류탄',breach:'장약',preparation:'준비 장비'} as Record<string,string>)[kind]} ${count}`).join(' · ')}</span></>}</div></div>
     <nav className="cast-controls" aria-label="중계 조작"><select aria-label="관전 층" value={viewFloor??'auto'} onChange={event=>setViewFloor(event.target.value==='auto'?undefined:Number(event.target.value))}><option value="auto">선수 층 자동</option>{map.floors?.map(floor=><option key={floor.id} value={floor.id}>{floor.label}</option>)}</select><button aria-pressed={mode==='broadcast'} onClick={()=>setMode('broadcast')}><span>자동 중계</span><b>CAST</b></button><button title="격자 한 칸 2m · 선택 아군의 전방 시야" aria-pressed={mode==='full'} onClick={()=>setMode(mode==='full'?'broadcast':'full')}><span>전술 보기</span><b>MAP</b></button><button aria-label={paused?'재생':'일시 정지'} disabled={Boolean(result)} onClick={()=>setPaused(value=>!value)}>{paused?'▶':'Ⅱ'}</button><button aria-label={muted?'경기 소리 켜기':'경기 음소거'} aria-pressed={muted} onClick={()=>{setMatchAudioMuted(!muted);setMuted(!muted);if(muted)unlockMatchAudio();}}>{muted?'소리 끔':'소리 켬'}</button><select aria-label="중계 속도" value={speed} onChange={event=>setSpeed(Number(event.target.value))}><option value="1">1×</option><option value="2">2×</option><option value="4">4×</option></select></nav>
-    <nav className="cast-lineup" aria-label="우리 팀 선수 선택">{own.map((unit,index)=><button key={unit.id} className={unit.alive?'':'is-out'} aria-pressed={selectedId===unit.id} onClick={()=>select(unit.id)}><OperatorEmblem callSign={unit.callSign}/><small>{index+1}</small><strong>{playerName(unit.id)}</strong><span>{unit.callSign} · {(unit.floor??0)+1}F</span><progress max={unit.maxHp??100} value={unit.hp}/></button>)}</nav>
+    <nav className="cast-lineup" aria-label="우리 팀 선수 선택">{own.map((unit,index)=><button key={unit.id} className={unit.alive?'':'is-out'} aria-pressed={selectedId===unit.id} onClick={()=>select(unit.id)}><OperatorEmblem callSign={unit.callSign}/><small>{index+1}</small><strong>{playerName(unit.id)}</strong><span>{unit.callSign} · {(unit.floor??0)+1}F</span><progress max={unit.maxHp??100} value={unit.hp}/><span className="cast-vitals">HP {Math.ceil(unit.hp)} · {unit.ammo}/{unit.reserveAmmo}{unit.reloadRemaining>0?' 장전':''}</span></button>)}</nav>
   </section>;
 }

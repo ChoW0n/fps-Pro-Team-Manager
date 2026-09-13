@@ -1,0 +1,25 @@
+{
+  "games": 2,
+  "changes": 605,
+  "returns": 324,
+  "returnPercent": 53.553719008264466,
+  "holdMoving": 9,
+  "rows": [
+    {
+      "seed": 7017,
+      "changes": 310,
+      "returns": 186,
+      "holdMoving": 9,
+      "winner": "공격",
+      "duration": 76.6
+    },
+    {
+      "seed": 7034,
+      "changes": 295,
+      "returns": 138,
+      "holdMoving": 0,
+      "winner": "공격",
+      "duration": 120.8
+    }
+  ]
+}

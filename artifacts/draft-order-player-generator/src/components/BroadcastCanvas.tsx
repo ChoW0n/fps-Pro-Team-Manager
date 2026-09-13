@@ -1,3 +1,4 @@
+import { drawEffect } from './effectParts';
 import { useEffect, useRef, type ReactElement } from 'react';
 import type { OperatorSide } from '../domain/Operator';
 import { paintMinimalOperator } from './minimalOperator';
@@ -131,7 +132,19 @@ export function BroadcastCanvas(props: Props): ReactElement {
       const actualFrame=combatCamera(visible,events,p.side,time,p.selectedId,p.mode==='follow',focusId);
       const noFriendAlive=!units.some(unit=>unit.side===p.side&&unit.alive&&(unit.floor??0)===visibleFloor);
       if(noFriendAlive&&snapshot.objective?.devicePosition){actualFrame.x=snapshot.objective.devicePosition.x;actualFrame.y=snapshot.objective.devicePosition.y;actualFrame.width=520;}
+      // 외곽 이동 중에는 선수와 가까운 건물 가장자리를 함께 담습니다. 숨은 적 위치는 사용하지 않습니다.
+      if(p.mode==='broadcast'&&!events.some(event=>event.type==='shot'&&time-event.time<2.5)){
+        const b=map.building,cx=Math.max(b.x,Math.min(b.x+b.width,actualFrame.x)),cy=Math.max(b.y,Math.min(b.y+b.height,actualFrame.y));
+        actualFrame.x=actualFrame.x*.55+(cx+b.width*.12*Math.sign(b.x+b.width/2-cx))*.45;
+        actualFrame.y=actualFrame.y*.55+(cy+b.height*.12*Math.sign(b.y+b.height/2-cy))*.45;
+      }
       const viewport=cameraViewport(map,actualFrame,p.mode==='full');
+      if(p.mode==='full'){
+        const b=map.building,points=visible.filter(unit=>unit.alive).map(unit=>unit.position);
+        const left=Math.max(0,Math.min(b.x,...points.map(point=>point.x))-90),right=Math.min(map.width,Math.max(b.x+b.width,...points.map(point=>point.x))+90);
+        const top=Math.max(0,Math.min(b.y,...points.map(point=>point.y))-90),bottom=Math.min(map.height,Math.max(b.y+b.height,...points.map(point=>point.y))+90);
+        Object.assign(viewport,{x:left,y:top,width:right-left,height:bottom-top});
+      }
       // 기기 화면 비율을 반영해 넓은 화면의 교전과 세로 화면의 인물이 모두 잘리지 않게 합니다.
       if(p.mode!=='full'){
         // 세로 폰에서는 긴 빈 복도보다 선수의 군장·무기가 읽히는 확대 폭을 사용합니다.
@@ -186,14 +199,15 @@ export function BroadcastCanvas(props: Props): ReactElement {
           ctx.save();ctx.translate(point.x,point.y);ctx.rotate(angle);
           // Contact shadow stays within the footprint; wall-bound devices align to the wall tangent.
           ctx.fillStyle='#00000038';ctx.fillRect(-size*.32,-size*.2+1,size*.64,size*.4);
-          if(!deviceSprite(cell,0,0,size,size,disabled?.6:1)){ctx.fillStyle=disabled?'#697174':'#465D65';ctx.strokeStyle='#A8BBB5';ctx.lineWidth=2;ctx.fillRect(-8,-7,16,14);ctx.strokeRect(-8,-7,16,14);ctx.font='bold 10px sans-serif';ctx.fillStyle='#D7E6DC';ctx.textAlign='center';ctx.fillText(({camera:'C',probe:'P',power:'P',interceptor:'I'} as Record<string,string>)[gadget.kind],0,4);}ctx.restore();
+          if(!(disabled?deviceSprite(cell,0,0,size,size,.6):sprite(ROOT+'effects/'+gadget.kind+'-v1.png',1,1,0,0,0,size,size))){ctx.fillStyle=disabled?'#697174':'#465D65';ctx.strokeStyle='#A8BBB5';ctx.lineWidth=2;ctx.fillRect(-8,-7,16,14);ctx.strokeRect(-8,-7,16,14);ctx.font='bold 10px sans-serif';ctx.fillStyle='#D7E6DC';ctx.textAlign='center';ctx.fillText(({camera:'C',probe:'P',power:'P',interceptor:'I'} as Record<string,string>)[gadget.kind],0,4);}ctx.restore();
           if(gadget.side===p.side){label(GADGET_LABELS[gadget.kind]+((gadget.disabledUntil??0)>time?' · 정지':gadget.kind==='interceptor'?` · ${gadget.charges}발`:''),point.x,point.y+18*cssUnit);}continue;
         }
         const projectileCell=({smoke:8,emp:9,grenade:11} as Record<string,number>)[gadget.kind];
         if(projectileCell!==undefined&&gadget.thrownAt!==undefined&&!deviceSprite(projectileCell,point.x,point.y,14,14)){ctx.beginPath();ctx.arc(point.x,point.y,5,0,Math.PI*2);ctx.fillStyle='#FFC53D';ctx.fill();} else if(projectileCell===undefined) {ctx.beginPath();ctx.arc(point.x,point.y,gadget.kind==='camera'?7:5,0,Math.PI*2);ctx.fillStyle=gadget.kind==='camera'?'#6EA8FF':'#FFC53D';ctx.fill();}
       }
       const objective=snapshot.objective,device=objective?.devicePosition;
-      if(device&&(device.floor??0)===visibleFloor&&(objective.activeUntil||p.side==='공격'||vision.some(friend=>observer.canObserve(friend,device,map,snapshot.gadgets,time)))){ctx.fillStyle='#16272F';ctx.fillRect(device.x-12,device.y-9,24,18);ctx.strokeStyle='#FFC53D';ctx.strokeRect(device.x-12,device.y-9,24,18);ctx.fillStyle='#2FD4C4';ctx.fillRect(device.x-6,device.y-4,9,6);}
+      if(device&&(device.floor??0)===visibleFloor&&(objective.activeUntil||p.side==='공격'||vision.some(friend=>observer.canObserve(friend,device,map,snapshot.gadgets,time)))){sprite(ROOT+'effects/objective-device-v1.png',1,1,0,device.x,device.y,28,18);}
+      for(const cover of map.covers.filter(cover=>cover.kind==='shield')){const r=cover.rect;ctx.save();ctx.translate(r.x+r.width/2,r.y+r.height/2);if(r.width>r.height)ctx.rotate(Math.PI/2);sprite(ROOT+'effects/deployed-shield-v1.png',1,1,0,0,0,Math.min(r.width,r.height)*1.7,Math.max(r.width,r.height));ctx.restore();}
       hitTargets=[];
       // 실체를 연장해서 그리지 않습니다. 끊긴 접촉은 고정된 목격 표식으로만 페이드아웃합니다.
       for(const [id,contact] of contacts){if(cachedVisibleIds.has(id))continue;const age=time-contact.seenAt;ctx.save();ctx.globalAlpha=Math.max(0,1-age/3);ctx.strokeStyle='#6EA8FF';ctx.setLineDash([3,4]);ctx.lineWidth=1.5;ctx.beginPath();ctx.arc(contact.position.x,contact.position.y,17,0,Math.PI*2);ctx.stroke();ctx.restore();label('마지막 목격',contact.position.x,contact.position.y+29*cssUnit,'#B0C9E9');}
@@ -212,15 +226,15 @@ export function BroadcastCanvas(props: Props): ReactElement {
         if(focused||p.mode==='full')label((unit.side===p.side?(p.playerNames?.get(unit.id)??unit.callSign):unit.callSign)+' · '+(visibleFloor+1)+'F',unit.position.x,unit.position.y+25*cssUnit);
         // 선택 선수의 상태는 우선순위 하나만 표시해 이름·경고·행동의 중첩을 줄입니다.
       }
-      for(const event of events){const age=time-event.time,duration=eventEffectDuration(event),effectAge=reducedMotion?duration:age;if(age<0||age>=duration||!event.position||!vision.some(friend=>observer.canObserve(friend,event.position!,map,snapshot.gadgets,time)))continue;
-        if(event.type==='shot'&&event.targetPosition&&age>=0&&age<=Math.max(.1,event.travelSeconds??.1)){
-          const progress=Math.min(1,age/Math.max(.01,event.travelSeconds??.1)),start=Math.max(0,progress-.16),dx=event.targetPosition.x-event.position.x,dy=event.targetPosition.y-event.position.y;ctx.strokeStyle='#FFE1A0';ctx.lineWidth=1.5;ctx.beginPath();ctx.moveTo(event.position.x+dx*start,event.position.y+dy*start);ctx.lineTo(event.position.x+dx*progress,event.position.y+dy*progress);ctx.stroke();if(age<.045){ctx.fillStyle='#FFF1C8';ctx.beginPath();ctx.arc(event.position.x,event.position.y,3,0,Math.PI*2);ctx.fill();}
+      for(const event of events){const age=time-event.time,duration=eventEffectDuration(event),effectAge=reducedMotion?duration:age;if(age<0||age>=duration||!event.position||!event.seenBy?.includes(p.side))continue;
+        if(event.type==='shot'&&snapshot.objective?.phase!=='resolved'&&event.targetPosition&&age>=0&&age<=Math.max(.1,event.travelSeconds??.1)){
+          const progress=Math.min(1,age/Math.max(.01,event.travelSeconds??.1)),start=Math.max(0,progress-Math.min(.16,24/Math.max(1,Math.hypot(event.targetPosition.x-event.position.x,event.targetPosition.y-event.position.y)))),dx=event.targetPosition.x-event.position.x,dy=event.targetPosition.y-event.position.y;ctx.save();ctx.globalAlpha=Math.max(0,1-age/Math.max(.1,event.travelSeconds??.1));ctx.strokeStyle='#FFE1A0';ctx.lineWidth=1.2;ctx.beginPath();ctx.moveTo(event.position.x+dx*start,event.position.y+dy*start);ctx.lineTo(event.position.x+dx*progress,event.position.y+dy*progress);ctx.stroke();ctx.restore();if(age<.06)drawEffect(ctx,file=>atlas(ROOT+file),'muzzle',`${event.actor}:${event.time}`,event.position.x,event.position.y,Math.atan2(dy,dx),age,reducedMotion);
         }
-        if(event.type==='impact'){if(event.hitRegion==='head'){ctx.fillStyle='#FFF4DC';ctx.beginPath();ctx.arc(event.position.x,event.position.y,5,0,Math.PI*2);ctx.fill();}else if(!effectSprite(event.hit?5:4,event.position.x,event.position.y,42+effectAge*35,42+effectAge*35,1-age/duration)){const radius=3+effectAge*18;ctx.strokeStyle=event.hit?'#E5484D':'#E3D6A3';ctx.lineWidth=1.4;ctx.beginPath();ctx.arc(event.position.x,event.position.y,radius,0,Math.PI*2);ctx.stroke();}}
+        if(event.type==='impact')drawEffect(ctx,file=>atlas(ROOT+file),event.hit?(event.hitRegion==='head'?'blood-head':'blood'):'dust',`${event.actor}:${event.time}`,event.position.x,event.position.y,event.impactDirection??0,age,reducedMotion);
         if(event.type==='utility'&&(event.goal==='grenade-exploded'||event.goal==='wall-breached')){
           const power=1-age/.65,size=(event.goal==='grenade-exploded'?100:76)*(reducedMotion?1:1-power*.2);
           // 로딩 전·손상된 이미지에서도 폭발 사건 자체가 화면에서 사라지지 않게 합니다.
-          if(!effectSprite(event.goal==='grenade-exploded'?6:7,event.position.x,event.position.y,size,size,power)){ctx.save();ctx.globalAlpha=power;ctx.strokeStyle='#D8B887';ctx.lineWidth=2;ctx.beginPath();ctx.arc(event.position.x,event.position.y,size/2,0,Math.PI*2);ctx.stroke();ctx.restore();}
+          if(!drawEffect(ctx,file=>atlas(ROOT+file),event.goal==='grenade-exploded'?'blast':'breach',`${event.actor}:${event.time}`,event.position.x,event.position.y,0,age,reducedMotion)){ctx.save();ctx.globalAlpha=power;ctx.strokeStyle='#D8B887';ctx.lineWidth=2;ctx.beginPath();ctx.arc(event.position.x,event.position.y,size/2,0,Math.PI*2);ctx.stroke();ctx.restore();}
         }
         if(event.type==='utility'&&['probe-deployed','camera-deployed','power-deployed','interceptor-deployed'].includes(event.goal??''))effectSprite(3,event.position.x,event.position.y,70+effectAge*50,70+effectAge*50,1-age/1.2);
         if(event.type==='utility'&&event.goal==='emp-pulse')effectSprite(2,event.position.x,event.position.y,90+effectAge*120,90+effectAge*120,1-age/.9);
@@ -235,7 +249,8 @@ export function BroadcastCanvas(props: Props): ReactElement {
       // 연막은 실제로 보이는 구름만 인물·탄착 위에 합성하고, 상태 글자는 그 위에 둡니다.
       for(const smoke of visibleSmokes){const point=gadgetPosition(smoke,time);paintSmoke(ctx,smokeTexture,point.x,point.y,smoke.radius,time-smoke.activeAt,smoke.until-smoke.activeAt,reducedMotion);}
       ctx.textAlign='center';ctx.font=`bold ${11*cssUnit}px sans-serif`;
-      for(const item of annotations){ctx.lineJoin='round';ctx.lineWidth=3*cssUnit;ctx.strokeStyle='#101820';ctx.strokeText(item.text,item.x,item.y);ctx.fillStyle=item.color;ctx.fillText(item.text,item.x,item.y);}
+      const placed:Array<{x:number;y:number;width:number}>=[];
+      for(const item of annotations){const width=ctx.measureText(item.text).width;const originalY=item.y;let tries=0;while(tries++<annotations.length&&placed.some(other=>Math.abs(other.y-item.y)<15*cssUnit&&Math.abs(other.x-item.x)<(other.width+width)/2+4*cssUnit))item.y+=15*cssUnit;placed.push({x:item.x,y:item.y,width});if(item.y!==originalY){ctx.strokeStyle='#98ADAD88';ctx.lineWidth=cssUnit;ctx.beginPath();ctx.moveTo(item.x,originalY-8*cssUnit);ctx.lineTo(item.x,item.y-10*cssUnit);ctx.stroke();}ctx.lineJoin='round';ctx.lineWidth=3*cssUnit;ctx.strokeStyle='#101820';ctx.strokeText(item.text,item.x,item.y);ctx.fillStyle=item.color;ctx.fillText(item.text,item.x,item.y);}
     };
     frame=requestAnimationFrame(draw);
     return()=>{cancelAnimationFrame(frame);canvas.removeEventListener('pointerup',select);images.clear();scene=null;};

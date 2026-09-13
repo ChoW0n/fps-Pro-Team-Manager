@@ -11,24 +11,24 @@ const {NAMSAN_MAP:map}=require(app+'/src/domain/tacticalMaps.ts');
 const session=new TacticalRealtimeSimulation(map).createSession(fixture(1,0,0));
 const initial=session.step().snapshot,friend=initial.units.find(u=>u.side==='공격');
 const {BroadcastCanvas,eventEffectDuration}=require(app+'/src/components/BroadcastCanvas.tsx');
-let missingEffects=false;
-class LocalImage extends Image {set src(url){this.file=url;if(missingEffects&&url.startsWith('/effects/'))return;super.src=app+'/public'+url;}}
+let missingEffects=false;let imageLoads=[];
+class LocalImage extends Image {set src(url){this.file=url;if(missingEffects&&/\/effects\//.test(url))return;imageLoads.push(new Promise(resolve=>{this.onload=resolve;this.onerror=resolve;}));super.src=app+'/public'+url;}}
 global.Image=LocalImage;global.document={createElement:()=>createCanvas(1,1)};
 global.window={devicePixelRatio:1,matchMedia:()=>({matches:true})};
 let frame;global.requestAnimationFrame=fn=>(frame=fn,1);global.cancelAnimationFrame=()=>{};
 const rows=[];
 async function render(goal,age,seenBy=['공격'],floor=0,reducedMotion=true,missing=false){
- missingEffects=missing;
+ missingEffects=missing;imageLoads=[];
  global.window.matchMedia=()=>({matches:reducedMotion});
  const canvas=createCanvas(1000,700),ctx=canvas.getContext('2d'),calls=[];calls.rings=[];
  const arc=ctx.arc.bind(ctx);ctx.arc=(...args)=>{if(['#e89989','#9ecdb9','#e6c775','#d8b887'].includes(ctx.strokeStyle.toLowerCase()))calls.rings.push(args);return arc(...args);};
  canvas.getBoundingClientRect=()=>({width:1000,height:700,left:0,top:0});canvas.addEventListener=()=>{};canvas.removeEventListener=()=>{};
- const drawImage=ctx.drawImage.bind(ctx);ctx.drawImage=(image,...args)=>{if(image.file?.startsWith('/effects/'))calls.push({file:image.file,args});return drawImage(image,...args);};
+ const drawImage=ctx.drawImage.bind(ctx);ctx.drawImage=(image,...args)=>{if(image.file&&/\/effects\//.test(image.file))calls.push({file:image.file,args});return drawImage(image,...args);};
  let ref=0;const effects=[];React.useRef=value=>({current:ref++===0?canvas:value});React.useEffect=fn=>effects.push(fn);
  const event={type:['death','downed','revive','objective'].includes(goal)?goal:'utility',goal,time:10,message:goal,actor:friend.id,side:'공격',seenBy,position:{...friend.position,floor}};
  const tick={time:10+age,snapshot:{...initial,time:10+age},events:[]};
  BroadcastCanvas({tick,events:[event],map,side:'공격',selectedId:friend.id,mode:'follow',speed:1,paused:true,onSelect:()=>{}});
- const cleanups=effects.map(fn=>fn());frame(performance.now());await new Promise(resolve=>setTimeout(resolve,30));calls.length=0;calls.rings.length=0;frame(performance.now());
+ const cleanups=effects.map(fn=>fn());frame(performance.now());await Promise.all(imageLoads);calls.length=0;calls.rings.length=0;frame(performance.now());
  cleanups.forEach(fn=>fn?.());return calls;
 }
 (async()=>{

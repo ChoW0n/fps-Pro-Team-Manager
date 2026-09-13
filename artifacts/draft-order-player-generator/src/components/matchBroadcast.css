@@ -44,3 +44,6 @@
  .cast-lineup button{min-height:56px}
  .cast-decisions{bottom:calc(142px + env(safe-area-inset-bottom));width:calc(100% - 20px)}
 }
+
+.cast-player{width:300px;min-height:158px;bottom:120px}.cast-player span{line-height:1.5;overflow-wrap:anywhere}.cast-lineup .cast-vitals{font-size:10px;color:#DCE9E7;letter-spacing:0}.cast-injury{bottom:210px}
+@media(max-width:600px){.cast-player{bottom:calc(90px + env(safe-area-inset-bottom));width:calc(100% - 198px);min-height:128px}.cast-portrait{display:none}.cast-player>div:last-child{padding:7px}.cast-player strong{font-size:15px}.cast-player span{font-size:9px}.cast-lineup button{min-height:70px}.cast-controls{bottom:calc(90px + env(safe-area-inset-bottom))}.cast-decisions{bottom:calc(230px + env(safe-area-inset-bottom))}.cast-injury{bottom:320px}}

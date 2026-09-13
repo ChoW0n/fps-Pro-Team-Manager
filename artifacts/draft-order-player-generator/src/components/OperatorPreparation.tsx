@@ -67,7 +67,7 @@ export function OperatorPreparation({homeTeam,awayTeam,onStart,onBack,homeSide='
   }catch(cause){setError(cause instanceof Error?cause.message:'작전을 확정하지 못했습니다.');}}
   return <section className="operator-preparation command-room" aria-label="라운드 작전 준비">
     <header className="op-prep-heading"><div><h1>라인업과 작전의 큰 방향을 고르세요.</h1><p>선수에게 오퍼레이터를 고정하지 않고, 선택한 팀 라인업을 선수 역할에 맞춰 배정합니다.</p></div><span>{homeTeam.name}<br/><b>{homeSide} · 남산 중계관</b></span></header>
-    <figure className="namsan-location"><img src={`${import.meta.env.BASE_URL}maps/namsan-pavilion.png`} alt="남산 전망탑 아래 관광·방송 중계관과 산책로"/><figcaption>남산 중계관 · 서·동 계단 · 송출·배전 해치</figcaption></figure>
+    <figure className="namsan-location"><TacticalBattlefield map={layer(NAMSAN_MAP,viewFloor)} units={[]} operators={new Map()} events={[]} time={0} selectedId={null} onSelect={()=>{}} viewBox={`${NAMSAN_MAP.building.x-90} ${NAMSAN_MAP.building.y-90} ${NAMSAN_MAP.building.width+180} ${NAMSAN_MAP.building.height+180}`}/><figcaption>남산 중계관 · {viewFloor+1}F · 서·동 계단 · 송출·배전 해치</figcaption></figure>
     <div className="simple-prep">
       <section className="simple-map"><div className="command-map"><TacticalBattlefield map={layer(NAMSAN_MAP,viewFloor)} units={[]} operators={new Map()} events={[]} time={0} selectedId={null} onSelect={()=>{}} miniature/>
         <svg className="command-route" viewBox={`0 0 ${NAMSAN_MAP.width} ${NAMSAN_MAP.height}`} aria-label="선택한 진입 경로"><polyline points={route.points.filter(point=>(point.floor??0)===viewFloor).map(point=>`${point.x},${point.y}`).join(' ')} fill="none" stroke="#2FD4C4" strokeWidth="16" strokeDasharray="24 14"/></svg></div>

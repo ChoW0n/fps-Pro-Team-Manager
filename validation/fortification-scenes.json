@@ -81,7 +81,7 @@
         "cooldown": 0,
         "suppression": 0,
         "opticMagnification": 1,
-        "goal": "담당 구역 각 유지",
+        "goal": "담당 위치 대기",
         "decision": "사선 확보 · 진입 대기",
         "action": "hold",
         "routeIndex": 0,
@@ -95,7 +95,8 @@
         "entryRole": "point",
         "locomotion": "walk",
         "lookDirection": 1.3968103579301352,
-        "shieldRaised": false
+        "shieldRaised": false,
+        "formationFacing": 0.2881095070647798
       },
       {
         "id": "수비:선수0:REUSS:1",
@@ -146,7 +147,8 @@
         "floor": 0,
         "locomotion": "walk",
         "lookDirection": -1.748392494078387,
-        "shieldRaised": false
+        "shieldRaised": false,
+        "formationFacing": -1.7483924940783762
       }
     ],
     "fortifications": [
@@ -255,7 +257,8 @@
         "entryRole": "point",
         "locomotion": "walk",
         "lookDirection": 0.28810950706478583,
-        "shieldRaised": false
+        "shieldRaised": false,
+        "formationFacing": 0.2881095070647798
       },
       {
         "id": "수비:선수0:REUSS:1",
@@ -306,7 +309,8 @@
         "floor": 0,
         "locomotion": "walk",
         "lookDirection": 1.7328248895294711,
-        "shieldRaised": false
+        "shieldRaised": false,
+        "formationFacing": 1.7328248895294955
       }
     ],
     "fortifications": [

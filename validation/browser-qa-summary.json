@@ -1,0 +1,19 @@
+{
+  "browser": false,
+  "effectBytes": 1180196,
+  "effectFiles": 24,
+  "audioBytes": 48942,
+  "audioFiles": 6,
+  "build": "PORT=4173 BASE_PATH=/ vite build: passed",
+  "typecheck": "app --noEmit and root tsc --build: passed",
+  "canvas": "16 local Skia viewport/DPR cases; not browser",
+  "decisionAudit": "validation/browser-qa-decisions-after.json",
+  "regressions": "validation/browser-qa-regressions.json",
+  "cumulativeQA": {
+    "passed": 26,
+    "failed": 9,
+    "held": 3,
+    "executions": 160,
+    "engineSha256": "2580148ff0a180685ff00d3619e11f4042f0c405bfdfce49f5ec8aec841be861"
+  }
+}

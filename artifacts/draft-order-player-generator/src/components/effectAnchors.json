@@ -1,0 +1,128 @@
+{
+  "muzzle-1": {
+    "origin": [
+      131.32,
+      255.86
+    ],
+    "axisLength": 341.14
+  },
+  "muzzle-2": {
+    "origin": [
+      101.01,
+      254.99
+    ],
+    "axisLength": 344.03
+  },
+  "muzzle-3": {
+    "origin": [
+      86.58,
+      256.43
+    ],
+    "axisLength": 408.68
+  },
+  "muzzle-4": {
+    "origin": [
+      155.85,
+      256.43
+    ],
+    "axisLength": 318.92
+  },
+  "blood-1": {
+    "origin": [
+      89.82,
+      261.31
+    ],
+    "axisLength": 388.7
+  },
+  "blood-2": {
+    "origin": [
+      81.66,
+      273.56
+    ],
+    "axisLength": 423.81
+  },
+  "blood-3": {
+    "origin": [
+      44.91,
+      298.05
+    ],
+    "axisLength": 431.57
+  },
+  "blood-4": {
+    "origin": [
+      44.91,
+      273.56
+    ],
+    "axisLength": 456.47
+  },
+  "blood-head-1": {
+    "origin": [
+      181.69,
+      281.72
+    ],
+    "axisLength": 312.34
+  },
+  "blood-head-2": {
+    "origin": [
+      181.69,
+      271.52
+    ],
+    "axisLength": 319.69
+  },
+  "dust-1": {
+    "origin": [
+      261.31,
+      265.39
+    ],
+    "axisLength": 227.01
+  },
+  "dust-2": {
+    "origin": [
+      261.31,
+      265.39
+    ],
+    "axisLength": 232.73
+  },
+  "dust-3": {
+    "origin": [
+      261.31,
+      265.39
+    ],
+    "axisLength": 186.59
+  },
+  "blast-1": {
+    "origin": [
+      261.31,
+      265.39
+    ],
+    "axisLength": 233.54
+  },
+  "blast-2": {
+    "origin": [
+      261.31,
+      265.39
+    ],
+    "axisLength": 240.89
+  },
+  "blast-3": {
+    "origin": [
+      261.31,
+      265.39
+    ],
+    "axisLength": 240.89
+  },
+  "breach-1": {
+    "origin": [
+      114.32,
+      261.31
+    ],
+    "axisLength": 372.36
+  },
+  "breach-2": {
+    "origin": [
+      114.32,
+      261.31
+    ],
+    "axisLength": 379.71
+  }
+}

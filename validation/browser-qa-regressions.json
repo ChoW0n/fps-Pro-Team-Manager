@@ -1,0 +1,96 @@
+[
+  {
+    "test": "unit-action-rules",
+    "exit": 0,
+    "seconds": 0.3
+  },
+  {
+    "test": "fun-first-ai",
+    "exit": 0,
+    "seconds": 6.4
+  },
+  {
+    "test": "weapon-grip-contract",
+    "exit": 0,
+    "seconds": 0.4
+  },
+  {
+    "test": "match-audio",
+    "exit": 0,
+    "seconds": 0.6
+  },
+  {
+    "test": "preparation-ui-contract",
+    "exit": 0,
+    "seconds": 0.1
+  },
+  {
+    "test": "realtime-regression",
+    "exit": 0,
+    "seconds": 18.7
+  },
+  {
+    "test": "bomb-objective",
+    "exit": 0,
+    "seconds": 0.4
+  },
+  {
+    "test": "navigation-traffic",
+    "exit": 0,
+    "seconds": 1.0
+  },
+  {
+    "test": "preparation-operation",
+    "exit": 0,
+    "seconds": 84.6
+  },
+  {
+    "test": "tactical-match",
+    "exit": 0,
+    "seconds": 2.0
+  },
+  {
+    "test": "tactical-counters",
+    "exit": 0,
+    "seconds": 6.1
+  },
+  {
+    "test": "tactical-pressure",
+    "exit": 0,
+    "seconds": 11.3
+  },
+  {
+    "test": "combat-overhaul",
+    "exit": 0,
+    "seconds": 17.4,
+    "initialExit": 1,
+    "rerun": "발밑 수류탄 착지 감지 수정 후 같은 테스트 재실행 통과"
+  },
+  {
+    "test": "injury-regression",
+    "exit": 0,
+    "seconds": 35.8
+  },
+  {
+    "test": "spectator-continuity",
+    "exit": 0,
+    "seconds": 0.8
+  },
+  {
+    "test": "movement-audit",
+    "exit": 0,
+    "seconds": 36.3
+  },
+  {
+    "test": "playback-navigation",
+    "exit": 0,
+    "seconds": 15.4,
+    "initialExit": 1,
+    "rerun": "발밑 수류탄 착지 감지 수정 후 같은 테스트 재실행 통과"
+  },
+  {
+    "test": "adaptation-audit",
+    "exit": 0,
+    "seconds": 48.5
+  }
+]

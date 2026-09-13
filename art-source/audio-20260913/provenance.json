@@ -1,0 +1,38 @@
+{
+  "provider": "ElevenLabs",
+  "model": "eleven_text_to_sound_v2",
+  "credits": 300,
+  "recorded_firearm": false,
+  "samples": [
+    {
+      "name": "carbine",
+      "generation_id": "DnBCLf8hAL8kIiq35ca6",
+      "prompt": "One isolated realistic 5.56 rifle gunshot. Dry sharp supersonic crack with brief pressure thump and bolt rattle, no electronic pitch, no laser, no voice, no music. Single shot, short natural tail, silence after. Clean game audio asset."
+    },
+    {
+      "name": "smg",
+      "generation_id": "wDM8g5GCdf0o5FwL3ueh",
+      "prompt": "One isolated realistic unsuppressed 9mm submachine gun shot. Sharp compact pop with metallic bolt click, short dry tail. No laser, synth, music or voice."
+    },
+    {
+      "name": "marksman",
+      "generation_id": "ueBjfh7fxsRo1uo8tu2B",
+      "prompt": "One isolated realistic 7.62mm marksman rifle shot. Abrupt powerful crack, deep pressure thump and brief outdoor decay. Dry close recording, no voice or music or electronic tones."
+    },
+    {
+      "name": "bolt",
+      "generation_id": "ruIBi893tuUpVEooGLst",
+      "prompt": "One isolated realistic .338 bolt action rifle gunshot followed by a subtle manual bolt click. Powerful sharp crack and short natural tail. No music voice or electronic effects."
+    },
+    {
+      "name": "impact",
+      "generation_id": "4y5kXexnShvZLZWb1PyS",
+      "prompt": "One short realistic bullet impact into heavy cloth equipment with a dull thud and fabric rustle. No voice, no scream, no music, no electronic tone. Isolated dry game sound."
+    },
+    {
+      "name": "blast",
+      "generation_id": "N6rlEHKbdRn7LM0GSDhF",
+      "prompt": "One isolated small grenade explosion. Sudden pressure thump, sharp fragment cracks and brief concrete debris patter. Dry and short, no music, no voice, no cinematic bass sweep."
+    }
+  ]
+}

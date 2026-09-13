@@ -52,6 +52,7 @@ export function paintMinimalOperator(ctx:CanvasRenderingContext2D,unit:RealtimeU
   const down=Boolean(unit.downed)||!unit.alive;
   const installing=!down&&(unit.action==='plant'||unit.action==='disable'||unit.action==='utility'&&/설치/.test(unit.goal??''));
   const crouch=unit.locomotion==='crouch'||installing;
+  const prone=unit.locomotion==='crawl'||down;
   // 시작 사건과 남은 시간으로 진행률을 계산하므로 정지·탐색에서도 같은 자세입니다.
   const thrown=motion.thrown;
   const throwAge=thrown?.thrownAt===undefined?-1:time-thrown.thrownAt;
@@ -73,7 +74,7 @@ export function paintMinimalOperator(ctx:CanvasRenderingContext2D,unit:RealtimeU
   const box=(x:number,y:number,w:number,h:number,fill=kit.color)=>{ctx.fillStyle=fill;ctx.fillRect(x,y,w,h);ctx.strokeRect(x,y,w,h);};
   // 전신을 세우지 않고 어깨·배낭·뒤로 짧게 보이는 부츠를 위에서 읽게 합니다.
   for(const side of [-1,1]){
-    const rear=down?-29:crouch?-17:-22+side*step*2;
+    const rear=prone?-34:crouch?-16:-22+side*step*2;
     poly([[rear,side*4],[rear+10,side*4],[rear+9,side*10],[rear-2,side*9]],shade);
   }
   poly([[-16,-10],[-8,-14],[2,-13],[7,-7],[6,9],[-1,14],[-14,11],[-18,3]],kit.color);
@@ -87,11 +88,13 @@ export function paintMinimalOperator(ctx:CanvasRenderingContext2D,unit:RealtimeU
   else if(kit.tool==='roll'){box(-19,10,16,6,light);}
   else if(kit.tool==='radio'){box(-15,10,8,7,shade);ctx.beginPath();ctx.moveTo(-15,12);ctx.lineTo(-24,12);ctx.stroke();}
   else{for(let i=0;i<Math.min(3,kit.pouches);i++)box(-17+i*5,11,4,6,light);}
+  // 어깨 윤곽을 머리와 분리합니다. 팔을 총에 맞춰 늘리지 않습니다.
+  for(const side of [-1,1])poly([[-5,side*10],[1,side*15],[8,side*12],[7,side*7]],kit.color);
   // 같은 두 면의 헬멧이 모든 방향에서 회전하므로 특정 각도에서 높이가 바뀌지 않습니다.
   // 작은 호흡만 헬멧에 적용합니다. 총구·시야 방향·충돌 좌표는 바꾸지 않습니다.
   const phase=[...unit.id].reduce((sum,char)=>sum+char.charCodeAt(0),0);
   const resting=!reducedMotion&&!moving&&!down&&['hold','aim','search'].includes(unit.action);
-  ctx.save();if(resting)ctx.translate(Math.sin(time*1.6+phase)*(unit.action==='aim'?.3:.6),0);
+  ctx.save();ctx.translate(prone?10:6,0);ctx.scale(crouch?.68:.72,crouch?.68:.72);if(resting)ctx.translate(Math.sin(time*1.6+phase)*(unit.action==='aim'?.3:.6),0);
   poly([[-14,-6],[-10,-11],[-2,-12],[5,-7],[6,1],[0,6],[-10,5],[-15,0]],shade);
   poly([[-12,-6],[-9,-10],[-2,-10],[3,-6],[3,0],[-2,3],[-10,2]],kit.color);
   box(-9,-12,8,3,light);box(-8,4,6,3,shade);
