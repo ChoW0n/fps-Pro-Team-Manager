@@ -13,6 +13,16 @@ import './matchBroadcast.css';
 
 export interface TacticalRoundLiveProps { input:TacticalRealtimeSimulationInput; map?:TacticalMapDefinition; roundNumber?:number; directorSide?:OperatorSide; score?:[number,number]; onComplete?:(result:TacticalRealtimeResult)=>void }
 interface DecisionFeedItem { unitId:string; id:string; text:string; time:number }
+export type RoundBroadcastPhase = 'prep'|'combat'|'plant'|'end';
+/** 판정 상태를 바꾸지 않고 중계용 네 단계로만 압축합니다. 종료 판정이 항상 최우선입니다. */
+export function roundBroadcastPhase(operationPhase?:string,objectivePhase?:string,ended=false):RoundBroadcastPhase {
+  if(ended||objectivePhase==='resolved')return 'end';
+  if(['planting','active','disabling'].includes(objectivePhase??''))return 'plant';
+  return operationPhase==='preparing'?'prep':'combat';
+}
+const ROUND_FLOW:ReadonlyArray<{id:RoundBroadcastPhase;label:string}>=[
+  {id:'prep',label:'준비'},{id:'combat',label:'교전'},{id:'plant',label:'설치'},{id:'end',label:'종료'},
+];
 /** 방송 시간은 실제 경기 시각에서 계산합니다. */
 function clock(seconds:number):string { const n=Math.max(0,Math.ceil(seconds));return `${Math.floor(n/60)}:${String(n%60).padStart(2,'0')}`; }
 
@@ -96,18 +106,32 @@ export function TacticalRoundLive({input,map=NAMSAN_MAP,roundNumber=1,directorSi
   const objective=tick?.snapshot.objective,active=objective?.phase==='active'||objective?.phase==='disabling';
   const left=(active?objective?.activeUntil:input.maxSeconds??180)??180;
   const outcome=result?.objective.reason?BOMB_RESULT_LABELS[result.objective.reason]:'';
+  const phase=roundBroadcastPhase(tick?.snapshot.operation?.phase,objective?.phase,Boolean(result||error));
+  const aliveBySide=(side:OperatorSide):number=>units.filter(unit=>unit.side===side&&unit.alive).length;
+  const attackAlive=aliveBySide('공격'),defenseAlive=aliveBySide('수비');
+  const phaseDetail=phase==='prep'?'장비 배치·진입 준비'
+    :phase==='combat'?`생존 ${attackAlive} 대 ${defenseAlive}`
+    :objective?.phase==='planting'?`${objective.siteId??'?'} 구역 설치 ${Math.round(objective.progress*100)}%`
+    :objective?.phase==='disabling'?`${objective.siteId??'?'} 구역 무력화 ${Math.round(objective.progress*100)}%`
+    :phase==='plant'?`${objective?.siteId??'?'} 구역 장치 가동`
+    :outcome||'라운드 판정';
   /** 실제 참가자 이름을 사용하며 확인하지 못한 공격자의 신원은 숨깁니다. */
   const playerName=(id?:string):string=>participants.get(id??'')?.player.nickname??'미확인';
   /** 현재 시야 또는 관측한 발사 사건으로 확인한 공격자만 킬 피드에 표시합니다. */
   const killerName=(event:RealtimeEvent):string=>participants.get(event.actor??'')?.side===directorSide||tick?.snapshot.visibleTo?.[directorSide].includes(event.actor??'')||known.some(shot=>shot.type==='shot'&&shot.actor===event.actor&&Math.abs(event.time-shot.time)<.5)?playerName(event.actor):'미확인';
   /** 번호나 인물 카드를 고르면 해당 선수 시야로 관전합니다. */
   function select(id:string):void{if(participants.get(id)?.side!==directorSide)return;setSelectedId(id);setViewFloor(undefined);setMode('follow');}
-  return <section className={`match-broadcast ${mode==='full'?'is-tactical':''}`} aria-label="DRAFT ORDER 경기 중계" data-version="personal-broadcast-20260911">
+  return <section className={`match-broadcast phase-${phase} ${mode==='full'?'is-tactical':''}`} aria-label="DRAFT ORDER 경기 중계" data-version="round-flow-mobile-20260913">
     <BroadcastCanvas tick={tick} events={events} map={map} floor={viewFloor} side={directorSide} playerNames={new Map([...participants].map(([id,unit])=>[id,unit.player.nickname]))} selectedId={selectedId} mode={mode} speed={speed} paused={paused} onSelect={select} onFocus={setFocusedId}/>
     <header className="cast-scorebar">
-      {(['공격','수비'] as OperatorSide[]).map(side=><div key={side} className={`cast-team ${side==='공격'?'is-attack':'is-defense'}`}><span><small>{side==='공격'?'ATK':'DEF'}{side===directorSide?' / OUR TEAM':''}</small><strong>{(side==='공격'?input.attackers:input.defenders)[0]?.teamName}</strong></span><b>{score[side===directorSide?0:1]}</b><div className="cast-life" aria-label={side===directorSide?'우리 팀 생존 상태':'상대 생존 상태 미확인'}>{[0,1,2,3,4].map(index=><i key={index} className={side===directorSide?(own[index]?.alive?'is-alive':'is-out'):'is-unknown'}/>)}</div></div>)}
-      <div className={`cast-clock ${active?'is-active':''}`}><small>ROUND {String(roundNumber).padStart(2,'0')}</small><b>{clock(left-time)}</b><span>{result?'ENDED':error?'ERROR':active?'장치 가동':paused?'PAUSED':'LIVE'}</span></div>
+      {(['공격','수비'] as OperatorSide[]).map(side=>{const sideUnits=units.filter(unit=>unit.side===side),alive=tick?sideUnits.filter(unit=>unit.alive).length:5;return <div key={side} className={`cast-team ${side==='공격'?'is-attack':'is-defense'}`}><span><small>{side==='공격'?'ATK':'DEF'}{side===directorSide?' / OUR TEAM':''}</small><strong>{(side==='공격'?input.attackers:input.defenders)[0]?.teamName}</strong></span><b>{score[side===directorSide?0:1]}</b><div className="cast-life" aria-label={`${side} 생존 ${alive}명`}><strong>{alive}</strong><span>/5</span>{[0,1,2,3,4].map(index=><i key={index} className={!tick||sideUnits[index]?.alive?'is-alive':'is-out'}/>)}</div></div>})}
+      <div className={`cast-clock ${active?'is-active':''}`}><small>ROUND {String(roundNumber).padStart(2,'0')}</small><b>{clock(left-time)}</b><span>{paused?'PAUSED':ROUND_FLOW.find(item=>item.id===phase)?.label}</span></div>
     </header>
+
+    <div className="cast-round-flow" role="status" aria-live="polite" aria-label={`현재 ${ROUND_FLOW.find(item=>item.id===phase)?.label} 단계, ${phaseDetail}`}>
+      <ol>{ROUND_FLOW.map((item,index)=>{const activeIndex=ROUND_FLOW.findIndex(candidate=>candidate.id===phase),state=index===activeIndex?'is-current':index<activeIndex?'is-done':'is-next';return <li key={item.id} className={state} aria-current={state==='is-current'?'step':undefined}><i>{index+1}</i><span>{item.label}</span></li>;})}</ol>
+      <strong>{phaseDetail}</strong>
+    </div>
 
     <div className="cast-intel" aria-label="확인한 상대 오퍼레이터"><small>ENEMY INTEL</small><div>{[0,1,2,3,4].map(index=>{const callSign=tick?.snapshot.identifiedTo?.[directorSide]?.[index];return <span key={index} className={callSign?'is-identified':''}><OperatorEmblem callSign={callSign} unknown={!callSign}/><b>{callSign??'미확인'}</b></span>;})}</div></div>
     <div className="cast-killfeed" aria-label="전투 피드"><AnimatePresence initial={false}>{kills.map(event=><motion.div key={`${event.time}:${event.actor}:${event.target}:${event.type}`} initial={reducedMotion?false:{opacity:0,x:28}} animate={{opacity:1,x:0}} exit={reducedMotion?{opacity:0}:{opacity:0,x:18}} transition={{duration:reducedMotion?0:.18,ease:'easeOut'}}><b>{killerName(event)}</b><span>{event.type==='downed'?'다운':event.type==='revive'?'소생':event.hitRegion==='head'?'헤드샷':'처치'}</span><strong>{playerName(event.target)}</strong></motion.div>)}</AnimatePresence></div>
