@@ -3,7 +3,7 @@
     "route": 5,
     "transitions": [
       {
-        "time": 26.3,
+        "time": 48.5,
         "type": "action",
         "actor": "공격:검사0:MAGPIE:0",
         "side": "공격",
@@ -19,7 +19,7 @@
         ]
       },
       {
-        "time": 33.4,
+        "time": 58.4,
         "type": "action",
         "actor": "공격:검사0:MAGPIE:0",
         "side": "공격",
@@ -34,13 +34,13 @@
         ]
       }
     ],
-    "planted": 43.1
+    "planted": 69.6
   },
   {
     "route": 6,
     "transitions": [
       {
-        "time": 21,
+        "time": 41.6,
         "type": "action",
         "actor": "공격:검사0:MAGPIE:0",
         "side": "공격",
@@ -56,7 +56,7 @@
         ]
       },
       {
-        "time": 30.1,
+        "time": 54.4,
         "type": "action",
         "actor": "공격:검사0:MAGPIE:0",
         "side": "공격",
@@ -71,6 +71,6 @@
         ]
       }
     ],
-    "planted": 39.8
+    "planted": 65.6
   }
 ]
