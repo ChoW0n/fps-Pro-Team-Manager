@@ -8,12 +8,12 @@ const {OPERATOR_LAYER_ORDER,operatorAssemblyPose,paintModularOperator,solveArm,w
 const {weaponPart}=require(root+'components/weaponParts.ts');
 
 (async()=>{
-  assert.deepEqual(OPERATOR_LAYER_ORDER,['shadow','lower-body','torso','head-and-kit','arms','weapon','hands','team-mark']);
+  assert.deepEqual(OPERATOR_LAYER_ORDER,['shadow','lower-body','arms','torso','head-and-kit','weapon','hands','team-mark']);
   const kinds=new Set(),rows=[],length=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
   for(const operator of OPERATORS){
     const name=operator.firearms[0],mount=weaponMountPose(name),part=weaponPart(name);kinds.add(mount.kind);
     const trigger=solveArm(mount.triggerShoulder,mount.triggerHand,8,9,1);
-    const support=solveArm(mount.supportShoulder,mount.supportHand,12,12,-1);
+    const support=solveArm(mount.supportShoulder,mount.supportHand,12,12,1);
     assert(length(trigger.shoulder,trigger.hand)<17,name+' 방아쇠손 도달 범위');
     assert(length(support.shoulder,support.hand)<24,name+' 지지손 도달 범위');
     assert(Math.abs(length(trigger.shoulder,trigger.elbow)-8)<1e-6&&Math.abs(length(trigger.elbow,trigger.hand)-9)<1e-6,name+' 방아쇠팔 고정 길이');

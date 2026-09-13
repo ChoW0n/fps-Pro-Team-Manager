@@ -5,7 +5,7 @@ export type PartLoader = (file:string) => HTMLImageElement;
 type Point = {x:number;y:number};
 
 export const OPERATOR_LAYER_ORDER = [
-  'shadow', 'lower-body', 'torso', 'head-and-kit', 'arms', 'weapon', 'hands', 'team-mark',
+  'shadow', 'lower-body', 'arms', 'torso', 'head-and-kit', 'weapon', 'hands', 'team-mark',
 ] as const;
 
 export type WeaponPoseKind = 'carbine'|'smg'|'suppressed'|'bullpup'|'p90'|'marksman'|'bolt'|'pistol';
@@ -169,7 +169,6 @@ export function paintModularOperator(ctx:CanvasRenderingContext2D,unit:RealtimeU
   paintLowerBody(ctx,pose,time,reducedMotion,kit.color);
   if(down){ctx.save();ctx.rotate(-.18);ctx.scale(1.15,.72);paintTorso(ctx,kit.color);paintHeadAndKit(ctx,kit.color,kit.pack,kit.tool);ctx.restore();ctx.restore();return true;}
   const mount=pose.weapon!;
-  ctx.save();ctx.rotate(mount.torsoYaw);paintTorso(ctx,kit.color);paintHeadAndKit(ctx,kit.color,kit.pack,kit.tool);ctx.restore();
   const throwProgress=reducedMotion?.6:Math.min(1,throwAge/.45);
   const gunStowed=installing||throwing,lower=installing?1:throwing?1-throwProgress:0;
   const offset={x:-kick-7*lower,y:9*lower};
@@ -180,9 +179,12 @@ export function paintModularOperator(ctx:CanvasRenderingContext2D,unit:RealtimeU
   if(reloading){const reach=Math.sin(Math.PI*Math.min(1,reloadAge/(reloadAge+unit.reloadRemaining!)));supportTarget=displaced(mix(mount.supportHand,mount.magazine,reach));}
   if(installing){triggerTarget={x:8,y:5};supportTarget={x:9,y:-5};}
   const triggerArm=solveArm(mount.triggerShoulder,triggerTarget,8,9,1);
-  let supportArm=solveArm(mount.supportShoulder,supportTarget,12,12,-1);
+  let supportArm=solveArm(mount.supportShoulder,supportTarget,12,12,1);
   if(throwing){const thrownPose=throwArmPose(throwProgress);supportArm={shoulder:mount.supportShoulder,elbow:thrownPose.elbow,hand:thrownPose.hand};}
   strokeArm(ctx,supportArm,kit.color);strokeArm(ctx,triggerArm,kit.color);
+  // 탑뷰에서 아래로 내려간 위팔은 흉곽/어깨 아래에 가립니다.
+  // 손 접촉이 맞아도 팔 뿌리를 헬멧 위에 그리면 고리 모양의 기형이 됩니다.
+  ctx.save();ctx.rotate(mount.torsoYaw);paintTorso(ctx,kit.color);paintHeadAndKit(ctx,kit.color,kit.pack,kit.tool);ctx.restore();
 
   ctx.save();ctx.translate(mount.muzzle.x+offset.x,mount.muzzle.y+offset.y);
   const weaponDrawn=paintWeaponPart(ctx,unit.weaponName??'',asset);ctx.restore();

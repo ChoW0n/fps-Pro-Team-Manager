@@ -3,9 +3,9 @@
   "layers": [
     "shadow",
     "lower-body",
+    "arms",
     "torso",
     "head-and-kit",
-    "arms",
     "weapon",
     "hands",
     "team-mark"
