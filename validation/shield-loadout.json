@@ -1,0 +1,27 @@
+{
+  "scope": "actual engine seed 41 + inventory contracts; no browser",
+  "rows": [
+    {
+      "snapshots": 707,
+      "raised": 16,
+      "switches": 3,
+      "shots": 4
+    },
+    {
+      "legacyOption": false,
+      "snapshots": 707,
+      "raised": 16,
+      "switches": 3,
+      "shots": 4
+    }
+  ],
+  "checks": [
+    "slot ammo conservation",
+    "reload isolation",
+    "switch delay",
+    "contact hysteresis",
+    "legacy false cannot allow primary shield",
+    "missing secondary",
+    "actual shield uses pistol"
+  ]
+}

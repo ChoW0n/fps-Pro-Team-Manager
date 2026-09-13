@@ -1,0 +1,14 @@
+{
+  "scope": "Node Canvas; no browser",
+  "cases": 480,
+  "checks": [
+    "source PNG assembly",
+    "weapon texture and muzzle alignment",
+    "trigger contact during recoil",
+    "hands below gun",
+    "readonly unit state",
+    "distance-driven feet",
+    "no primary shield",
+    "inactive unarmed"
+  ]
+}

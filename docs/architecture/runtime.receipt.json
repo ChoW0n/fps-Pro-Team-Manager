@@ -1,0 +1,24 @@
+{
+  "schemaVersion": 1,
+  "ok": true,
+  "command": "deliver",
+  "type": "architecture",
+  "input": "/workspace/scratch/46dcb092ba2f/project/docs/architecture/runtime.architecture.json",
+  "output": "/workspace/scratch/46dcb092ba2f/project/docs/architecture/runtime.html",
+  "specification": {
+    "sha256": "f368c3b66c07bfa463c229c9e5d7bdcfcac7e8723177adbdf79c48652a378791",
+    "bytes": 3318
+  },
+  "artifact": {
+    "sha256": "56e2fa62868a286a733ac4ec011cb2c7c89fc1b8917163e0e7b5022d05ab9160",
+    "bytes": 806733
+  },
+  "validation": {
+    "checksPassed": 9,
+    "checkCount": 9,
+    "compositionProfile": "showcase",
+    "compositionStatus": "pass",
+    "errors": 0,
+    "warnings": 0
+  }
+}

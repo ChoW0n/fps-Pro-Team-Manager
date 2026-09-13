@@ -1,0 +1,72 @@
+[
+  {
+    "id": "usp",
+    "mode": "dark-checker",
+    "source": "art-source/sidearms-top/usp-source.webp",
+    "originalSha256": "af6497ffd364c3e4d323d1ca8539f34f3ab8fc11ff98d8d0d3188d7c36967932",
+    "output": "artifacts/draft-order-player-generator/public/operators/weapons/top/usp-v2.png"
+  },
+  {
+    "id": "glock17",
+    "mode": "magenta",
+    "source": "art-source/sidearms-top/glock17-source.webp",
+    "originalSha256": "a84bc7db366323eceb6e4e39e68f76273ad2a8fc6d95dc5cdecebacee5687e07",
+    "output": "artifacts/draft-order-player-generator/public/operators/weapons/top/glock17-v2.png"
+  },
+  {
+    "id": "glock19",
+    "mode": "magenta",
+    "source": "art-source/sidearms-top/glock19-source.webp",
+    "originalSha256": "f2b8c2cead57b8c229373dc3f3dbe9b202ddedc29bb880cd13f55f4cdd85a8eb",
+    "output": "artifacts/draft-order-player-generator/public/operators/weapons/top/glock19-v2.png"
+  },
+  {
+    "id": "p226",
+    "mode": "magenta",
+    "source": "art-source/sidearms-top/p226-source.webp",
+    "originalSha256": "3185ac0f5ebf20174e3b94743464a084b31e6c9400ddda39b6836cc95f1a7f26",
+    "output": "artifacts/draft-order-player-generator/public/operators/weapons/top/p226-v2.png"
+  },
+  {
+    "id": "k5",
+    "mode": "magenta",
+    "source": "art-source/sidearms-top/k5-source.webp",
+    "originalSha256": "760a5cc11fb6041da086428d1369e699e85c8109968088730967c3443a8e2dad",
+    "output": "artifacts/draft-order-player-generator/public/operators/weapons/top/k5-v2.png"
+  },
+  {
+    "id": "beretta92",
+    "mode": "magenta",
+    "source": "art-source/sidearms-top/beretta92-source.webp",
+    "originalSha256": "cba03dedf17f3147c2cfe8fbbd431614dc611780e974ff3a2082026f243c2862",
+    "output": "artifacts/draft-order-player-generator/public/operators/weapons/top/beretta92-v2.png"
+  },
+  {
+    "id": "sr1",
+    "mode": "magenta",
+    "source": "art-source/sidearms-top/sr1-source.webp",
+    "originalSha256": "ac47055e8fc520f0f5639a3e5f6bce099a91d15495a200f1358d6ab2ad83756b",
+    "output": "artifacts/draft-order-player-generator/public/operators/weapons/top/sr1-v2.png"
+  },
+  {
+    "id": "mr73",
+    "mode": "magenta",
+    "source": "art-source/sidearms-top/mr73-source.webp",
+    "originalSha256": "b57457b8d605314cad29fb099f9949f921322e0c2cba070246376c6f8a999da2",
+    "output": "artifacts/draft-order-player-generator/public/operators/weapons/top/mr73-v2.png"
+  },
+  {
+    "id": "handheld-shield",
+    "mode": "magenta",
+    "source": "art-source/sidearms-top/handheld-shield-source.webp",
+    "originalSha256": "c3aeb97a131f1a02ce83d0630234a30ad782e451ea281fd49060038a832d6683",
+    "output": "artifacts/draft-order-player-generator/public/operators/effects/handheld-shield-v2.png"
+  },
+  {
+    "id": "deployed-shield",
+    "mode": "magenta",
+    "source": "art-source/sidearms-top/deployed-shield-source.webp",
+    "originalSha256": "90f6ffed7c3c212f7c62544bcd4822cc0e9dcd501cf281af1cd6911ba9dcc32f",
+    "output": "artifacts/draft-order-player-generator/public/operators/effects/deployed-shield-v2.png"
+  }
+]

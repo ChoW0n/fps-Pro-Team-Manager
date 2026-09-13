@@ -1,0 +1,20 @@
+{
+  "source": "art-source/sidearms-top/handheld-shield-v3-source.webp",
+  "originalPngSha256": "23f8711b8e1803360ec4fa8108eca65178cfff550df0791c8b6877cb1cf904e5",
+  "crop": [
+    465,
+    249,
+    766,
+    979
+  ],
+  "size": [
+    256,
+    621
+  ],
+  "grip": [
+    72,
+    307
+  ],
+  "mode": "magenta",
+  "output": "artifacts/draft-order-player-generator/public/operators/effects/handheld-shield-v3.png"
+}

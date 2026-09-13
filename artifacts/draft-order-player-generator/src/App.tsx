@@ -2037,6 +2037,7 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <ErrorBoundary>
         <Home />
+        <footer style={{padding:8,textAlign:'center',fontSize:12}}><a href={`${import.meta.env.BASE_URL}art-credits.html`}>아트 출처</a></footer>
       </ErrorBoundary>
     </QueryClientProvider>
   );

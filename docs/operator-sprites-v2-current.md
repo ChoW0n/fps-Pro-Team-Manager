@@ -1,3 +1,7 @@
+> 이 문서는 단계별 이력입니다. 현재 아트 기준은 [ART_APPROVED.md](ART_APPROVED.md), 다음 작업은 [PROJECT_STATE.md](PROJECT_STATE.md)를 따릅니다.
+
+> **이전 방향:** 통짜 시트는 [조립식 오퍼레이터 렌더링](operator-modular-current.md)으로 대체됐다. 이 문서는 자산과 게이트 이력으로만 보존한다.
+
 # 통짜 오퍼레이터 시트 연결 — 2026-09-13
 
 기준: PR #12 병합 `79dd43c1b423d60e2522d7c89c9c3c56948fe45b`. 입력 원문은 `qa-sources/spec-operator-sprites-v2.md`이며, 예전의 캐릭터/총기 분리 제작 결정보다 우선한다.

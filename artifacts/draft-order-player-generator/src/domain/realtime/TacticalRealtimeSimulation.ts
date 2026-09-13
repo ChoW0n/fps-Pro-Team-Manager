@@ -1,3 +1,4 @@
+import { ShieldLoadout } from './ShieldLoadout';
 import { playerTrait } from '../playerTraits';
 import { angleDifference, sightRange, turnTowards, recognitionSeconds } from './perception';
 import { combatSkillsFor } from '../combatSkills';
@@ -68,6 +69,8 @@ export interface RealtimeUnitState {
   ammo: number; magazineSize: number; reserveAmmo: number; reloadRemaining: number;
   weaponName: string; weaponProfileNote: string;
   shieldRaised?: boolean;
+  weaponSlot?: 'primary'|'secondary';
+  weaponReadyAt?: number;
   // 공용 준비와 고유 장비·수류탄은 서로의 사용 기회를 소모하지 않습니다.
   utility: { camera: number; smoke: number; grenade: number; breach: number; preparation: number };
   specialUsed?: boolean;
@@ -218,6 +221,16 @@ const TEAMMATE_CLEARANCE = UNIT_RADIUS * 2.2;
 
 /** 주무기 이름을 행동용 탄창 설정에 연결하며, 수치는 게임용 임시값임을 명시합니다. */
 const WEAPON_PROFILES: Record<string, RealtimeWeaponProfile> = {
+  // 용량·장전 시간은 현재 게임용 설정입니다. 특정 실총 세대 실측을 주장하지 않습니다.
+  '글록 17': {magazineSize:17,reserveAmmo:51,reloadSeconds:1.7,note:'게임용 임시 설정 · 실측값 아님'},
+  '글록 19': {magazineSize:15,reserveAmmo:45,reloadSeconds:1.7,note:'게임용 임시 설정 · 실측값 아님'},
+  'SIG P226': {magazineSize:15,reserveAmmo:45,reloadSeconds:1.8,note:'게임용 임시 설정 · 실측값 아님'},
+  'K5 권총': {magazineSize:13,reserveAmmo:39,reloadSeconds:1.8,note:'게임용 임시 설정 · 실측값 아님'},
+  'HK USP': {magazineSize:12,reserveAmmo:36,reloadSeconds:1.8,note:'게임용 임시 설정 · 실측값 아님'},
+  '베레타 92FS': {magazineSize:15,reserveAmmo:45,reloadSeconds:1.8,note:'게임용 임시 설정 · 실측값 아님'},
+  'SR-1 베크토르': {magazineSize:18,reserveAmmo:54,reloadSeconds:1.9,note:'게임용 임시 설정 · 실측값 아님'},
+  'MR73 리볼버': {magazineSize:6,reserveAmmo:24,reloadSeconds:2.6,note:'게임용 임시 설정 · 실측값 아님'},
+
   'L119A2 카빈': { magazineSize: 30, reserveAmmo: 90, reloadSeconds: 2.2, note: '게임용 임시 설정 · 실측값 아님' },
   MP5SD: { magazineSize: 30, reserveAmmo: 120, reloadSeconds: 2.0, note: '게임용 임시 설정 · 실측값 아님' },
   HK416: { magazineSize: 30, reserveAmmo: 90, reloadSeconds: 2.1, note: '게임용 임시 설정 · 실측값 아님' },
@@ -383,6 +396,11 @@ export class TacticalRealtimeSimulation {
         knowledge: { confidence: 0 }, alive: true,
       };
     });
+    const shieldLoadouts=new Map(units.filter(u=>u.callSign==='REUSS').map(unit=>{
+      const operator=[...input.attackers,...input.defenders].find(member=>member.operator.callSign===unit.callSign)!.operator;
+      const name=operator.firearms[1],secondary=name&&weaponHandling(name).family==='pistol'?{name,profile:WEAPON_PROFILES[name]??DEFAULT_WEAPON_PROFILE}:undefined;
+      return [unit.id,new ShieldLoadout(weaponProfileFor(operator),secondary)] as const;
+    }));
     // 예상 진입은 이전 라운드 관측에서만 전달됩니다. A/B 필수 앵커는 남깁니다.
     if(input.anticipatedEntry!==undefined||input.defenseStyle) {
       const entry=map.attackerRoutes[input.anticipatedEntry??0]?.points[2]??map.breachEntryPoint;
@@ -906,12 +924,17 @@ export class TacticalRealtimeSimulation {
           const key=`${unit.id}:${danger.at}:${danger.position.x}:${danger.position.y}`;
           if(!dangerReactions.has(key)){dangerReactions.add(key);log({time:now,type:'action',actor:unit.id,side:unit.side,position:{...unit.position},goal:'danger-zone-avoided',message:unit.decision});}
         } else for(const key of dangerReactions)if(key.startsWith(unit.id+':'))dangerReactions.delete(key);
-        const weapon = weaponProfileFor(me.operator);
+        let weapon = weaponProfileFor(me.operator);
         if(!seen&&!lastKnownPosition&&unit.action==='hold') {
           const point=defenderSetup?.fallback??map.portals[unit.routeIndex%map.portals.length]?.center??map.breachEntryPoint;
           unit.lookDirection=Math.atan2(point.y-unit.position.y,point.x-unit.position.x)+Math.sin(now*.7+unit.formationIndex)*.55;
         }
-        unit.shieldRaised=unit.callSign==='REUSS'&&Boolean(seen)&&(unit.cooldown>0||losingPosition);
+        const shieldLoadout=shieldLoadouts.get(unit.id);
+        if(shieldLoadout){
+          const equipment=shieldLoadout.update(unit,now,Boolean(seen),Boolean(seen)&&(unit.cooldown>0||losingPosition));
+          weapon={name:unit.weaponName,profile:equipment.profile};
+          if(equipment.switched)log({time:now,type:'action',actor:unit.id,side:unit.side,position:{...unit.position},goal:'weapon-switched',message:unit.weaponName+' 전환 · 방패 운용'});
+        } else unit.shieldRaised=false;
         // 준비 화면에서 선택한 공용 장비를 실제 이동·설치 후 지형에 추가합니다.
         if(unit.side==='수비'&&unit.utility.preparation>0&&input.defensePreparation&&input.defensePreparation!=='camera'
           &&unit.formationIndex===input.defenders.length-1&&!activeDevice&&now<35&&!unit.traversal&&unit.reloadRemaining<=0) {
@@ -1065,7 +1088,7 @@ export class TacticalRealtimeSimulation {
         const exposedToEnemy=enemies.some(enemy=>this.canObserve(enemy,unit.position,map,gadgets,now));
         const safeTacticalReload=shouldTacticalReload(unit,{seen:Boolean(seen),knownDanger:Boolean(knownDanger),exposedToEnemy,preparationLocked});
         if(safeTacticalReload) {
-          unit.reloadRemaining=weapon.profile.reloadSeconds;unit.action='reload';unit.goal='안전 확인 · 전술 재장전 시작';unit.decision='장전 · 엄폐 확보 후';
+          unit.reloadRemaining=weapon.profile.reloadSeconds;unit.shieldRaised=false;unit.action='reload';unit.goal='안전 확인 · 전술 재장전 시작';unit.decision='장전 · 엄폐 확보 후';
           log({time:now,type:'reload',actor:unit.id,message:`${unit.callSign} 전술 재장전 시작`,position:{...unit.position},goal:`${unit.ammo}/${unit.magazineSize} · 예비 ${unit.reserveAmmo}`});continue;
         }
         if (unit.reloadRemaining > 0) {
@@ -1111,6 +1134,7 @@ export class TacticalRealtimeSimulation {
         if (unit.ammo <= 0 && unit.reserveAmmo > 0) {
           // 빈 탄창에서는 사격하지 않고 장전을 한 번 시작해 예비 탄약만 사용합니다.
           unit.reloadRemaining = weapon.profile.reloadSeconds;
+          unit.shieldRaised=false;
           unit.action = 'reload';
           unit.goal = '장전 시작 · 안전 위치 선택';
           unit.decision = '장전 · 엄폐 확보 후';
@@ -1249,8 +1273,8 @@ export class TacticalRealtimeSimulation {
         const pointEngaged=Boolean(pointUnit&&(['aim','fire'].includes(pointUnit.action)||(pointUnit.suppression??0)>.05
           ||pointUnit.knowledge.source==='self-visual'&&now-(pointUnit.knowledge.lastKnownAt??-Infinity)<1.5));
         const formationFireReady=role!=='follow'||pointEngaged;
-        const canFire = unit.locomotion !== 'sprint' && !unit.traversal && aimed && !friendlyLine&&unit.cooldown <= 0 && unit.ammo > 0 && muzzleClear&&visualContactDuration>=acquisition&&settled>=.15&&formationFireReady;
-        const canWallBang=Boolean(wallBangShots<4&&wallBangLead&&wallBangAimed&&!wallBangFriendly&&unit.cooldown<=0&&unit.ammo>0&&settled>=.3&&formationFireReady);
+        const canFire = now>=(unit.weaponReadyAt??0)&&unit.locomotion !== 'sprint' && !unit.traversal && aimed && !friendlyLine&&unit.cooldown <= 0 && unit.ammo > 0 && muzzleClear&&visualContactDuration>=acquisition&&settled>=.15&&formationFireReady;
+        const canWallBang=Boolean(now>=(unit.weaponReadyAt??0)&&wallBangShots<4&&wallBangLead&&wallBangAimed&&!wallBangFriendly&&unit.cooldown<=0&&unit.ammo>0&&settled>=.3&&formationFireReady);
         const continuingRetreat = !mustCommit && retreatGoals.has(unit.id) && retreatStarted.has(unit.id);
         const shouldFire = Boolean(!preparationLocked && seen && canFire && !losingPosition && !breakContact && !continuingRetreat && !personalAdvance
           && (aggression > 0.25 || isClutch || aimTimedOut));

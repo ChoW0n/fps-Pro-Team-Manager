@@ -1,0 +1,168 @@
+{
+  "kind": "Actual Canvas renderer in local Skia; not browser or iPhone performance validation",
+  "seed": 41,
+  "time": 79.4,
+  "rows": [
+    {
+      "name": "desktop",
+      "width": 1280,
+      "height": 720,
+      "dpr": 1,
+      "backingWidth": 1280,
+      "backingHeight": 720,
+      "medianMs": 3.79,
+      "p95Ms": 4.68
+    },
+    {
+      "name": "phone",
+      "width": 390,
+      "height": 844,
+      "dpr": 1,
+      "backingWidth": 390,
+      "backingHeight": 844,
+      "medianMs": 2.53,
+      "p95Ms": 3.01
+    },
+    {
+      "name": "phone-landscape",
+      "width": 844,
+      "height": 390,
+      "dpr": 1,
+      "backingWidth": 844,
+      "backingHeight": 390,
+      "medianMs": 2.43,
+      "p95Ms": 3.39
+    },
+    {
+      "name": "downed",
+      "width": 1280,
+      "height": 720,
+      "dpr": 1,
+      "backingWidth": 1280,
+      "backingHeight": 720,
+      "medianMs": 1.97,
+      "p95Ms": 2.25
+    },
+    {
+      "name": "collier-downed",
+      "width": 1280,
+      "height": 720,
+      "dpr": 1,
+      "backingWidth": 1280,
+      "backingHeight": 720,
+      "medianMs": 1.74,
+      "p95Ms": 2.59
+    },
+    {
+      "name": "collier-crawl",
+      "width": 1280,
+      "height": 720,
+      "dpr": 1,
+      "backingWidth": 1280,
+      "backingHeight": 720,
+      "medianMs": 2.56,
+      "p95Ms": 7.19
+    },
+    {
+      "name": "walk",
+      "width": 1280,
+      "height": 720,
+      "dpr": 1,
+      "backingWidth": 1280,
+      "backingHeight": 720,
+      "medianMs": 1.66,
+      "p95Ms": 2.1
+    },
+    {
+      "name": "crouch",
+      "width": 1280,
+      "height": 720,
+      "dpr": 1,
+      "backingWidth": 1280,
+      "backingHeight": 720,
+      "medianMs": 1.93,
+      "p95Ms": 2.37
+    },
+    {
+      "name": "team-visibility",
+      "width": 1280,
+      "height": 720,
+      "dpr": 1,
+      "backingWidth": 1280,
+      "backingHeight": 720,
+      "medianMs": 1.66,
+      "p95Ms": 2.09
+    },
+    {
+      "name": "tactical",
+      "width": 1280,
+      "height": 720,
+      "dpr": 1,
+      "backingWidth": 1280,
+      "backingHeight": 720,
+      "medianMs": 2.16,
+      "p95Ms": 2.64
+    },
+    {
+      "name": "phone-touch",
+      "width": 390,
+      "height": 844,
+      "dpr": 3,
+      "backingWidth": 1170,
+      "backingHeight": 2532,
+      "medianMs": 7.7,
+      "p95Ms": 8.65
+    },
+    {
+      "name": "phone-small",
+      "width": 360,
+      "height": 800,
+      "dpr": 2,
+      "backingWidth": 720,
+      "backingHeight": 1600,
+      "medianMs": 1.83,
+      "p95Ms": 3.89
+    },
+    {
+      "name": "phone-large",
+      "width": 430,
+      "height": 932,
+      "dpr": 3,
+      "backingWidth": 1290,
+      "backingHeight": 2796,
+      "medianMs": 9.93,
+      "p95Ms": 65.47
+    },
+    {
+      "name": "phone-android",
+      "width": 412,
+      "height": 915,
+      "dpr": 2.625,
+      "backingWidth": 1081,
+      "backingHeight": 2401,
+      "medianMs": 6.91,
+      "p95Ms": 9.86
+    },
+    {
+      "name": "phone-retina-landscape",
+      "width": 844,
+      "height": 390,
+      "dpr": 3,
+      "backingWidth": 2532,
+      "backingHeight": 1170,
+      "medianMs": 4.15,
+      "p95Ms": 9.31
+    },
+    {
+      "name": "tablet",
+      "width": 1024,
+      "height": 1366,
+      "dpr": 2,
+      "backingWidth": 1731,
+      "backingHeight": 2309,
+      "medianMs": 9.24,
+      "p95Ms": 67.44
+    }
+  ],
+  "scope": "Node Canvas integration before lower-body occlusion refinement; final occlusion covered by modular-operator-animation.cjs. Not browser or device validation."
+}

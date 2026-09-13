@@ -4,5 +4,7 @@ const rows=OPERATORS.map(operator=>{const weapon=operator.firearms[0],part=weapo
 
 const {weaponHandling,shotInterval}=require(root+'domain/realtime/weaponHandling.ts');
 const sidearms=[...new Set(OPERATORS.map(o=>o.firearms[1]))];assert.equal(sidearms.length,8);
-for(const name of sidearms){const p=weaponHandling(name);assert.equal(p.family,'pistol',name);assert.equal(p.cyclicRpm,0);assert(shotInterval(p,100,.7,1)>=.3);assert.equal(weaponPart(name).id,'pistol',name+' PNG');assert(weaponPart(name).length<weaponPart('HK416').length);}
+for(const name of sidearms){const p=weaponHandling(name);assert.equal(p.family,'pistol',name);assert.equal(p.cyclicRpm,0);assert(shotInterval(p,100,.7,1)>=.3);assert(name.includes(weaponPart(name).id),name+' 개별 PNG');assert.deepEqual(weaponMuzzleOffset(name),{x:15,y:7.5});assert(weaponPart(name).length<weaponPart('HK416').length);}
 console.log('PASS 실제 편성 보조무기 8종의 권총 동작과 PNG 연결');
+
+assert.equal(new Set(sidearms.map(name=>weaponPart(name).file)).size,8);
