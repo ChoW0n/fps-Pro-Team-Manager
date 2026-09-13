@@ -5,5 +5,7 @@ for(const text of ['방향','교전 태도','정보 우선순위','전술 라인
 for(const removed of ['선발조 배정','분산 진입','거점 마지막 진입','조준 {','숙련 {','공격성 {','command-lineup','command-picks'])assert(!prep.includes(removed),removed);
 for(const removed of ['director-controls','진입</button>','후퇴</button>','경로 변경','TacticalDirectorCommand'])assert(!live.includes(removed),removed);
 for(const required of ['cast-decisions','선수 판단 피드','unit.decision','slice(-3)'])assert(live.includes(required),required);
+for(const required of ['AnimatePresence','motion.div','motion.p','useReducedMotion'])assert(live.includes(required),'중계 사건 애니메이션 '+required);
+assert(/duration:reducedMotion\?0:/.test(live),'사용자 모션 감소 설정에서는 중계 전환 시간을 제거해야 함');
 assert(!/className="cast-player"[\s\S]*selected\.goal/.test(live),'판단 피드는 선수 카드에 종속되지 않아야 함');
-fs.writeFileSync('validation/preparation-ui-contract.json',JSON.stringify({axes:4,manualLineup:'team lineup with role-fit assignment',liveDirectorCommands:false,decisionFeed:'independent latest 3, changes only',removed:['선수별 수치','선수별 오퍼레이터 강제','별동조','사이트 마지막 진입','경기 중 전술 지시']},null,2)+'\n');console.log('PASS 준비 네 축·관전 전용 중계·독립 판단 피드 계약');
+fs.writeFileSync('validation/preparation-ui-contract.json',JSON.stringify({axes:4,manualLineup:'team lineup with role-fit assignment',liveDirectorCommands:false,decisionFeed:'independent latest 3, changes only',broadcastMotion:'event keyed; reduced-motion duration zero',removed:['선수별 수치','선수별 오퍼레이터 강제','별동조','사이트 마지막 진입','경기 중 전술 지시']},null,2)+'\n');console.log('PASS 준비 네 축·관전 전용 중계·독립 판단 피드·모션 감소 계약');

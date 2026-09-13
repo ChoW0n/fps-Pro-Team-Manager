@@ -3,6 +3,7 @@
   "manualLineup": "team lineup with role-fit assignment",
   "liveDirectorCommands": false,
   "decisionFeed": "independent latest 3, changes only",
+  "broadcastMotion": "event keyed; reduced-motion duration zero",
   "removed": [
     "선수별 수치",
     "선수별 오퍼레이터 강제",

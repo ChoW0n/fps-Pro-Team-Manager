@@ -1,5 +1,5 @@
 // 실제 Canvas 중계 컴포넌트를 로컬 Skia에 그립니다. 브라우저·아이폰 플레이가 아닙니다.
-const fs=require('node:fs'),path=require('node:path'),ts=require('typescript'),assert=require('node:assert/strict'),{execFileSync}=require('node:child_process');
+const fs=require('node:fs'),path=require('node:path'),os=require('node:os'),ts=require('typescript'),assert=require('node:assert/strict'),{execFileSync}=require('node:child_process');
 const app=path.resolve(__dirname,'../artifacts/draft-order-player-generator');
 const compile=(module,file)=>module._compile(ts.transpileModule(fs.readFileSync(file,'utf8').replaceAll('import.meta.env.BASE_URL',JSON.stringify('/draft-order-player-generator/')),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022,jsx:ts.JsxEmit.ReactJSX,esModuleInterop:true,resolveJsonModule:true}}).outputText,file);
 require.extensions['.ts']=compile;require.extensions['.tsx']=compile;
@@ -14,7 +14,8 @@ const injuryFixtures=[result];
 const shot=result.events.filter(event=>event.type==='shot'&&event.side==='공격').sort((a,b)=>Math.hypot(a.targetPosition.x-a.position.x,a.targetPosition.y-a.position.y)-Math.hypot(b.targetPosition.x-b.position.x,b.targetPosition.y-b.position.y))[0];
 if(!shot)throw Error('실제 발사 없음');const tick={time:shot.time,snapshot:result.snapshots.find(snapshot=>snapshot.time===shot.time),events:[]};
 const output=process.env.DRAFT_REVIEW_DIR??path.resolve(__dirname,'../validation');fs.mkdirSync(output,{recursive:true});
-const decoded=path.join(output,'.canvas-decoded');fs.mkdirSync(decoded,{recursive:true});
+// 실행별 임시 폴더를 사용해 병렬 검사끼리 디코드 자산을 지우지 않게 합니다.
+const decoded=fs.mkdtempSync(path.join(os.tmpdir(),'draft-order-canvas-'));
 // Skia 바인딩이 일부 정상 PNG/WebP를 거부해 테스트에서만 재인코딩합니다. 배포 원본은 수정하지 않습니다.
 execFileSync('python3',['-c',`from PIL import Image\nfrom pathlib import Path\ns=Path(${JSON.stringify(app+'/public/operators')});d=Path(${JSON.stringify(decoded)})\nfor p in s.glob('minimal-*.png'):\n Image.open(p).verify()\n Image.open(p).save(d/(p.stem+'.png'))`]);
 // 디코드한 파일명도 기록하여 새 자세의 실제 drawImage 호출을 검증합니다.
@@ -84,5 +85,5 @@ const {operatorStateVisual}=require(app+'/src/domain/operatorVisuals.ts');
  rows.push({name,width,height,dpr:ratio,backingWidth,backingHeight,medianMs:+times[Math.floor(times.length/2)].toFixed(2),p95Ms:+times[Math.floor(times.length*.95)].toFixed(2),file:path.basename(file)});
 }
 fs.writeFileSync(path.join(output,'broadcast-canvas-review.json'),JSON.stringify({kind:'Actual Canvas renderer in local Skia; not browser or iPhone performance validation',seed:41,time:shot.time,rows},null,2)+'\n');console.log(rows);
-for(const file of fs.readdirSync(decoded))fs.unlinkSync(path.join(decoded,file));fs.rmdirSync(decoded);
+fs.rmSync(decoded,{recursive:true,force:true});
 })().catch(error=>{console.error(error);process.exitCode=1;});
