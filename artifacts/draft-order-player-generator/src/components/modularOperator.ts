@@ -193,18 +193,33 @@ function paintLowerBody(ctx:CanvasRenderingContext2D,pose:OperatorAssemblyPose,t
   const crouch=frame?.crouchAmount??Number(pose.crouched);
   ctx.save();ctx.rotate(relative);ctx.lineCap='round';ctx.lineJoin='round';
   for(const side of [-1,1]){
-      const rear=-10+3*crouch+side*step;
-      ctx.fillStyle=side<0?'#29373A':color;ctx.strokeStyle='#152023';ctx.lineWidth=1.2;
-      ctx.beginPath();ctx.roundRect(rear-2,side*3-1.7,7,3.4,1.5);ctx.fill();ctx.stroke();
+    // 앉기는 발만 앞으로 옮기지 않습니다. 접힌 허벅지와 무릎 아래로 정강이·발을 모읍니다.
+    const kneeX=side<0?-2:0,spread=side*(3+4*crouch);
+    const rear=-10+crouch+side*step*(1-.6*crouch);
+    if(crouch>0){
+      ctx.save();ctx.globalAlpha*=crouch;
+      ctx.fillStyle=color;ctx.strokeStyle='#152023';ctx.lineWidth=1.2;
+      ctx.beginPath();ctx.moveTo(-11,side*2);
+      ctx.lineTo(kneeX-1,side*4.5);ctx.quadraticCurveTo(kneeX+2,side*5.5,kneeX+1,side*7);
+      ctx.lineTo(kneeX-2,side*8);ctx.lineTo(-10,side*5.5);ctx.closePath();ctx.fill();ctx.stroke();
+      // 슬개부는 원형 돌출 대신 허벅지 끝의 얇은 패드로 읽힙니다.
+      ctx.strokeStyle='#34423E';ctx.lineWidth=1.4;ctx.beginPath();ctx.moveTo(kneeX-1,side*5.5);ctx.lineTo(kneeX-2,side*7);ctx.stroke();
+      ctx.restore();
+    }
+    ctx.fillStyle=side<0?'#29373A':color;ctx.strokeStyle='#152023';ctx.lineWidth=1.2;
+    ctx.beginPath();ctx.roundRect(rear-2,spread-1.7,7-2*crouch,3.4,1.2);ctx.fill();ctx.stroke();
   }
   ctx.restore();
 }
 
 function paintTorso(ctx:CanvasRenderingContext2D,color:string):void {
   ctx.strokeStyle='#152023';ctx.lineWidth=1.4;ctx.fillStyle=color;
-  ctx.beginPath();ctx.moveTo(-13,-2.5);ctx.bezierCurveTo(-12,-5,-7,-5.5,-3,-5.5);
-  ctx.bezierCurveTo(3,-5.5,6,-3.5,5,0);ctx.bezierCurveTo(5,4.7,1,5.5,-4,5);
-  ctx.bezierCurveTo(-9,4.8,-13,4,-13,-2.5);ctx.closePath();ctx.fill();ctx.stroke();
+  // 전면 방탄판과 하단 옷단을 평평하게 연결해 헬멧 아래 둥근 가슴 돌출을 없앱니다.
+  // 어깨 접점은 그대로 두어 몸통 윤곽 수정이 팔·총기 자세를 움직이지 않습니다.
+  ctx.beginPath();ctx.moveTo(-13,-2.5);ctx.quadraticCurveTo(-12,-5,-8,-5);
+  ctx.lineTo(1,-5);ctx.quadraticCurveTo(3,-4.5,3,-2.5);ctx.lineTo(3,2.5);
+  ctx.quadraticCurveTo(3,3.6,1,3.6);ctx.lineTo(-10,3.6);
+  ctx.quadraticCurveTo(-13,3.6,-13,1);ctx.closePath();ctx.fill();ctx.stroke();
   ctx.fillStyle='#34423E';ctx.beginPath();ctx.roundRect(-12,-3.5,8,7,2.2);ctx.fill();
 }
 
