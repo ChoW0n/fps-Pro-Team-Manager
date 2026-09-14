@@ -1,0 +1,80 @@
+name: AI decision stability one-shot patch
+
+on:
+  push:
+    branches:
+      - fix/d424d82-art-audio-ai-qa
+    paths:
+      - .github/workflows/ai-decision-stability-once.yml
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: fix/d424d82-art-audio-ai-qa
+          fetch-depth: 0
+      - name: Patch decision persistence only
+        shell: python
+        run: |
+          from pathlib import Path
+
+          path = Path('artifacts/draft-order-player-generator/src/domain/realtime/TacticalRealtimeSimulation.ts')
+          text = path.read_text(encoding='utf-8')
+
+          anchor_state = "    const dangerZones:DangerZone[]=[];\n"
+          replacement_state = anchor_state + "    // 판단 문자열은 전투 로직과 분리해 관전 스냅샷에서만 최소 표시 시간을 보장합니다.\n    const decisionHolds=new Map<string,{value:string;setAt:number;lastShotAt?:number}>();\n"
+          if text.count(anchor_state) != 1:
+              raise SystemExit(f'state anchor count={text.count(anchor_state)}')
+          text = text.replace(anchor_state, replacement_state, 1)
+
+          anchor_snapshot = "      for (const e of sounds) if (e.at === now) log({ time: now, type: 'sound', actor: e.owner, message: e.kind === 'gunshot' ? '총성' : '발소리', position: e.source });\n"
+          stability = r'''      // 실제 행동·피해 판정은 그대로 두고 화면에 기록되는 판단만 안정화합니다.
+      const decisionEvents=events.slice(eventCursor);
+      for(const unit of units) {
+        const candidate=unit.decision??(unit.side==='공격'?'사선 확보 · 진입 대기':'거점 각 유지 · 교차 사선');
+        const prior=decisionHolds.get(unit.id);
+        const fired=decisionEvents.some(event=>event.type==='shot'&&event.actor===unit.id);
+        const interrupted=decisionEvents.some(event=>(event.type==='impact'&&event.hit&&event.target===unit.id)
+          ||(['downed','death','revive'].includes(event.type)&&(event.actor===unit.id||event.target===unit.id)));
+        const urgent=interrupted||!unit.alive||Boolean(unit.downed)||Boolean(unit.reviving)||candidate==='구조 접근 · 위협 확인';
+        const firing=candidate==='짧은 점사 · 사선 유지'||candidate==='먼 사선 · 단발 후 재조준';
+        if(!prior||urgent||(fired&&firing)) {
+          decisionHolds.set(unit.id,{value:candidate,setAt:now,lastShotAt:fired&&firing?now:undefined});
+          unit.decision=candidate;
+          continue;
+        }
+        if(candidate===prior.value) {
+          if(fired&&firing)prior.lastShotAt=now;
+          unit.decision=prior.value;
+          continue;
+        }
+        const priorFiring=prior.value==='짧은 점사 · 사선 유지'||prior.value==='먼 사선 · 단발 후 재조준';
+        const holdUntil=priorFiring&&prior.lastShotAt!==undefined?prior.lastShotAt+1.2:prior.setAt+.6;
+        if(now<holdUntil) {
+          unit.decision=prior.value;
+          continue;
+        }
+        decisionHolds.set(unit.id,{value:candidate,setAt:now,lastShotAt:fired&&firing?now:undefined});
+        unit.decision=candidate;
+      }
+'''
+          if text.count(anchor_snapshot) != 1:
+              raise SystemExit(f'snapshot anchor count={text.count(anchor_snapshot)}')
+          text = text.replace(anchor_snapshot, stability + anchor_snapshot, 1)
+          path.write_text(text, encoding='utf-8')
+      - name: Verify scoped diff
+        run: |
+          git diff --check
+          git diff -- artifacts/draft-order-player-generator/src/domain/realtime/TacticalRealtimeSimulation.ts
+      - name: Commit patch
+        run: |
+          git config user.name "ChoW0n"
+          git config user.email "163250615+ChoW0n@users.noreply.github.com"
+          git add artifacts/draft-order-player-generator/src/domain/realtime/TacticalRealtimeSimulation.ts
+          git commit -m "개선: 전술 판단 최소 유지 시간 적용"
+          git push origin HEAD:fix/d424d82-art-audio-ai-qa
