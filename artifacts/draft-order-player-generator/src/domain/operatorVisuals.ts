@@ -33,7 +33,9 @@ import type { RealtimeUnitState } from './realtime/TacticalRealtimeSimulation';
 export const OPERATOR_SCALE = 0.11;
 export const TEMPORARY_OPERATOR_SCALE = 0.75;
 const VISUAL_KEYS: Record<string, keyof typeof manifest> = {
-  MAGPIE: 'magpie', COLLIER: 'collier', 해동: 'haedong',
+  MAGPIE: 'magpie', COLLIER: 'collier', 해동: 'haedong', ARBEL: 'arbel',
+  AUBERT: 'aubert', MEDVED: 'medved', REUSS: 'reuss', BRANDT: 'brandt',
+  MARCHAND: 'marchand', HALLORAN: 'halloran', 성곽: 'seonggak', SAVELLI: 'savelli',
 };
 
 export interface OperatorVisual {
@@ -43,22 +45,10 @@ export interface OperatorVisual {
   scale?:number;
   rotationOffset?:number;
 }
-const FIELD_VISUALS: Record<string,OperatorVisual> = Object.fromEntries([
-  ['ARBEL',[20,100,370,250],[165,118],[363,123]],
-  ['AUBERT',[432,100,355,250],[163,130],[347,122]],
-  ['MEDVED',[840,100,395,270],[180,135],[387,123]],
-  ['REUSS',[20,490,398,260],[145,128],[392,110]],
-  ['BRANDT',[425,505,455,250],[150,115],[447,109]],
-  ['MARCHAND',[895,500,314,253],[130,120],[306,109]],
-  ['HALLORAN',[20,885,440,230],[158,100],[433,108]],
-  ['성곽',[458,890,343,240],[140,110],[335,108]],
-  ['SAVELLI',[837,885,393,257],[170,122],[385,110]],
-].map(([name,region,pivot,muzzle])=>[name,{region,pivot,muzzle,width:(region as number[])[2],height:(region as number[])[3],sprite:'field-operators-atlas.webp'}])) as Record<string,OperatorVisual>;
-
 /** 준비된 인물에만 고유 원화를 연결하며 다른 인물로 대체하지 않습니다. */
 export function operatorVisual(callSign: string): OperatorVisual | undefined {
   const key = VISUAL_KEYS[callSign];
-  return key ? manifest[key] : FIELD_VISUALS[callSign];
+  return key ? manifest[key] : undefined;
 }
 
 // 한 자세로 제작한 원본에서 크롭·축소한 좌표를 그대로 사용합니다. 다운 중에는 사격하지 않습니다.
@@ -112,10 +102,19 @@ export function operatorStateVisual(unit: RealtimeUnitState, time: number): Oper
   const crawling = unit.alive && unit.downed?.mode === 'crawl' && moving;
   if(!Number.isFinite(time)||time<0||!unit.alive)return undefined;
   if(unit.downed)return unit.callSign==='COLLIER'?operatorPoseVisual(unit.callSign,true,crawling?time:undefined):undefined;
-  const sheet = (unit.locomotion === 'crouch' ? CROUCH_SHEETS : WALK_SHEETS)[unit.callSign];
-  if (!sheet || unit.traversal || unit.shieldRaised || unit.reviving
+  if (unit.traversal || unit.shieldRaised || unit.reviving
     || unit.reloadRemaining > 0 || (unit.locomotion !== 'walk' && unit.locomotion !== 'crouch')
     || (!WALK_ACTIONS.has(unit.action) && !['hold','aim','fire'].includes(unit.action))) return undefined;
+  // 승인된 12인 통합 외형은 서기·전진 이동에만 사용합니다. 동작이 필요한 상태는 호출자가 폴백합니다.
+  if (unit.locomotion === 'walk') {
+    if (moving) {
+      const forward = (unit.velocity.x * Math.cos(unit.facing) + unit.velocity.y * Math.sin(unit.facing)) / speed;
+      if (forward < .7) return undefined;
+    }
+    return operatorVisual(unit.callSign);
+  }
+  const sheet = CROUCH_SHEETS[unit.callSign];
+  if (!sheet) return undefined;
   if(!moving)return sheet.frames[1];
   // 앞걸음 시트를 횡이동·후진에 재사용해 발이 미끄러지는 표현을 만들지 않습니다.
   const forward = (unit.velocity.x * Math.cos(unit.facing) + unit.velocity.y * Math.sin(unit.facing)) / speed;

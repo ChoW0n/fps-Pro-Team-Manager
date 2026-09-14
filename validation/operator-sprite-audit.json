@@ -6,17 +6,17 @@
       "weapon": "L119A2 카빈",
       "sprite": {
         "size": [
-          442,
-          239
+          467,
+          256
         ],
         "mode": "RGBA",
         "alpha": [
           0,
           255
         ],
-        "transparentFraction": 0.6239800071943808,
-        "opaqueFraction": 0.3760199928056192,
-        "file": "magpie-topdown.webp",
+        "transparentFraction": 0.5427010840471093,
+        "opaqueFraction": 0.4330835117773019,
+        "file": "magpie-integrated-v1.png",
         "region": null
       },
       "animationPackComplete": false
@@ -26,17 +26,17 @@
       "weapon": "MP5SD",
       "sprite": {
         "size": [
-          457,
-          241
+          412,
+          256
         ],
         "mode": "RGBA",
         "alpha": [
           0,
           255
         ],
-        "transparentFraction": 0.6043654720938467,
-        "opaqueFraction": 0.3956345279061532,
-        "file": "collier-topdown.webp",
+        "transparentFraction": 0.49999051881067963,
+        "opaqueFraction": 0.4699635922330097,
+        "file": "collier-integrated-v1.png",
         "region": null
       },
       "animationPackComplete": false
@@ -46,17 +46,17 @@
       "weapon": "HK416",
       "sprite": {
         "size": [
-          468,
-          244
+          432,
+          256
         ],
         "mode": "RGBA",
         "alpha": [
           0,
           255
         ],
-        "transparentFraction": 0.6145701975620008,
-        "opaqueFraction": 0.3854298024379992,
-        "file": "haedong-topdown.webp",
+        "transparentFraction": 0.48583080150462965,
+        "opaqueFraction": 0.4869701244212963,
+        "file": "haedong-integrated-v1.png",
         "region": null
       },
       "animationPackComplete": false
@@ -66,23 +66,18 @@
       "weapon": "타보르 X95",
       "sprite": {
         "size": [
-          1254,
-          1254
+          403,
+          256
         ],
         "mode": "RGBA",
         "alpha": [
           0,
           255
         ],
-        "transparentFraction": 0.4658054054054054,
-        "opaqueFraction": 0.4680324324324324,
-        "file": "field-operators-atlas.webp",
-        "region": [
-          20,
-          100,
-          370,
-          250
-        ]
+        "transparentFraction": 0.4757192152605459,
+        "opaqueFraction": 0.4982165012406948,
+        "file": "arbel-integrated-v1.png",
+        "region": null
       },
       "animationPackComplete": false
     },
@@ -91,23 +86,18 @@
       "weapon": "SIG MPX",
       "sprite": {
         "size": [
-          1254,
-          1254
+          376,
+          256
         ],
         "mode": "RGBA",
         "alpha": [
           0,
           255
         ],
-        "transparentFraction": 0.4490028169014085,
-        "opaqueFraction": 0.486287323943662,
-        "file": "field-operators-atlas.webp",
-        "region": [
-          432,
-          100,
-          355,
-          250
-        ]
+        "transparentFraction": 0.531239611037234,
+        "opaqueFraction": 0.443110039893617,
+        "file": "aubert-integrated-v1.png",
+        "region": null
       },
       "animationPackComplete": false
     },
@@ -116,23 +106,18 @@
       "weapon": "AS Val 소음소총",
       "sprite": {
         "size": [
-          1254,
-          1254
+          507,
+          256
         ],
         "mode": "RGBA",
         "alpha": [
           0,
           255
         ],
-        "transparentFraction": 0.5163150492264417,
-        "opaqueFraction": 0.43465541490857945,
-        "file": "field-operators-atlas.webp",
-        "region": [
-          840,
-          100,
-          395,
-          270
-        ]
+        "transparentFraction": 0.5274285009861933,
+        "opaqueFraction": 0.4452354536489152,
+        "file": "medved-integrated-v1.png",
+        "region": null
       },
       "animationPackComplete": false
     },
@@ -141,23 +126,18 @@
       "weapon": "HK417",
       "sprite": {
         "size": [
-          1254,
-          1254
+          523,
+          256
         ],
         "mode": "RGBA",
         "alpha": [
           0,
           255
         ],
-        "transparentFraction": 0.49634712021646693,
-        "opaqueFraction": 0.4474971008890607,
-        "file": "field-operators-atlas.webp",
-        "region": [
-          20,
-          490,
-          398,
-          260
-        ]
+        "transparentFraction": 0.5658834249521989,
+        "opaqueFraction": 0.4083114244741874,
+        "file": "reuss-integrated-v1.png",
+        "region": null
       },
       "animationPackComplete": false
     },
@@ -166,23 +146,18 @@
       "weapon": "PSG-1 정밀소총",
       "sprite": {
         "size": [
-          1254,
-          1254
+          567,
+          256
         ],
         "mode": "RGBA",
         "alpha": [
           0,
           255
         ],
-        "transparentFraction": 0.6187340659340659,
-        "opaqueFraction": 0.3344791208791209,
-        "file": "field-operators-atlas.webp",
-        "region": [
-          425,
-          505,
-          455,
-          250
-        ]
+        "transparentFraction": 0.6146108906525574,
+        "opaqueFraction": 0.36004326499118167,
+        "file": "brandt-integrated-v1.png",
+        "region": null
       },
       "animationPackComplete": false
     },
@@ -191,23 +166,18 @@
       "weapon": "FN P90",
       "sprite": {
         "size": [
-          1254,
-          1254
+          416,
+          256
         ],
         "mode": "RGBA",
         "alpha": [
           0,
           255
         ],
-        "transparentFraction": 0.44685430880390725,
-        "opaqueFraction": 0.4915409984642884,
-        "file": "field-operators-atlas.webp",
-        "region": [
-          895,
-          500,
-          314,
-          253
-        ]
+        "transparentFraction": 0.4696232722355769,
+        "opaqueFraction": 0.5009953425480769,
+        "file": "marchand-integrated-v1.png",
+        "region": null
       },
       "animationPackComplete": false
     },
@@ -216,23 +186,18 @@
       "weapon": "C14 팀버울프",
       "sprite": {
         "size": [
-          1254,
-          1254
+          645,
+          256
         ],
         "mode": "RGBA",
         "alpha": [
           0,
           255
         ],
-        "transparentFraction": 0.5434288537549408,
-        "opaqueFraction": 0.39322134387351776,
-        "file": "field-operators-atlas.webp",
-        "region": [
-          20,
-          885,
-          440,
-          230
-        ]
+        "transparentFraction": 0.6432897286821705,
+        "opaqueFraction": 0.3325278585271318,
+        "file": "halloran-integrated-v1.png",
+        "region": null
       },
       "animationPackComplete": false
     },
@@ -241,23 +206,18 @@
       "weapon": "K1A 기관단총",
       "sprite": {
         "size": [
-          1254,
-          1254
+          442,
+          256
         ],
         "mode": "RGBA",
         "alpha": [
           0,
           255
         ],
-        "transparentFraction": 0.4690597667638484,
-        "opaqueFraction": 0.4657312925170068,
-        "file": "field-operators-atlas.webp",
-        "region": [
-          458,
-          890,
-          343,
-          240
-        ]
+        "transparentFraction": 0.506371959841629,
+        "opaqueFraction": 0.46907699377828055,
+        "file": "seonggwak-integrated-v1.png",
+        "region": null
       },
       "animationPackComplete": false
     },
@@ -266,23 +226,18 @@
       "weapon": "베레타 ARX160",
       "sprite": {
         "size": [
-          1254,
-          1254
+          493,
+          256
         ],
         "mode": "RGBA",
         "alpha": [
           0,
           255
         ],
-        "transparentFraction": 0.5273314125602717,
-        "opaqueFraction": 0.4127285868456748,
-        "file": "field-operators-atlas.webp",
-        "region": [
-          837,
-          885,
-          393,
-          257
-        ]
+        "transparentFraction": 0.5198323402636917,
+        "opaqueFraction": 0.4477449923935091,
+        "file": "savelli-integrated-v1.png",
+        "region": null
       },
       "animationPackComplete": false
     }

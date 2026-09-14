@@ -14,7 +14,7 @@
 
 | 분야 | 현재 구현 | 남은 일 |
 |---|---|---|
-| 캐릭터 | 원본 신체 PNG, 발 81프레임, 총기 20종, 서기·앉기·방패, 색상 막대 제거 | 원본 상체 타임라인 전체 이식·12명 전용 복장·실기기 외형 평가 |
+| 캐릭터 | 원본 비율, 12인 통합 기본 외형, 발 81프레임, 총기 20종, 서기·앉기·방패, 색상 막대 제거 | 원본 상체 타임라인 전체 이식·전용 동작 확장·실기기 외형 평가 |
 | 조준 | 표시 총구에서 탄흔/화염을 연결하고 실제 판정과 분리 | 근거리 총열 축과 목표 방향의 각도 오차 측정; 몸통 비틀기로 보정 금지 |
 | 전투/목표 | 실시간 틱, 설치·해제, 공수 교대, 부상, 장비 동작 | 장기 밸런스와 통행·판단 안정성 |
 | AI | 통행 재개 hold 잔류·다운 예약 수정, 이전 회귀 15개 통과 | 이전 8경기 판단 문자열 왕복 29.36%; 실제 궤적과 원인 분리 필요 |
@@ -33,7 +33,7 @@
 
 ## 바로가기
 
-- [아트 기준](ART_APPROVED.md) · [실제 원본 비교](../validation/survivor-reference-comparison.png)
+- [아트 기준](ART_APPROVED.md) · [12인 통합 외형 범위](integrated-operator-current.md) · [실제 원본 비교](../validation/survivor-reference-comparison.png)
 - [Archify 현재 구조](architecture/runtime.html) · [구조 근거와 검증](architecture/README.md)
 - [작업·PR 정리 기록](WORK_RECONCILIATION_20260913.md)
 - [기획 문서 3종과 적용 우선순위](planning/README.md)

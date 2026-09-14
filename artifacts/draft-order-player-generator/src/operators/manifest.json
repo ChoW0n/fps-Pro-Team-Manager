@@ -1,47 +1,119 @@
 {
   "magpie": {
-    "width": 442,
-    "height": 239,
+    "width": 467,
+    "height": 256,
     "pivot": [
-      154,
-      118
+      135,
+      131
     ],
     "muzzle": [
-      425,
-      115
+      465,
+      131
     ],
     "sourceFacing": "right",
     "portrait": "magpie-portrait.webp",
-    "sprite": "magpie-topdown.webp"
+    "sprite": "magpie-integrated-v1.png"
   },
   "collier": {
-    "width": 457,
-    "height": 241,
+    "width": 412,
+    "height": 256,
     "pivot": [
-      174,
-      119
+      124,
+      138
     ],
     "muzzle": [
-      449,
-      116
+      410,
+      138
     ],
     "sourceFacing": "right",
     "portrait": "collier-portrait-v2.png",
-    "sprite": "collier-topdown.webp"
+    "sprite": "collier-integrated-v1.png"
   },
   "haedong": {
-    "width": 468,
-    "height": 244,
+    "width": 432,
+    "height": 256,
     "pivot": [
-      175,
-      119
+      127,
+      135
     ],
     "muzzle": [
-      439,
-      118
+      430,
+      135
     ],
     "sourceFacing": "right",
     "portrait": "haedong-portrait.webp",
-    "sprite": "haedong-topdown.webp"
+    "sprite": "haedong-integrated-v1.png"
+  },
+  "arbel": {
+    "width": 403,
+    "height": 256,
+    "pivot": [128, 136],
+    "muzzle": [401, 136],
+    "sourceFacing": "right",
+    "sprite": "arbel-integrated-v1.png"
+  },
+  "aubert": {
+    "width": 376,
+    "height": 256,
+    "pivot": [114, 143],
+    "muzzle": [374, 143],
+    "sourceFacing": "right",
+    "sprite": "aubert-integrated-v1.png"
+  },
+  "medved": {
+    "width": 507,
+    "height": 256,
+    "pivot": [139, 130],
+    "muzzle": [505, 130],
+    "sourceFacing": "right",
+    "sprite": "medved-integrated-v1.png"
+  },
+  "reuss": {
+    "width": 523,
+    "height": 256,
+    "pivot": [145, 139],
+    "muzzle": [521, 139],
+    "sourceFacing": "right",
+    "sprite": "reuss-integrated-v1.png"
+  },
+  "brandt": {
+    "width": 567,
+    "height": 256,
+    "pivot": [127, 136],
+    "muzzle": [565, 136],
+    "sourceFacing": "right",
+    "sprite": "brandt-integrated-v1.png"
+  },
+  "marchand": {
+    "width": 416,
+    "height": 256,
+    "pivot": [130, 137],
+    "muzzle": [414, 137],
+    "sourceFacing": "right",
+    "sprite": "marchand-integrated-v1.png"
+  },
+  "halloran": {
+    "width": 645,
+    "height": 256,
+    "pivot": [122, 131],
+    "muzzle": [643, 131],
+    "sourceFacing": "right",
+    "sprite": "halloran-integrated-v1.png"
+  },
+  "seonggak": {
+    "width": 442,
+    "height": 256,
+    "pivot": [139, 131],
+    "muzzle": [440, 131],
+    "sourceFacing": "right",
+    "sprite": "seonggwak-integrated-v1.png"
+  },
+  "savelli": {
+    "width": 493,
+    "height": 256,
+    "pivot": [149, 132],
+    "muzzle": [491, 132],
+    "sourceFacing": "right",
+    "sprite": "savelli-integrated-v1.png"
   }
 }

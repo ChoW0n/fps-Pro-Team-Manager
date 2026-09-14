@@ -10,8 +10,8 @@
       "dpr": 1,
       "backingWidth": 1280,
       "backingHeight": 720,
-      "medianMs": 4.63,
-      "p95Ms": 7.03,
+      "medianMs": 16.06,
+      "p95Ms": 34.61,
       "file": "broadcast-canvas-desktop.png"
     },
     {
@@ -21,8 +21,8 @@
       "dpr": 1,
       "backingWidth": 390,
       "backingHeight": 844,
-      "medianMs": 3.3,
-      "p95Ms": 4.46,
+      "medianMs": 0.9,
+      "p95Ms": 1.1,
       "file": "broadcast-canvas-phone.png"
     },
     {
@@ -32,8 +32,8 @@
       "dpr": 1,
       "backingWidth": 844,
       "backingHeight": 390,
-      "medianMs": 1.78,
-      "p95Ms": 2.41,
+      "medianMs": 0.81,
+      "p95Ms": 1.01,
       "file": "broadcast-canvas-phone-landscape.png"
     },
     {
@@ -43,8 +43,8 @@
       "dpr": 1,
       "backingWidth": 1280,
       "backingHeight": 720,
-      "medianMs": 1.89,
-      "p95Ms": 2.34,
+      "medianMs": 0.95,
+      "p95Ms": 14.6,
       "file": "broadcast-canvas-downed.png"
     },
     {
@@ -54,8 +54,8 @@
       "dpr": 1,
       "backingWidth": 1280,
       "backingHeight": 720,
-      "medianMs": 3.32,
-      "p95Ms": 3.92,
+      "medianMs": 13.96,
+      "p95Ms": 15.66,
       "file": "broadcast-canvas-collier-downed.png"
     },
     {
@@ -65,8 +65,8 @@
       "dpr": 1,
       "backingWidth": 1280,
       "backingHeight": 720,
-      "medianMs": 4.18,
-      "p95Ms": 4.99,
+      "medianMs": 2.6,
+      "p95Ms": 46.29,
       "file": "broadcast-canvas-collier-crawl.png"
     },
     {
@@ -76,8 +76,8 @@
       "dpr": 1,
       "backingWidth": 1280,
       "backingHeight": 720,
-      "medianMs": 4.62,
-      "p95Ms": 29.97,
+      "medianMs": 13.74,
+      "p95Ms": 16.02,
       "file": "broadcast-canvas-walk.png"
     },
     {
@@ -87,8 +87,8 @@
       "dpr": 1,
       "backingWidth": 1280,
       "backingHeight": 720,
-      "medianMs": 2.14,
-      "p95Ms": 3.06,
+      "medianMs": 1.28,
+      "p95Ms": 1.93,
       "file": "broadcast-canvas-crouch.png"
     },
     {
@@ -98,8 +98,8 @@
       "dpr": 1,
       "backingWidth": 1280,
       "backingHeight": 720,
-      "medianMs": 1.68,
-      "p95Ms": 6.63,
+      "medianMs": 0.83,
+      "p95Ms": 1.13,
       "file": "broadcast-canvas-team-visibility.png"
     },
     {
@@ -109,8 +109,8 @@
       "dpr": 1,
       "backingWidth": 1280,
       "backingHeight": 720,
-      "medianMs": 2.21,
-      "p95Ms": 2.7,
+      "medianMs": 1.49,
+      "p95Ms": 1.92,
       "file": "broadcast-canvas-tactical.png"
     },
     {
@@ -120,8 +120,8 @@
       "dpr": 3,
       "backingWidth": 1170,
       "backingHeight": 2532,
-      "medianMs": 3.54,
-      "p95Ms": 109.18,
+      "medianMs": 40.7,
+      "p95Ms": 45.2,
       "file": "broadcast-canvas-phone-touch.png"
     },
     {
@@ -131,8 +131,8 @@
       "dpr": 2,
       "backingWidth": 720,
       "backingHeight": 1600,
-      "medianMs": 2.33,
-      "p95Ms": 2.69,
+      "medianMs": 1.05,
+      "p95Ms": 1.4,
       "file": "broadcast-canvas-phone-small.png"
     },
     {
@@ -142,8 +142,8 @@
       "dpr": 3,
       "backingWidth": 1290,
       "backingHeight": 2796,
-      "medianMs": 58.21,
-      "p95Ms": 67.26,
+      "medianMs": 7.48,
+      "p95Ms": 61.79,
       "file": "broadcast-canvas-phone-large.png"
     },
     {
@@ -153,8 +153,8 @@
       "dpr": 2.625,
       "backingWidth": 1081,
       "backingHeight": 2401,
-      "medianMs": 44.8,
-      "p95Ms": 62.95,
+      "medianMs": 35.14,
+      "p95Ms": 38.64,
       "file": "broadcast-canvas-phone-android.png"
     },
     {
@@ -164,8 +164,8 @@
       "dpr": 3,
       "backingWidth": 2532,
       "backingHeight": 1170,
-      "medianMs": 3.28,
-      "p95Ms": 4.53,
+      "medianMs": 1.36,
+      "p95Ms": 2.31,
       "file": "broadcast-canvas-phone-retina-landscape.png"
     },
     {
@@ -175,8 +175,8 @@
       "dpr": 2,
       "backingWidth": 1731,
       "backingHeight": 2309,
-      "medianMs": 3.97,
-      "p95Ms": 66.92,
+      "medianMs": 2.6,
+      "p95Ms": 53.74,
       "file": "broadcast-canvas-tablet.png"
     }
   ]

@@ -7,7 +7,8 @@
 - 배낭 옆 팀색 막대와 군장 색상 막대는 제거했다. 팀 식별은 기존 관전 링·이름·HUD를 사용한다.
 - 서기·앉기, 방패+보조무장만 유지한다. 포복과 방패+주무장을 재도입하지 않는다.
 - 모델 변경이나 새 채팅만으로 체형을 다시 설계하지 않는다.
+- 승인된 12인 통합 외형 v1을 기본 서기·전진 이동에 사용한다. 웅크림·다운·방패·재장전 등 전용 동작은 기존 시트·조립식 렌더러를 유지한다.
 
-[원본/게임 비교](../validation/survivor-reference-comparison.png) · [무기별 적용](../validation/survivor-operator-sheet.png) · [기술 범위](survivor-renderer-current.md) · [과거 승인 이력](ART_APPROVED_HISTORY_20260913.md)
+[통합 외형 적용 범위](integrated-operator-current.md) · [12인 런타임 비교](../validation/operator-integrated-runtime.png) · [원본/게임 비교](../validation/survivor-reference-comparison.png) · [무기별 적용](../validation/survivor-operator-sheet.png) · [기술 범위](survivor-renderer-current.md) · [과거 승인 이력](ART_APPROVED_HISTORY_20260913.md)
 
-실기기 시각 확인, 원본 상체 Spine 전체 이식, 부대별 전용 복장은 미완료다. 현재 아트 유지 상태에서 다음 개발 파트로 진행한다.
+실기기 시각 확인과 원본 상체 Spine 전체 이식은 미완료다. 12인 전용 복장은 기본 자세에 적용됐으며, 전용 애니메이션 전체 제작과 혼동하지 않는다. 현재 아트 유지 상태에서 다음 개발 파트로 진행한다.

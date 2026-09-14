@@ -24,6 +24,7 @@ global.Image=LocalImage;global.window={devicePixelRatio:1,matchMedia:()=>({match
 let callback;global.requestAnimationFrame=fn=>{callback=fn;return 1;};global.cancelAnimationFrame=()=>{};
 const weaponRenderer=require(app+'/src/components/weaponParts.ts'),paintWeapon=weaponRenderer.paintWeaponPart;let weaponDraws=0;weaponRenderer.paintWeaponPart=(...args)=>{const drawn=paintWeapon(...args);if(drawn)weaponDraws++;return drawn;};
 const modular=require(app+'/src/components/modularOperator.ts'),paintOperator=modular.paintModularOperator;let recordOperator=()=>{};modular.paintModularOperator=(...args)=>{const result=paintOperator(...args);recordOperator(args[0],args[1]);return result;};
+const operatorSheet=require(app+'/src/components/operatorSheet.ts'),paintSheet=operatorSheet.drawOperatorSheet;let recordSheet=()=>{};operatorSheet.drawOperatorSheet=(...args)=>{const result=paintSheet(...args);if(result)recordSheet(args[0],args[2]);return result;};
 const {BroadcastCanvas,canvasSize}=require(app+'/src/components/BroadcastCanvas.tsx');const rows=[];
 const {operatorStateVisual}=require(app+'/src/domain/operatorVisuals.ts');
 // Skia의 이미지 디코드 콜백이 끝난 뒤 실제 인물 픽셀까지 포함해 프레임 시간을 잽니다.
@@ -31,8 +32,9 @@ const {operatorStateVisual}=require(app+'/src/domain/operatorVisuals.ts');
  weaponDraws=0;
  const touch=name.startsWith('phone');global.window={devicePixelRatio:ratio,matchMedia:query=>({matches:touch&&query.includes('pointer: coarse')})};let pointer;const centers=[];let selected=null;
  let rectWidth=width,rectHeight=height;const canvas=createCanvas(width,height);canvas.getBoundingClientRect=()=>({width:rectWidth,height:rectHeight,left:0,top:0});canvas.addEventListener=(type,fn)=>{if(type==='pointerup')pointer=fn;};canvas.removeEventListener=()=>{};
- const context=canvas.getContext('2d');let operatorDraws=0;const drawnIds=new Set();
+ const context=canvas.getContext('2d');let operatorDraws=0,sheetDraws=0;const drawnIds=new Set();
  recordOperator=(ctx,unit)=>{operatorDraws++;drawnIds.add(unit.id);const t=ctx.getTransform();centers.push({x:(t.a*unit.position.x+t.c*unit.position.y+t.e)*width/canvas.width,y:(t.b*unit.position.x+t.d*unit.position.y+t.f)*height/canvas.height});};
+ recordSheet=(ctx,unit)=>{sheetDraws++;drawnIds.add(unit.id);const t=ctx.getTransform();centers.push({x:(t.a*unit.position.x+t.c*unit.position.y+t.e)*width/canvas.width,y:(t.b*unit.position.x+t.d*unit.position.y+t.f)*height/canvas.height});};
  const effects=[],refs=[];let index=0;
  React.useRef=value=>{const ref={current:index++===0?canvas:value};refs.push(ref);return ref;};React.useEffect=fn=>effects.push(fn);
  const casualty=u=>u.side==='공격'&&u.downed&&(!name.startsWith('collier-')||u.callSign==='COLLIER')
@@ -42,7 +44,7 @@ const {operatorStateVisual}=require(app+'/src/domain/operatorVisuals.ts');
  let injuryResult=result,injurySnapshot=needsInjury?result.snapshots.find(s=>s.units.some(casualty)):undefined;
  if(needsInjury&&!injurySnapshot){for(let index=0;index<40&&!injurySnapshot;index++){injuryFixtures[index]??=new TacticalRealtimeSimulation().run({...input,seed:41+index});injuryResult=injuryFixtures[index];injurySnapshot=injuryResult.snapshots.find(s=>s.units.some(casualty));}}
  if(needsInjury)assert(injurySnapshot,'실제 다운/기어가는 장면 필요: '+name);
- const walking=(unit,time)=>unit.side==='공격'&&operatorStateVisual(unit,time)?.sprite.endsWith(name==='crouch'?'-crouch-v1.webp':'-walk-v1.webp');
+ const walking=(unit,time)=>unit.side==='공격'&&operatorStateVisual(unit,time)?.sprite.endsWith(name==='crouch'?'-crouch-v1.webp':'-integrated-v1.png');
  const walkSnapshot=name==='walk'||name==='crouch'?result.snapshots.find(s=>s.units.some(u=>walking(u,s.time))):undefined;
  if(name==='walk'||name==='crouch')assert(walkSnapshot,'실제 전진 보행 장면 필요: '+name);
  const selectedSnapshot=name==='team-visibility'?result.snapshots[0]:walkSnapshot??injurySnapshot;
@@ -55,12 +57,12 @@ const {operatorStateVisual}=require(app+'/src/domain/operatorVisuals.ts');
  for(let frame=0;frame<45;frame++){const started=performance.now();callback(stamp+=16.67);if(frame>=15)times.push(performance.now()-started);}
  assert.equal(canvas.width,canvasSize(width,height,ratio).width);assert.equal(canvas.height,canvasSize(width,height,ratio).height);assert(canvas.width*canvas.height<=4_000_000);if(ratio>1)assert(canvas.width>width,'고밀도 화면을 DPR 1로 열화시키지 않음');
  const armedVisible=renderedTick.snapshot.units.some(unit=>drawnIds.has(unit.id)&&unit.alive&&!unit.downed);
- if(armedVisible)assert(weaponDraws>0,`${name}: 조립식 총기 레이어가 그려져야 합니다`);
+ if(armedVisible)assert(weaponDraws>0||sheetDraws>0,`${name}: 통합 시트 또는 조립식 총기가 그려져야 합니다`);
  else assert.equal(weaponDraws,0,`${name}: 다운 선수에게 파지 총기를 표시하지 않음`);
- assert(operatorDraws>0,`${name}: 실제 인물 합성기가 호출되어야 합니다`);
- if(name==='walk'||name==='crouch')assert(weaponDraws>0,name+': 하체 이동과 상체 조준이 분리된 조립식 표시');
+ assert(operatorDraws+sheetDraws>0,`${name}: 실제 인물 렌더러가 호출되어야 합니다`);
+ if(name==='walk'||name==='crouch')assert(sheetDraws>0,name+': 승인된 통합 외형 또는 전용 웅크림 시트 표시');
  const pixels=context.getImageData(0,0,canvas.width,canvas.height).data;assert(new Set(pixels).size>20,'비어 있는 지도나 단색 화면을 통과시키지 않습니다');
- if(name==='team-visibility'){assert(operatorDraws>=45*5,'아군 다섯 명이 매 프레임 표시되어야 합니다');for(const unit of renderedTick.snapshot.units.filter(u=>u.side==='공격'))assert(drawnIds.has(unit.id));}
+ if(name==='team-visibility'){assert(operatorDraws+sheetDraws>=45*5,'아군 다섯 명이 매 프레임 표시되어야 합니다');for(const unit of renderedTick.snapshot.units.filter(u=>u.side==='공격'))assert(drawnIds.has(unit.id));}
  if(touch){
   // 실제 pointerup 경로를 검사합니다. DPR=3이어도 빈 곳 60~100 CSS px 바깥은 선택하지 않습니다.
   let blank;

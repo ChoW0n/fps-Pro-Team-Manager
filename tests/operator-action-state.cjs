@@ -10,11 +10,11 @@ function check(callSign,locomotion='walk'){
   const rate=locomotion==='crouch'?3:4;
   const original=JSON.stringify(unit),muzzle=muzzlePosition(OPERATORS.find(operator=>operator.callSign===callSign).firearms[0],unit.position,unit.facing);
   const frames=Array.from({length:4},(_,index)=>operatorStateVisual(unit,index/rate+.00001));
-  assert.equal(new Set(frames.map(frame=>JSON.stringify(frame.region))).size,4);
+  assert.equal(new Set(frames.map(frame=>JSON.stringify(frame.region??frame.sprite))).size,locomotion==='walk'?1:4);
   assert(frames.every(frame=>frame.sprite===frames[0].sprite));
   assert.deepEqual(operatorStateVisual(unit,4/rate+.00001),frames[0]);
   assert.deepEqual(operatorStateVisual(unit,.5),operatorStateVisual(unit,.5),'같은 경기 시각은 일시정지·배속과 무관하게 같은 프레임');
-  for(const action of ['hold','aim','fire','search'])assert.deepEqual(operatorStateVisual({...unit,action,velocity:{x:0,y:0}},.5),frames[1],'정지는 걷기 통과 프레임 2 고정');
+  for(const action of ['hold','aim','fire','search'])assert.deepEqual(operatorStateVisual({...unit,action,velocity:{x:0,y:0}},.5),locomotion==='walk'?operatorVisual(callSign):frames[1],'정지는 승인된 기본 외형 또는 웅크림 통과 프레임 고정');
   for(const change of [{velocity:{x:-30,y:0}},{velocity:{x:0,y:30}},{alive:false},{action:'reload'},{action:'plant'},{action:'disable'},{action:'utility'},{action:'revive'},{reloadRemaining:1},{shieldRaised:true},{traversal:{kind:'vault',until:10}},{locomotion:'sprint'},{locomotion:'crawl'}]){
     assert.equal(operatorStateVisual({...unit,...change},.5),undefined,JSON.stringify(change));
   }
@@ -22,7 +22,7 @@ function check(callSign,locomotion='walk'){
   assert(!operatorStateVisual({...unit,downed:{mode:'stabilize'}},.5)?.sprite.includes('-walk-'));
   assert.deepEqual(muzzlePosition(OPERATORS.find(operator=>operator.callSign===callSign).firearms[0],unit.position,unit.facing),muzzle);
   assert.equal(JSON.stringify(unit),original,'표현은 입력·난수·물리 상태를 변경하지 않습니다');
-  return {callSign,action:locomotion,frames:frames.length,sprite:frames[0].sprite};
+  return {callSign,action:locomotion,frames:locomotion==='walk'?1:frames.length,sprite:frames[0].sprite};
 }
 const {OPERATORS}=require(root+'/src/domain/Operator.ts');
 const report=OPERATORS.flatMap(operator=>['walk','crouch'].map(action=>check(operator.callSign,action)));
