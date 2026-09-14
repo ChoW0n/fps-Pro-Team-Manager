@@ -47,7 +47,7 @@ export function paintBattleMap(ctx: CanvasRenderingContext2D, map: TacticalMapDe
   ctx.fillStyle='#273237'; ctx.fillRect(0,0,map.width,map.height);
   ctx.fillStyle='#536268'; ctx.fillRect(map.building.x,map.building.y,map.building.width,map.building.height);
   for(const room of map.rooms) {
-    const r=room.rect; ctx.fillStyle=room.floorColor??(room.kind==='yard'?'#364246':room.kind==='corridor'?'#7C817A':'#65737A');ctx.fillRect(r.x,r.y,r.width,r.height);
+    const r=room.rect; ctx.fillStyle=room.floorColor??(room.kind==='yard'?'#55666C':room.kind==='corridor'?'#7C817A':'#65737A');ctx.fillRect(r.x,r.y,r.width,r.height);
     if(room.kind!=='yard'){ctx.strokeStyle='#D3DDD315';ctx.lineWidth=1;ctx.beginPath();for(let x=r.x;x<r.x+r.width;x+=80){ctx.moveTo(x,r.y);ctx.lineTo(x,r.y+r.height);}for(let y=r.y;y<r.y+r.height;y+=80){ctx.moveTo(r.x,y);ctx.lineTo(r.x+r.width,y);}ctx.stroke();}
     ctx.font=`${Math.min(24,Math.max(18,11/Math.max(.01,Math.abs(ctx.getTransform().a))))}px sans-serif`;ctx.fillStyle='#ECE9DD';ctx.fillText(room.callout??room.label,r.x+20,r.y+34);
   }

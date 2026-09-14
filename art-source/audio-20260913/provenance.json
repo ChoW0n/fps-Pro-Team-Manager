@@ -7,6 +7,27 @@
     "smg": "2026-09-13: original generation replaced with 170Hz high-passed filtered noise; no recorded firearm claim.",
     "blast": "2026-09-13: original generation replaced with 105Hz high-passed filtered noise; no recorded firearm claim."
   },
+  "validation_attempts": [
+    {
+      "date": "2026-09-14",
+      "name": "blast",
+      "generation_ids": [
+        "sVytOD10OhowhTPfoIao",
+        "85NdiC4ygHiTWoQUr39M",
+        "nHbfS0QvKpApXeDr6FY8",
+        "80kqBcAaiOBjnnA7jSA3"
+      ],
+      "accepted": false,
+      "reason": "Generated as SND-02 candidates, but the Chat sandbox could not retrieve the generated MP3 bytes because external DNS was unavailable. Peak, attack and sub-200Hz ratio were therefore not measured, so no candidate was adopted."
+    },
+    {
+      "date": "2026-09-14",
+      "name": "smg",
+      "generation_ids": ["bdkBNcwRG0E15FvwHap1"],
+      "accepted": false,
+      "reason": "Generated as an SND-02 replacement candidate, but external DNS prevented FFmpeg measurement. The existing asset remains in use until the candidate can be measured."
+    }
+  ],
   "samples": [
     {
       "name": "carbine",

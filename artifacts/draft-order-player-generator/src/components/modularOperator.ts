@@ -75,8 +75,8 @@ const mix=(a:Point,b:Point,t:number):Point=>({x:a.x+(b.x-a.x)*t,y:a.y+(b.y-a.y)*
 /** 총기 원화를 변형하지 않고 그 원화의 접점으로 양손 자세를 결정합니다. */
 export function weaponMountPose(name:string):WeaponMountPose {
   const source=weaponPart(name),scale=weaponDisplayScale(name),kind=weaponPoseKind(name);
-  const scaled=(p:readonly number[])=>p.map(v=>v*scale);
-  const part={length:source.length*scale,gripPoint:scaled(source.gripPoint),supportPoint:scaled(source.supportPoint),magazinePoint:scaled(source.magazinePoint)};
+  const scaled=(p:readonly number[]):Point=>[p[0]*scale.x,p[1]*scale.y];
+  const part={length:source.length*scale.x,gripPoint:scaled(source.gripPoint),supportPoint:scaled(source.supportPoint),magazinePoint:scaled(source.magazinePoint)};
   // 로컬 +X는 조준, +Y는 오른쪽. 실측 각도가 아닌 탑뷰 표현용 자세입니다.
   const torsoYaw=0;
   const rotate=(p:Point):Point=>({x:p.x*Math.cos(torsoYaw)-p.y*Math.sin(torsoYaw),y:p.x*Math.sin(torsoYaw)+p.y*Math.cos(torsoYaw)});

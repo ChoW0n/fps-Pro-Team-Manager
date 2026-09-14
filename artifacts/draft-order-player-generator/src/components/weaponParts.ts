@@ -37,8 +37,11 @@ export const SIDEARM_PARTS:WeaponPart[]=[
 ];
 export function weaponPart(name:string):WeaponPart{return SIDEARM_PARTS.find(item=>name.includes(item.id))??WEAPON_PARTS.find(item=>name.includes(item.id))??WEAPON_PARTS[0];}
 
-/** 원본 인체 대비 권총 전장만 축소합니다. 시뮬레이션 길이는 그대로 둡니다. */
-export function weaponDisplayScale(name:string):number{return SIDEARM_PARTS.some(item=>name.includes(item.id))?.65:1;}
+export interface WeaponDisplayScale { x:number;y:number; }
+/** 인체 대비 표시만 비등방 축소합니다. 시뮬레이션 수치와 발사 원점은 그대로 둡니다. */
+export function weaponDisplayScale(name:string):WeaponDisplayScale{
+ return SIDEARM_PARTS.some(item=>name.includes(item.id))?{x:.65,y:.46}:{x:.78,y:.34};
+}
 
 /** 기존 시뮬레이션 발사 원점 계약. 새 보조무장 원화의 전장 표시 크기와 분리합니다. */
 export function weaponMuzzleOffset(name:string):{x:number;y:number}{return {x:SIDEARM_PARTS.some(item=>name.includes(item.id))?15:weaponPart(name).length-3,y:7.5};}
@@ -63,13 +66,13 @@ function thumbnail(image:HTMLImageElement,target:number):{color:HTMLCanvasElemen
 export function paintWeaponPart(ctx:CanvasRenderingContext2D,name:string,asset:WeaponAssetLoader):boolean{
  const part=weaponPart(name),image=asset(part.file);
  if(!image||!image.complete||!image.naturalWidth)return false;
- const scale=part.length/(part.muzzle[0]-part.rear)*weaponDisplayScale(name);
+ const base=part.length/(part.muzzle[0]-part.rear),display=weaponDisplayScale(name),scaleX=base*display.x,scaleY=base*display.y;
  ctx.save();ctx.imageSmoothingEnabled=true;ctx.imageSmoothingQuality='high';
- const transform=ctx.getTransform(),pixels=image.naturalWidth*scale*Math.hypot(transform.a,transform.b);
+ const transform=ctx.getTransform(),pixels=image.naturalWidth*scaleX*Math.hypot(transform.a,transform.b);
  const target=Math.min(image.naturalWidth,pixels<=192?192:pixels<=384?384:768);
- const sprite=thumbnail(image,target),x=-part.muzzle[0]*scale,y=-part.muzzle[1]*scale,w=image.naturalWidth*scale,h=image.naturalHeight*scale;
- // 새 도형이 아니라 PNG 자체의 알파 외곽을 따라 작은 전장용 테두리를 합성합니다.
- for(const [dx,dy] of [[-1,-1],[1,-1],[-1,1],[1,1]])ctx.drawImage(sprite.ink,x+dx,y+dy,w,h);
+ const sprite=thumbnail(image,target),x=-part.muzzle[0]*scaleX,y=-part.muzzle[1]*scaleY,w=image.naturalWidth*scaleX,h=image.naturalHeight*scaleY;
+ // 외곽선의 x/y 이동도 표시축 배율을 따라 원화와 같은 비율로 압축합니다.
+ for(const [dx,dy] of [[-1,-1],[1,-1],[-1,1],[1,1]])ctx.drawImage(sprite.ink,x+dx*display.x,y+dy*display.y,w,h);
  ctx.drawImage(sprite.color,x,y,w,h);
  ctx.restore();return true;
 }
